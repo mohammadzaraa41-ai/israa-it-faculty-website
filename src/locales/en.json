@@ -1,0 +1,38 @@
+{
+  "faculty_name": "Israa UN_IT",
+  "nav": {
+    "home": "Home",
+    "prospective": "Prospective Students",
+    "current": "Current Students",
+    "faculty": "Faculty & Staff",
+    "alumni": "Alumni",
+    "contact": "Contact Us",
+    "academics": "Academics ▾",
+    "campus": "Smart Campus ▾",
+    "portals": "Portals ▾",
+    "ai_advisor": "AI Major Predictor",
+    "virtual_tour": "Virtual Labs Tour",
+    "live_labs": "Live Labs Status",
+    "dev_network": "Developers Network",
+    "events": "Events & Hackathons",
+    "student_portal": "Student Portal",
+    "admin_dashboard": "Admin Dashboard",
+    "roadmap": "3D Roadmap",
+    "dev_sections": {
+      "leaderboard": "Leaderboard",
+      "honor_roll": "Honor Roll (GitHub)",
+      "competitions": "Coding Competitions",
+      "prizes": "Prizes",
+      "rank": "Rank",
+      "points": "Points",
+      "solved": "Challenges Solved",
+      "view_repo": "View Project"
+    }
+  },
+  "hero": {
+    "title": "Faculty of Information Technology",
+    "subtitle": "Israa University - Pioneers of Technology & the Future",
+    "cta": "Discover Our Majors",
+    "video_text": "Watch Your Journey"
+  }
+}

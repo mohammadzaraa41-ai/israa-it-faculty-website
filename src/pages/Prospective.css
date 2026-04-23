@@ -1,0 +1,247 @@
+.prospective-container {
+  padding: 4rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 100vh;
+}
+
+.prospective-hero {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.prospective-title {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-color) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.prospective-subtitle {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Four Pillars Grid */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-bottom: 6rem;
+}
+
+.pillar-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 2.5rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s ease;
+}
+
+.pillar-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--accent-color);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.pillar-card:hover::before {
+  opacity: 1;
+}
+
+.pillar-icon-box {
+  width: 80px;
+  height: 80px;
+  background: var(--primary-color);
+  border-radius: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--accent-color);
+  margin: 0 auto 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.pillar-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.pillar-desc {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.pillar-jobs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.job-tag {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  color: var(--accent-color);
+  font-weight: 600;
+}
+
+/* Steps Timeline */
+.steps-section {
+  margin-bottom: 6rem;
+  text-align: center;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+}
+
+.steps-timeline {
+  display: flex;
+  justify-content: space-between;
+  gap: 2rem;
+  position: relative;
+}
+
+.steps-timeline::after {
+  content: '';
+  position: absolute;
+  top: 40px;
+  left: 50px;
+  right: 50px;
+  height: 2px;
+  background: var(--border-color);
+  z-index: 1;
+}
+
+.step-item {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.step-number {
+  width: 80px;
+  height: 80px;
+  background: var(--bg-color-secondary);
+  border: 2px solid var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--accent-color);
+  margin-bottom: 1.5rem;
+  box-shadow: var(--shadow-glow);
+}
+
+.step-title {
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.step-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* CTA Section */
+.prospective-cta {
+  background: var(--primary-color);
+  border-radius: 32px;
+  padding: 4rem;
+  text-align: center;
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.cta-title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+}
+
+.cta-btn {
+  padding: 1.2rem 3rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-radius: 16px;
+  background: var(--accent-color);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: transform 0.3s;
+}
+
+.cta-btn:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-glow);
+}
+
+@media (max-width: 992px) {
+  .steps-timeline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3rem;
+    padding-left: 2rem;
+  }
+  
+  .steps-timeline::after {
+    left: 40px;
+    top: 40px;
+    bottom: 40px;
+    width: 2px;
+    height: auto;
+  }
+  
+  .step-item {
+    flex-direction: row;
+    gap: 2rem;
+    text-align: left;
+  }
+  
+  .step-number {
+    margin-bottom: 0;
+    flex-shrink: 0;
+  }
+
+  [dir='rtl'] .steps-timeline {
+    padding-left: 0;
+    padding-right: 2rem;
+  }
+  
+  [dir='rtl'] .steps-timeline::after {
+    left: auto;
+    right: 40px;
+  }
+  
+  [dir='rtl'] .step-item {
+    text-align: right;
+  }
+}

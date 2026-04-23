@@ -1,0 +1,44 @@
+:root {
+  /* Colors - Light Theme */
+  --bg-color: #f1f5f9;
+  --bg-color-secondary: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --primary-color: #051738; /* New Deep Circuit Blue */
+  --primary-light: #0A4489; /* Circuit Vibrant Blue */
+  --accent-color: #A1172C; /* New Logo Deep Red */
+  --accent-hover: #DD1C30; /* Bright Circuit Red */
+  --border-color: rgba(5, 23, 56, 0.1);
+  
+  --glass-bg: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-highlight: rgba(255, 255, 255, 0.8);
+  --shadow-sm: 0 4px 6px -1px rgba(5, 23, 56, 0.1);
+  --shadow-md: 0 10px 25px -5px rgba(5, 23, 56, 0.15);
+  --shadow-lg: 0 25px 50px -12px rgba(5, 23, 56, 0.25);
+  --shadow-glow: 0 0 20px rgba(161, 23, 44, 0.4);
+
+  --font-family: 'Cairo', 'Inter', system-ui, sans-serif;
+  --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --border-radius: 16px;
+}
+
+[data-theme='dark'] {
+  /* Colors - Dark Theme */
+  --bg-color: #070b14;
+  --bg-color-secondary: #0b1121;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --primary-color: #06193E; /* Dark Mode Blue */
+  --primary-light: #0D4FA3;
+  --accent-color: #DD1C30; /* Circuit Bright Red in Dark Mode */
+  --accent-hover: #FC3246;
+  --border-color: rgba(255, 255, 255, 0.05);
+  
+  --glass-bg: rgba(11, 17, 33, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.1);
+  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+  --shadow-glow: 0 0 30px rgba(221, 28, 48, 0.4);
+}
