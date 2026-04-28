@@ -3,6 +3,9 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Chatbot from './components/Chatbot';
 import AnimatedRoutes from './components/AnimatedRoutes';
+import { AdminProvider } from './contexts/AdminContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
 import './App.css';
 
 // Global Background Component that reacts to route changes
@@ -28,14 +31,20 @@ const GlobalBackground = () => {
 
 const App = () => {
   return (
-    <Router>
-      <GlobalBackground />
-      <Navbar />
-      <main className="main-content">
-        <AnimatedRoutes />
-      </main>
-      <Chatbot />
-    </Router>
+    <AuthProvider>
+      <DataProvider>
+        <AdminProvider>
+          <Router>
+            <GlobalBackground />
+            <Navbar />
+            <main className="main-content">
+              <AnimatedRoutes />
+            </main>
+            <Chatbot />
+          </Router>
+        </AdminProvider>
+      </DataProvider>
+    </AuthProvider>
   );
 };
 

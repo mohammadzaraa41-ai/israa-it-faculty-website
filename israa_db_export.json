@@ -1,0 +1,84 @@
+{
+  "departments": [
+    { "id": "cs", "name": { "ar": "علم الحاسوب", "en": "Computer Science" } },
+    { "id": "se", "name": { "ar": "هندسة البرمجيات", "en": "Software Engineering" } },
+    { "id": "cyber", "name": { "ar": "الأمن السيبراني", "en": "Cyber Security" } },
+    { "id": "dsai", "name": { "ar": "علم البيانات والذكاء الاصطناعي", "en": "Data Science & AI" } }
+  ],
+  "users": [
+    {
+      "id": "u1",
+      "username": "AE2551",
+      "password": "123",
+      "role": "SUPER_ADMIN",
+      "name": { "ar": "مدير النظام", "en": "System Admin" },
+      "departmentId": "cs",
+      "permissions": ["EDIT_ALL", "MANAGE_USERS"]
+    },
+    {
+      "id": "u2",
+      "username": "20240001",
+      "password": "123",
+      "role": "STUDENT",
+      "name": { "ar": "أحمد علي", "en": "Ahmed Ali" },
+      "departmentId": "se",
+      "isAlumni": false
+    }
+  ],
+  "facultyMembers": [
+    { 
+      "id": 1,
+      "name": "أ.د. أحمد محمد", 
+      "departmentId": "cs",
+      "role": "العميد", 
+      "specialization": "الذكاء الاصطناعي", 
+      "office": "مكتب العميد - الطابق الثاني", 
+      "officeHours": "الأحد والثلاثاء (10:00 - 12:00)" 
+    },
+    { 
+      "id": 2,
+      "name": "د. سارة عيسى", 
+      "departmentId": "se",
+      "role": "رئيس قسم", 
+      "specialization": "هندسة البرمجيات", 
+      "office": "مكتب 304 - الطابق الثالث", 
+      "officeHours": "الاثنين والأربعاء (09:00 - 11:00)" 
+    }
+  ],
+  "offeredCourses": [
+    { 
+      "id": 1,
+      "title": "معسكر تطوير واجهات الويب (React)", 
+      "hours": "40 ساعة", 
+      "instructorId": 1,
+      "state": "متاح للتسجيل" 
+    },
+    { 
+      "id": 2,
+      "title": "دورة الأمن السيبراني المتقدم", 
+      "hours": "30 ساعة", 
+      "instructorId": 2,
+      "state": "متاح للتسجيل" 
+    }
+  ],
+  "projectBank": [
+    { 
+      "id": 1,
+      "name": { "ar": "نظام إدارة المستشفيات الذكي", "en": "Smart Hospital Management" }, 
+      "studentIds": ["u2"],
+      "supervisorId": 2,
+      "rating": 4.5,
+      "images": ["https://placehold.co/600x400?text=Project+1"],
+      "notes": { "ar": "مشروع متميز جداً.", "en": "Excellent project." }
+    }
+  ],
+  "alumniRequests": [],
+  "studentTips": [
+    { "id": 1, "text": "نصيحة 1..." },
+    { "id": 2, "text": "نصيحة 2..." }
+  ],
+  "quests": [
+    { "id": 1, "title": "مهمة 1", "xp": 50 },
+    { "id": 2, "title": "مهمة 2", "xp": 100 }
+  ]
+}

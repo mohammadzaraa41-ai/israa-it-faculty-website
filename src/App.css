@@ -71,7 +71,7 @@
 }
 
 .main-content {
-  margin-right: 0;
+  margin-right: 320px; /* Leave space for the 280px sidebar + padding */
   position: relative;
   overflow-x: hidden; /* prevent scrollbar flash during slide transitions */
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -291,41 +291,7 @@
 }
 
 .global-page-bg.bg-alumni {
-  background: #050505 !important;
-  position: relative;
-}
-.global-page-bg.bg-alumni::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(rgba(244, 180, 26, 0.1) 1px, transparent 1px),
-                    linear-gradient(90deg, rgba(244, 180, 26, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  pointer-events: none;
-}
-.global-page-bg.bg-alumni::after {
-  content: '01010101 10101010 01100110 11001100 10101010 01010101 11001100 00110011 10101010 01010101';
-  position: absolute;
-  inset: -100%;
-  font-family: 'Courier New', monospace;
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: rgba(244, 180, 26, 0.12);
-  line-height: 1.2;
-  letter-spacing: 4px;
-  text-shadow: 0 0 10px rgba(244, 180, 26, 0.3);
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  overflow: hidden;
-  animation: binaryRain 30s linear infinite;
-  mask-image: radial-gradient(circle at center, black, transparent 80%);
-  pointer-events: none;
-}
-
-@keyframes binaryRain {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(20%); }
+  background: var(--bg-color);
 }
 
 
