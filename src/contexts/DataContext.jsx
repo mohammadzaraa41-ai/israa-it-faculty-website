@@ -21,27 +21,27 @@ export const DataProvider = ({ children }) => {
   // Alumni & Career
   const [gradTemplates, setGradTemplates] = useState(() => {
     const saved = localStorage.getItem('db_grad_templates');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.alumni.templates;
+    return saved ? JSON.parse(saved) : DB_SCHEMA.gradTemplates;
   });
 
   const [projectBank, setProjectBank] = useState(() => {
     const saved = localStorage.getItem('db_projects');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.alumni.projectBank;
+    return saved ? JSON.parse(saved) : DB_SCHEMA.projectBank;
   });
 
   const [cvTemplates, setCvTemplates] = useState(() => {
     const saved = localStorage.getItem('db_cvs');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.alumni.careerReadiness.cvTemplates;
+    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.cvTemplates;
   });
 
   const [interviewResources, setInterviewResources] = useState(() => {
     const saved = localStorage.getItem('db_interviews');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.alumni.careerReadiness.interviews;
+    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.interviews;
   });
 
   const [linkedinTips, setLinkedinTips] = useState(() => {
     const saved = localStorage.getItem('db_linkedin');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.alumni.careerReadiness.linkedinTips;
+    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.linkedinTips;
   });
 
   const [facultyMembers, setFacultyMembers] = useState(() => {

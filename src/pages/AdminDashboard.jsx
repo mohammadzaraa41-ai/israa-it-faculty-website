@@ -60,8 +60,6 @@ const AdminDashboard = () => {
     { id: 'users', label: lang === 'ar' ? 'إدارة الحسابات' : 'User Accounts', icon: <Users size={20} /> }
   ];
 
-  const { posts, approvePost, rejectPost, deletePost, pendingPosts, announcements, updateAnnouncement } = useAdmin();
-
   return (
     <div style={{ padding: '2rem', maxWidth: '1280px', margin: '0 auto', minHeight: '80vh' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>

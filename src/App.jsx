@@ -11,22 +11,42 @@ import './App.css';
 // Global Background Component that reacts to route changes
 const GlobalBackground = () => {
   const location = useLocation();
+  const [bgStyle, setBgStyle] = useState({});
   const [bgClass, setBgClass] = useState('bg-home');
 
   useEffect(() => {
     const path = location.pathname;
     let currentClass = 'bg-home';
-    if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
+    let currentStyle = {};
+    
+    if (path === '/' || path === '') {
+      currentClass = 'bg-home';
+      currentStyle = {
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('/home-bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      };
+    } else if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
     else if (path === '/current' || path === '/roadmap' || path === '/events') currentClass = 'bg-current';
-    else if (path === '/faculty' || path === '/live-labs') currentClass = 'bg-faculty';
+    else if (path === '/faculty' || path === '/live-labs') {
+      currentClass = 'bg-faculty';
+      currentStyle = {
+        backgroundImage: `linear-gradient(rgba(5, 23, 56, 0.7), rgba(5, 23, 56, 0.9)), url('/faculty-bg.jpg')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      };
+    }
     else if (path === '/alumni') currentClass = 'bg-alumni';
     else if (path === '/contact') currentClass = 'bg-contact';
     else if (path === '/ai-advisor' || path === '/dev-network') currentClass = 'bg-ai-advisor';
     
     setBgClass(currentClass);
+    setBgStyle(currentStyle);
   }, [location.pathname]);
 
-  return <div className={`global-page-bg ${bgClass}`} />;
+  return <div className={`global-page-bg ${bgClass}`} style={bgStyle} />;
 };
 
 const App = () => {

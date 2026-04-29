@@ -6,7 +6,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { useNavigate } from 'react-router-dom';
 import { Moon, Sun, Menu, X, Globe, ChevronDown, ChevronUp, PlayCircle, ArrowRight, ArrowLeft, User, Lock, Eye, EyeOff, Phone, Calendar, GraduationCap, Clock, BookOpen, UserCheck, LogOut } from 'lucide-react';
-import logoUrl from '../assets/WhatsApp Image 2026-04-20 at 10.05.30 PM.jpeg';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Navbar.css';
 import MajorsShowcase from './MajorsShowcase';
@@ -161,7 +160,7 @@ const Navbar = () => {
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
             <div className="sidebar-logo clickable-logo" onClick={() => { setActiveTab('login'); toggleLogin(true); }}>
-              <img src={logoUrl} alt="Logo" className="logo-img" />
+              <img src="/hero.png" alt="Logo" className="logo-img" />
               <div className="logo-info">
                 <span className="logo-text">{t('faculty_name')}</span>
                 {user && (

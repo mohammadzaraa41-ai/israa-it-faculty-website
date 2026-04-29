@@ -242,10 +242,11 @@
 
 .global-page-bg.bg-home {
   background: 
-    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
-    url('./assets/WhatsApp Image 2026-04-20 at 10.29.04 PM.jpeg');
+    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.8)),
+    url('/home-bg.jpg');
   background-size: cover;
   background-position: center;
+  filter: saturate(1.1) brightness(0.9);
 }
 
 .global-page-bg.bg-prospective {
@@ -281,13 +282,11 @@
 }
 
 .global-page-bg.bg-faculty {
-  background: #05080f;
-}
-.global-page-bg.bg-faculty::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 20px);
+  background: 
+    linear-gradient(rgba(5, 23, 56, 0.7), rgba(5, 23, 56, 0.9)),
+    url('/faculty-bg.jpg');
+  background-size: cover;
+  background-position: center;
 }
 
 .global-page-bg.bg-alumni {

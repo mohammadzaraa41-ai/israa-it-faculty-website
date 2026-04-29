@@ -101,7 +101,24 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- OTHER STATIC TABLES ---
+  // --- TABLE: ROADMAP ---
+  roadmap: [
+    { id: 1, title: { ar: 'السنة الأولى', en: 'Year 1' }, description: { ar: 'أساسيات البرمجة', en: 'Programming Basics' } }
+  ],
+
+  // --- TABLE: FACULTY_INFO ---
+  facultyInfo: {
+    deanMessage: { ar: 'رسالة العميد...', en: "Dean's Message..." }
+  },
+
+  // --- ALUMNI CAREER READINESS ---
+  careerReadiness: {
+    cvTemplates: [],
+    interviews: [],
+    linkedinTips: []
+  },
+
+  // --- EXISTING DATA ---
   studentTips: [
     { id: 1, text: 'نصيحة 1...' },
     { id: 2, text: 'نصيحة 2...' }
