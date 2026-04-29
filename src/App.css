@@ -242,10 +242,11 @@
 
 .global-page-bg.bg-home {
   background: 
-    radial-gradient(circle at 50% 50%, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.8)),
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)),
     url('/main-bg.jpg');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
   filter: saturate(1.1) brightness(0.9);
 }
 
@@ -283,10 +284,11 @@
 
 .global-page-bg.bg-faculty {
   background: 
-    linear-gradient(rgba(5, 23, 56, 0.7), rgba(5, 23, 56, 0.9)),
+    linear-gradient(rgba(5, 23, 56, 0.75), rgba(5, 23, 56, 0.9)),
     url('/faculty-bg.jpg');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
 }
 
 .global-page-bg.bg-alumni {
