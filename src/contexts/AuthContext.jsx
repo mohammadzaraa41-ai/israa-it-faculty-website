@@ -190,11 +190,11 @@ export const AuthProvider = ({ children }) => {
       // 2. Delete the request
       const { error: reqErr } = await supabase.from('alumni_requests').delete().eq('id', requestId);
       
-      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true } : u));
+      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true, is_alumni: true } : u));
       setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
       
       if (user?.id === req.userId) {
-        const updatedUser = { ...user, isAlumni: true };
+        const updatedUser = { ...user, isAlumni: true, is_alumni: true };
         setUser(updatedUser);
         localStorage.setItem('site_user', JSON.stringify(updatedUser));
       }

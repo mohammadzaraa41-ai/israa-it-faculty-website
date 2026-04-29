@@ -36,7 +36,7 @@ const Alumni = () => {
   
   // Check if current student has a pending or approved request
   const myAlumniRequest = alumniRequests?.find(r => r.userId === user?.id);
-  const isApprovedAlumni = user?.isAlumni || user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isApprovedAlumni = user?.is_alumni || user?.isAlumni || user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
   const hasPendingRequest = myAlumniRequest && !isApprovedAlumni;
 
   const { 
