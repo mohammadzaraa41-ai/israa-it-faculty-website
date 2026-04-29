@@ -10,13 +10,13 @@ export const DataProvider = ({ children }) => {
   const [roadmap, setRoadmap] = useState(DB_SCHEMA.roadmap);
   const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
   const [projectBank, setProjectBank] = useState([]);
-  const [cvTemplates, setCvTemplates] = useState([]);
-  const [interviewResources, setInterviewResources] = useState([]);
-  const [linkedinTips, setLinkedinTips] = useState([]);
+  const [cvTemplates, setCvTemplates] = useState(DB_SCHEMA.careerReadiness.cvTemplates);
+  const [interviewResources, setInterviewResources] = useState(DB_SCHEMA.careerReadiness.interviews);
+  const [linkedinTips, setLinkedinTips] = useState(DB_SCHEMA.careerReadiness.linkedinTips);
   const [facultyMembers, setFacultyMembers] = useState([]);
   const [offeredCourses, setOfferedCourses] = useState([]);
-  const [studentTips, setStudentTips] = useState([]);
-  const [quests, setQuests] = useState([]);
+  const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
+  const [quests, setQuests] = useState(DB_SCHEMA.quests);
   const [loading, setLoading] = useState(true);
 
   // --- FETCH DATA FROM SUPABASE ---
@@ -49,17 +49,8 @@ export const DataProvider = ({ children }) => {
       }
     };
 
-  // Roadmap
-  const [roadmap, setRoadmap] = useState(DB_SCHEMA.roadmap);
-
-  // Alumni & Career
-  const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
-  const [cvTemplates, setCvTemplates] = useState(DB_SCHEMA.careerReadiness.cvTemplates);
-  const [interviewResources, setInterviewResources] = useState(DB_SCHEMA.careerReadiness.interviews);
-  const [linkedinTips, setLinkedinTips] = useState(DB_SCHEMA.careerReadiness.linkedinTips);
-
-  const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
-  const [quests, setQuests] = useState(DB_SCHEMA.quests);
+    fetchAllData();
+  }, []);
 
   // Persistence (only for non-Supabase data if needed)
   useEffect(() => {
