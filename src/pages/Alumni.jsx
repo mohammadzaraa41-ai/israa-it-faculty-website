@@ -36,6 +36,25 @@ const Alumni = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isForcedApproved, setIsForcedApproved] = useState(false);
   const [checkingAccess, setCheckingAccess] = useState(true);
+
+  const { 
+    gradTemplates, addGradTemplate, deleteGradTemplate, editGradTemplate,
+    projectBank, addProject, deleteProject,
+    cvTemplates, addCvTemplate, deleteCvTemplate,
+    interviewResources, addInterviewResource, deleteInterviewResource,
+    linkedinTips, addLinkedinTip, deleteLinkedinTip
+  } = useAdmin();
+  
+  const [activeTab, setActiveTab] = useState('projects');
+  const [activeModal, setActiveModal] = useState(null);
+  const [modalData, setModalData] = useState({});
+  const [requestForm, setRequestForm] = useState({ hours: '', scheduleImage: null });
+  const [scheduleFile, setScheduleFile] = useState(null);
+  const [requestSent, setRequestSent] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef(null);
+  const cvFileInputRef = React.useRef(null);
+  const scheduleRef = React.useRef(null);
   
   const checkDirectAccess = async () => {
     if (!user) {
@@ -163,24 +182,7 @@ const Alumni = () => {
     hasPendingRequest 
   });
 
-  const { 
-    gradTemplates, addGradTemplate, deleteGradTemplate, editGradTemplate,
-    projectBank, addProject, deleteProject,
-    cvTemplates, addCvTemplate, deleteCvTemplate,
-    interviewResources, addInterviewResource, deleteInterviewResource,
-    linkedinTips, addLinkedinTip, deleteLinkedinTip
-  } = useAdmin();
-  
-  const [activeTab, setActiveTab] = useState('projects');
-  const [activeModal, setActiveModal] = useState(null); // 'template', 'cv', 'interview', 'linkedin'
-  const [modalData, setModalData] = useState({});
-  const [requestForm, setRequestForm] = useState({ hours: '', scheduleImage: null });
-  const [scheduleFile, setScheduleFile] = useState(null);
-  const [requestSent, setRequestSent] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const fileInputRef = React.useRef(null);
-  const cvFileInputRef = React.useRef(null);
-  const scheduleRef = React.useRef(null);
+  // Hooks moved to top
 
   const handleScheduleUpload = (e) => {
     const file = e.target.files[0];
