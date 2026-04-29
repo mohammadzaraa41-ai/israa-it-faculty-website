@@ -73,17 +73,21 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Attempting login for:", cleanUsername);
       
-      // DEBUG: Let's see ALL users in the table to verify connection
-      const { data: allUsers, error: fetchAllError } = await supabase.from('users').select('*');
-      console.log("All users currently in DB:", allUsers);
-      if (fetchAllError) console.error("Fetch all error:", fetchAllError);
-
-      const { data, error } = await supabase
+      // Fetch the first user that matches the username
+      const { data: usersFound, error: fetchError } = await supabase
         .from('users')
         .select('*')
         .ilike('username', cleanUsername)
         .eq('password', cleanPassword)
-        .maybeSingle();
+        .limit(1);
+      
+      if (fetchError) {
+        console.error("Supabase Login Error:", fetchError);
+        return { success: false, message: 'خطأ في الاتصال: ' + fetchError.message };
+      }
+
+      const data = usersFound && usersFound.length > 0 ? usersFound[0] : null;
+      console.log("Login query result:", data);
       
       if (error) {
         console.error("Supabase Login Error:", error);
