@@ -256,13 +256,19 @@ const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang }) => {
             </div>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 
-                onClick={() => approveUser(reg.id)}
+                onClick={async () => {
+                  const success = await approveUser(reg.id);
+                  if (!success) alert(lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user');
+                }}
                 style={{ padding: '0.5rem 1rem', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
               >
                 <Check size={18} /> {lang === 'ar' ? 'موافقة' : 'Approve'}
               </button>
               <button 
-                onClick={() => rejectUser(reg.id)}
+                onClick={async () => {
+                  const success = await rejectUser(reg.id);
+                  if (!success) alert(lang === 'ar' ? 'فشل رفض المستخدم' : 'Failed to reject user');
+                }}
                 style={{ padding: '0.5rem 1rem', background: '#e74c3c', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
               >
                 <X size={18} /> {lang === 'ar' ? 'رفض' : 'Reject'}
@@ -536,17 +542,22 @@ const RegisterUser = ({ registerUserDirectly, lang }) => {
     departmentId: 'cs'
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    registerUserDirectly({ 
+    const result = await registerUserDirectly({ 
       username: formData.username,
       password: formData.password,
       role: formData.role,
       name: { ar: formData.nameAr, en: formData.nameEn },
       departmentId: formData.departmentId
     });
-    setFormData({ username: '', password: '', role: 'STUDENT', nameAr: '', nameEn: '', departmentId: 'cs' });
-    alert(lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account created successfully');
+    
+    if (result.success) {
+      setFormData({ username: '', password: '', role: 'STUDENT', nameAr: '', nameEn: '', departmentId: 'cs' });
+      alert(lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account created successfully');
+    } else {
+      alert(lang === 'ar' ? 'خطأ في إنشاء الحساب: ' + result.message : 'Error: ' + result.message);
+    }
   };
 
   return (
@@ -702,7 +713,11 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser })
 
               <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
                 <button 
-                  onClick={() => deleteUser(u.id)}
+                  onClick={async () => {
+                    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا الحساب؟' : 'Are you sure you want to delete this account?')) {
+                      await deleteUser(u.id);
+                    }
+                  }}
                   className="btn-outline" 
                   style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', borderColor: '#e74c3c33', color: '#e74c3c' }}
                 >

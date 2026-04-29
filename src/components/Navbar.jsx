@@ -61,14 +61,14 @@ const Navbar = () => {
     }
   };
 
-  const handleRegisterSubmit = (e) => {
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     if (regData.password !== regData.confirmPassword) {
       alert(lang === 'ar' ? 'كلمات المرور غير متطابقة' : 'Passwords do not match');
       return;
     }
     
-    const result = registerRequest(regData);
+    const result = await registerRequest(regData);
     if (result.success) {
       setRegistrationSuccess(true);
       setTimeout(() => {
@@ -76,6 +76,8 @@ const Navbar = () => {
         toggleLogin(false);
         setRegData({ fullName: '', phone: '', universityId: '', dob: '', major: '', yearSem: '', hours: '', password: '', confirmPassword: '' });
       }, 5000);
+    } else {
+      alert(lang === 'ar' ? 'حدث خطأ أثناء التسجيل: ' + result.message : 'Error during registration: ' + result.message);
     }
   };
 
