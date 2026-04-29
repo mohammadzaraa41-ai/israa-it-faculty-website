@@ -71,20 +71,35 @@ export const AuthProvider = ({ children }) => {
       const cleanUsername = username.trim();
       const cleanPassword = password.trim();
 
+      console.log("Attempting login for:", cleanUsername);
+      
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .ilike('username', cleanUsername) // Case-insensitive matching
+        .ilike('username', cleanUsername)
         .eq('password', cleanPassword)
-        .maybeSingle(); // Returns null if not found instead of error
+        .maybeSingle();
       
       if (error) {
-        console.error("Login DB error:", error);
-        return { success: false, message: 'خطأ في الاتصال بقاعدة البيانات' };
+        console.error("Supabase Login Error:", error);
+        return { success: false, message: 'خطأ في الاتصال: ' + error.message };
       }
 
+      console.log("Login query result:", data);
+
       if (!data) {
-        return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+        // Let's check if the user exists at all without checking password
+        const { count } = await supabase
+          .from('users')
+          .select('*', { count: 'exact', head: true })
+          .ilike('username', cleanUsername);
+        
+        console.log("User existence check (count):", count);
+        
+        if (count === 0) {
+          return { success: false, message: 'اسم المستخدم غير موجود في النظام' };
+        }
+        return { success: false, message: 'كلمة المرور غير صحيحة' };
       }
 
       const loggedUser = { 
