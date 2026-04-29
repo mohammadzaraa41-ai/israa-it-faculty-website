@@ -59,22 +59,81 @@ export const DataProvider = ({ children }) => {
   }, [roadmap, gradTemplates, cvTemplates, interviewResources, linkedinTips, studentTips, quests]);
 
   // --- CRUD OPERATIONS ---
-  const addCourse = (c) => setOfferedCourses(prev => [...prev, { ...c, id: Date.now() }]);
-  const deleteCourse = (id) => setOfferedCourses(prev => prev.filter(c => c.id !== id));
+  const addCourse = async (c) => {
+    const newCourse = {
+      title: c.title,
+      hours: c.hours,
+      instructor_id: c.instructorId || c.instructor_id,
+      state: c.state
+    };
+    const { data, error } = await supabase.from('offered_courses').insert([newCourse]).select();
+    if (data) setOfferedCourses(prev => [...prev, data[0]]);
+  };
+
+  const deleteCourse = async (id) => {
+    const { error } = await supabase.from('offered_courses').delete().eq('id', id);
+    if (!error) setOfferedCourses(prev => prev.filter(c => c.id !== id));
+  };
   
   const addTip = (t) => setStudentTips(prev => [...prev, { ...t, id: Date.now() }]);
   const deleteTip = (id) => setStudentTips(prev => prev.filter(t => t.id !== id));
 
   const addQuest = (q) => setQuests(prev => [...prev, { ...q, id: Date.now() }]);
   const deleteQuest = (id) => setQuests(prev => prev.filter(q => q.id !== id));
-  const addFaculty = (member) => setFacultyMembers(prev => [...prev, { ...member, id: Date.now() }]);
-  const editFaculty = (updated) => setFacultyMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
-  const deleteFaculty = (id) => setFacultyMembers(prev => prev.filter(m => m.id !== id));
+
+  const addFaculty = async (member) => {
+    const newMember = {
+      name: member.name,
+      department_id: member.departmentId || member.department_id,
+      role: member.role,
+      specialization: member.specialization,
+      office: member.office,
+      office_hours: member.officeHours || member.office_hours
+    };
+    const { data, error } = await supabase.from('faculty_members').insert([newMember]).select();
+    if (data) setFacultyMembers(prev => [...prev, data[0]]);
+  };
+
+  const editFaculty = async (updated) => {
+    const dbData = {
+      name: updated.name,
+      department_id: updated.departmentId || updated.department_id,
+      role: updated.role,
+      specialization: updated.specialization,
+      office: updated.office,
+      office_hours: updated.officeHours || updated.office_hours
+    };
+    const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updated.id);
+    if (!error) setFacultyMembers(prev => prev.map(m => m.id === updated.id ? updated : m));
+  };
+
+  const deleteFaculty = async (id) => {
+    const { error } = await supabase.from('faculty_members').delete().eq('id', id);
+    if (!error) setFacultyMembers(prev => prev.filter(m => m.id !== id));
+  };
   
   const updateFaculty = (newData) => setFacultyData(prev => ({ ...prev, ...newData }));
   
-  const addProject = (project) => setProjectBank(prev => [...prev, { ...project, id: Date.now() }]);
-  const deleteProject = (id) => setProjectBank(prev => prev.filter(p => p.id !== id));
+  const addProject = async (project) => {
+    const newProject = {
+      name_ar: project.name?.ar || project.name_ar,
+      name_en: project.name?.en || project.name_en,
+      supervisor_id: project.supervisorId || project.supervisor_id,
+      rating: project.rating || 0,
+      notes_ar: project.notes?.ar || project.notes_ar
+    };
+    const { data, error } = await supabase.from('project_bank').insert([newProject]).select();
+    if (data) setProjectBank(prev => [...prev, {
+      ...data[0],
+      name: { ar: data[0].name_ar, en: data[0].name_en },
+      notes: { ar: data[0].notes_ar, en: '' }
+    }]);
+  };
+
+  const deleteProject = async (id) => {
+    const { error } = await supabase.from('project_bank').delete().eq('id', id);
+    if (!error) setProjectBank(prev => prev.filter(p => p.id !== id));
+  };
 
   const addGradTemplate = (t) => setGradTemplates(prev => [...prev, { ...t, id: Date.now() }]);
   const deleteGradTemplate = (id) => setGradTemplates(prev => prev.filter(t => t.id !== id));

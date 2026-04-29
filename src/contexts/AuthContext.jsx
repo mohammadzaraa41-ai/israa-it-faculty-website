@@ -126,35 +126,64 @@ export const AuthProvider = ({ children }) => {
     setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
   };
 
-  const registerUserDirectly = (userData) => {
+  const registerUserDirectly = async (userData) => {
     const newUser = {
-      ...userData,
       id: 'u' + Date.now(),
-      status: 'active',
-      permissions: userData.role === 'SUPER_ADMIN' || userData.role === 'DEAN' 
-        ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
-        : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
+      username: userData.username,
+      password: userData.password,
+      role: userData.role,
+      name_ar: userData.name?.ar || userData.nameAr,
+      name_en: userData.name?.en || userData.nameEn,
+      department_id: userData.departmentId,
+      is_alumni: false
     };
-    setUsers(prev => [...prev, newUser]);
-    return { success: true };
+
+    const { error } = await supabase.from('users').insert([newUser]);
+    if (!error) {
+      setUsers(prev => [...prev, { 
+        ...newUser, 
+        name: { ar: newUser.name_ar, en: newUser.name_en } 
+      }]);
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
-  const deleteUser = (userId) => {
-    setUsers(prev => prev.filter(u => u.id !== userId));
+  const deleteUser = async (userId) => {
+    const { error } = await supabase.from('users').delete().eq('id', userId);
+    if (!error) {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
-  const updateUserRole = (userId, newRole) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { 
-      ...u, 
-      role: newRole,
-      permissions: newRole === 'SUPER_ADMIN' || newRole === 'DEAN' 
-        ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
-        : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
-    } : u));
+  const updateUserRole = async (userId, newRole) => {
+    const { error } = await supabase.from('users').update({ role: newRole }).eq('id', userId);
+    if (!error) {
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
-  const updateUser = (userId, updatedData) => {
-    setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedData } : u));
+  const updateUser = async (userId, updatedData) => {
+    const dbData = {
+      username: updatedData.username,
+      password: updatedData.password,
+      name_ar: updatedData.name?.ar,
+      name_en: updatedData.name?.en,
+      department_id: updatedData.departmentId
+    };
+    // Remove undefined fields
+    Object.keys(dbData).forEach(key => dbData[key] === undefined && delete dbData[key]);
+
+    const { error } = await supabase.from('users').update(dbData).eq('id', userId);
+    if (!error) {
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, ...updatedData } : u));
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
   const logout = () => {
