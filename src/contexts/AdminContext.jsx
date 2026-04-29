@@ -19,10 +19,39 @@ export const AdminProvider = ({ children }) => {
   const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
   const [quests, setQuests] = useState(DB_SCHEMA.quests);
   const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
-  const [projectBank, setProjectBank] = useState([]);
-  const [cvTemplates, setCvTemplates] = useState([]);
-  const [interviewResources, setInterviewResources] = useState([]);
-  const [linkedinTips, setLinkedinTips] = useState([]);
+  const [projectBank, setProjectBank] = useState([
+    {
+      id: 'p1',
+      name: { ar: "نظام إدارة الكلية الذكي", en: "Smart Faculty Management System" },
+      supervisor: "د. محمد علي",
+      rating: 5,
+      students: ["أحمد خالد", "سارة محمود"],
+      notes: { ar: "مشروع متميز يستخدم تقنيات الذكاء الاصطناعي لتنظيم الجداول", en: "Excellent project using AI for schedule organization" },
+      files: [{ name: "Project_Documentation.pdf", url: "#" }],
+      images: ["https://images.unsplash.com/photo-1517694712202-14dd9538aa97"]
+    },
+    {
+      id: 'p2',
+      name: { ar: "تطبيق التوعية بالأمن السيبراني", en: "Cyber Security Awareness App" },
+      supervisor: "د. ريم أحمد",
+      rating: 4.5,
+      students: ["ياسين عمر", "ليلى حسن"],
+      notes: { ar: "تطبيق موبايل يهدف لزيادة الوعي الأمني لدى الطلاب", en: "Mobile app aimed at increasing security awareness among students" },
+      files: [{ name: "App_Architecture.pdf", url: "#" }],
+      images: ["https://images.unsplash.com/photo-1550751827-4bd374c3f58b"]
+    }
+  ]);
+  const [cvTemplates, setCvTemplates] = useState([
+    { id: 'cv1', name: { ar: "نموذج سيرة ذاتية - مطور ويب", en: "Web Developer CV Template" }, url: "#", type: "docx" },
+    { id: 'cv2', name: { ar: "نموذج سيرة ذاتية - أمن سيبراني", en: "Cyber Security CV Template" }, url: "#", type: "pdf" }
+  ]);
+  const [interviewResources, setInterviewResources] = useState([
+    { id: 'ir1', title: { ar: "أسئلة مقابلات الجافا سكريبت الشائعة", en: "Common JS Interview Questions" }, url: "#" },
+    { id: 'ir2', title: { ar: "كيف تستعد لمقابلة العمل التقنية", en: "Preparing for Technical Interviews" }, url: "#" }
+  ]);
+  const [linkedinTips, setLinkedinTips] = useState([
+    { id: 'li1', text: { ar: "كيف تجعل ملفك الشخصي جذاباً للموظفين", en: "How to make your profile attractive to recruiters" } }
+  ]);
 
   // Social Feed & Announcements
   const [posts, setPosts] = useState([]);
@@ -35,44 +64,56 @@ export const AdminProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH SOCIAL FEED FROM SUPABASE ---
-  useEffect(() => {
-    const fetchSocialData = async () => {
-      try {
-        const [
-          { data: postsData },
-          { data: commentsData },
-          { data: pendingData }
-        ] = await Promise.all([
-          supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
-          supabase.from('comments').select('*').order('created_at', { ascending: true }),
-          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-        ]);
+  // --- FETCH SOCIAL FEED FROM SUPABASE & SETUP REALTIME ---
+  const fetchSocialData = async () => {
+    try {
+      const [
+        { data: postsData },
+        { data: commentsData },
+        { data: pendingData }
+      ] = await Promise.all([
+        supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
+        supabase.from('comments').select('*').order('created_at', { ascending: true }),
+        supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+      ]);
 
-        if (postsData) {
-          const processedPosts = postsData.map(p => ({
-            ...p,
-            author: { name: p.author_name, role: p.author_role },
-            date: new Date(p.created_at).toLocaleDateString('en-GB'),
-            comments: commentsData ? commentsData.filter(c => c.post_id === p.id) : []
-          }));
-          setPosts(processedPosts);
-        }
-
-        if (pendingData) {
-          setPendingPosts(pendingData.map(p => ({
-            ...p,
-            author: { name: p.author_name, role: p.author_role },
-            date: new Date(p.created_at).toLocaleDateString('en-GB'),
-            comments: []
-          })));
-        }
-      } catch (err) {
-        console.error("Error fetching social feed:", err);
+      if (postsData) {
+        const processedPosts = postsData.map(p => ({
+          ...p,
+          author: { name: p.author_name, role: p.author_role },
+          date: new Date(p.created_at).toLocaleDateString('en-GB'),
+          comments: commentsData ? commentsData.filter(c => c.post_id === p.id) : []
+        }));
+        setPosts(processedPosts);
       }
-      setLoading(false);
-    };
+
+      if (pendingData) {
+        setPendingPosts(pendingData.map(p => ({
+          ...p,
+          author: { name: p.author_name, role: p.author_role },
+          date: new Date(p.created_at).toLocaleDateString('en-GB'),
+          comments: []
+        })));
+      }
+    } catch (err) {
+      console.error("Error fetching social feed:", err);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
     fetchSocialData();
+
+    // Real-time subscription for social feed
+    const socialChannel = supabase
+      .channel('social-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => fetchSocialData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => fetchSocialData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(socialChannel);
+    };
   }, []);
 
   // Persistence (Fallback for non-DB entities)

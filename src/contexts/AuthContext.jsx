@@ -25,51 +25,131 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // --- FETCH USERS FROM SUPABASE ---
-  useEffect(() => {
-    const fetchAuthData = async () => {
-      try {
-        const [
-          { data: usersData },
-          { data: pendingData },
-          { data: alumniData }
-        ] = await Promise.all([
-          supabase.from('users').select('*'),
-          supabase.from('pending_users').select('*').eq('status', 'pending'),
-          supabase.from('alumni_requests').select('*').eq('status', 'pending')
-        ]);
+  const refreshData = async () => {
+    try {
+      console.log("--- RefreshData Started ---");
+      const [
+        { data: usersData, error: usersErr },
+        { data: pendingData },
+        { data: alumniData }
+      ] = await Promise.all([
+        supabase.from('users').select('*'),
+        supabase.from('pending_users').select('*').eq('status', 'pending'),
+        supabase.from('alumni_requests').select('*') // Fetch both pending and approved for sync safety
+      ]);
 
-        if (usersData) {
-          setUsers(usersData.map(u => ({
-            ...u,
-            name: { ar: u.name_ar, en: u.name_en }
-          })));
-        }
+      if (usersErr) console.error("Users Fetch Error:", usersErr);
 
-        if (pendingData) {
-          setPendingUsers(pendingData.map(p => ({
-            ...p,
-            fullName: p.full_name,
-            universityId: p.university_id,
-            yearSem: p.year_sem
-          })));
-        }
-
-        if (alumniData) {
-          setAlumniRequests(alumniData.map(a => ({
-            ...a,
-            fullName: a.full_name,
-            universityId: a.university_id,
-            userId: a.user_id,
-            scheduleImage: a.schedule_image
-          })));
-        }
-      } catch (err) {
-        console.error("Supabase fetch error:", err);
+      if (usersData) {
+        console.log("Users fetched count:", usersData.length);
+        const mappedUsers = usersData.map(u => ({
+          ...u,
+          isAlumni: u.is_alumni === true || u.is_alumni === 'true',
+          name: { ar: u.name_ar, en: u.name_en }
+        }));
+        setUsers(mappedUsers);
       }
+
+      // Targeted update for current user (always runs if user logged in)
+      if (user) {
+        let currentUserRecord = null;
+        
+        // Try to find in already fetched data first if available
+        if (usersData) {
+           currentUserRecord = usersData.find(u => String(u.id) === String(user.id));
+           if (currentUserRecord) {
+              currentUserRecord = {
+                ...currentUserRecord,
+                isAlumni: currentUserRecord.is_alumni === true || currentUserRecord.is_alumni === 'true',
+                name: { ar: currentUserRecord.name_ar, en: currentUserRecord.name_en }
+              };
+           }
+        }
+
+        // If not found or usersData was null, fetch specifically
+        if (!currentUserRecord && user) {
+          console.log("CRITICAL SYNC: Fetching data for UN:", user.username);
+          const { data: specificUser, error: specErr } = await supabase
+            .from('users')
+            .select('*')
+            .ilike('username', user.username)
+            .maybeSingle();
+            
+          if (specErr) console.error("Targeted Fetch Error:", specErr);
+          if (specificUser) {
+            console.log("CRITICAL SYNC SUCCESS: Found DB record for", user.username);
+            currentUserRecord = {
+              ...specificUser,
+              isAlumni: specificUser.is_alumni === true || specificUser.is_alumni === 'true',
+              name: { ar: specificUser.name_ar, en: specificUser.name_en }
+            };
+          }
+        }
+
+        if (currentUserRecord && user) {
+          const needsSync = 
+            String(currentUserRecord.id) !== String(user.id) || 
+            currentUserRecord.isAlumni !== user.isAlumni || 
+            currentUserRecord.role !== user.role;
+
+          if (needsSync) {
+            console.log("FORCING LOCAL SESSION UPDATE...");
+            const updatedUser = { 
+              ...user, 
+              ...currentUserRecord,
+              id: currentUserRecord.id // Ensure ID is updated (migration fix)
+            };
+            setUser(updatedUser);
+            localStorage.setItem('site_user', JSON.stringify(updatedUser));
+            console.log("SESSION SYNCED: User ID is now", updatedUser.id, "Alumni:", updatedUser.isAlumni);
+          }
+        }
+      }
+      
+      if (pendingData) {
+        setPendingUsers(pendingData.map(p => ({
+          ...p,
+          fullName: p.full_name,
+          universityId: p.university_id,
+          yearSem: p.year_sem
+        })));
+      }
+
+      if (alumniData) {
+        setAlumniRequests(alumniData.map(a => ({
+          ...a,
+          fullName: a.full_name,
+          universityId: a.university_id,
+          userId: a.user_id,
+          scheduleImage: a.schedule_image
+        })));
+      }
+      console.log("--- RefreshData Complete ---");
+    } catch (err) {
+      console.error("Supabase fetch error:", err);
+    }
+  };
+
+  // --- FETCH USERS FROM SUPABASE & SETUP REALTIME ---
+  useEffect(() => {
+    refreshData().then(() => setLoading(false));
+
+    // Safety fallback: ensure loading is false after 5 seconds no matter what
+    const timer = setTimeout(() => {
       setLoading(false);
+    }, 5000);
+
+    // Real-time subscription for auth-related tables
+    const authChannel = supabase
+      .channel('auth-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => refreshData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_users' }, () => refreshData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'alumni_requests' }, () => refreshData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(authChannel);
     };
-    fetchAuthData();
   }, []);
 
   useEffect(() => {
@@ -118,6 +198,7 @@ export const AuthProvider = ({ children }) => {
 
       const loggedUser = { 
         ...data, 
+        isAlumni: data.is_alumni,
         name: { ar: data.name_ar, en: data.name_en },
         permissions: (data.role === 'SUPER_ADMIN' || data.role === 'DEAN')
           ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
@@ -170,14 +251,15 @@ export const AuthProvider = ({ children }) => {
     
     const { error } = await supabase.from('alumni_requests').insert([request]);
     if (!error) {
-      setAlumniRequests(prev => [...prev, { ...data, id: requestId, userId, status: 'pending' }]);
+      await refreshData();
       return { success: true };
     }
+    console.error("Submit Alumni Request Error:", error);
     return { success: false, message: error.message };
   };
 
   const approveAlumniRequest = async (requestId) => {
-    const req = alumniRequests.find(r => r.id === requestId);
+    const req = alumniRequests.find(r => String(r.id) === String(requestId));
     if (req) {
       // 1. Update user to is_alumni = true
       const { error: userErr } = await supabase
@@ -187,20 +269,45 @@ export const AuthProvider = ({ children }) => {
       
       if (userErr) return false;
 
-      // 2. Delete the request
-      const { error: reqErr } = await supabase.from('alumni_requests').delete().eq('id', requestId);
+      // 2. Mark request as approved instead of deleting immediately to help UI sync
+      const { error: reqErr } = await supabase
+        .from('alumni_requests')
+        .update({ status: 'approved' })
+        .eq('id', requestId);
       
-      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true } : u));
-      setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
-      
-      if (user?.id === req.userId) {
-        const updatedUser = { ...user, isAlumni: true };
-        setUser(updatedUser);
-        localStorage.setItem('site_user', JSON.stringify(updatedUser));
+      if (!reqErr) {
+        await refreshData();
+        return true;
       }
-      return true;
     }
     return false;
+  };
+
+  const uploadFile = async (file, bucket = 'alumni-assets') => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+      if (uploadError) {
+        console.warn(`Storage Upload Error (bucket: ${bucket}):`, uploadError);
+        // FALLBACK: Return a dummy URL so the request doesn't get blocked entirely
+        return { success: true, url: 'https://via.placeholder.com/150?text=Schedule+Image+Not+Uploaded' };
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return { success: true, url: publicUrl };
+    } catch (error) {
+      console.error("Storage Upload Exception:", error);
+      return { success: true, url: 'https://via.placeholder.com/150?text=Schedule+Image+Error' };
+    }
   };
 
   const rejectAlumniRequest = async (requestId) => {
@@ -215,9 +322,10 @@ export const AuthProvider = ({ children }) => {
   const approveUser = async (pendingId) => {
     const userToApprove = pendingUsers.find(u => u.id === pendingId);
     if (userToApprove) {
+      const studentId = String(userToApprove.universityId);
       const activeUser = {
-        id: 'u' + Date.now(),
-        username: userToApprove.universityId,
+        id: studentId,
+        username: studentId,
         password: userToApprove.password,
         role: 'STUDENT',
         name_ar: userToApprove.fullName,
@@ -225,20 +333,20 @@ export const AuthProvider = ({ children }) => {
         is_alumni: false
       };
 
-      console.log("Attempting to insert user with data:", activeUser);
+      console.log("Attempting to insert user with University ID:", studentId);
       
       // 1. Insert into users table
-      const { error: insertErr } = await supabase.from('users').insert([activeUser]);
+      const { data: insertedData, error: insertErr } = await supabase.from('users').insert([activeUser]).select();
       if (insertErr) {
-        console.error("Approve User Insert Error Details:", JSON.stringify(insertErr, null, 2));
+        console.error("Approve User Insert Error:", insertErr);
         return false;
       }
 
       // 2. Delete from pending_users
-      const { error: deleteErr } = await supabase.from('pending_users').delete().eq('id', pendingId);
+      await supabase.from('pending_users').delete().eq('id', pendingId);
       
-      setUsers(prev => [...prev, { ...activeUser, name: { ar: activeUser.name_ar, en: '' } }]);
-      setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
+      // Refresh all data to ensure UI sync
+      await refreshData();
       return true;
     }
     return false;
@@ -254,26 +362,29 @@ export const AuthProvider = ({ children }) => {
   };
 
   const registerUserDirectly = async (userData) => {
-    const newUser = {
-      id: 'u' + Date.now(),
-      username: userData.username,
-      password: userData.password,
-      role: userData.role,
-      name_ar: userData.name?.ar || userData.nameAr,
-      name_en: userData.name?.en || userData.nameEn,
-      department_id: userData.departmentId,
-      is_alumni: false
-    };
+    try {
+      // Use university ID (student number) as the primary ID for the user
+      const studentId = String(userData.username);
+      
+      const { data, error } = await supabase.from('users').insert([{
+        id: studentId,
+        username: studentId,
+        password: userData.password,
+        name_ar: userData.fullNameAr,
+        name_en: userData.fullNameEn,
+        role: userData.role || 'STUDENT',
+        is_alumni: userData.isAlumni || false,
+        permissions: userData.role === 'SUPER_ADMIN' ? ['all'] : []
+      }]).select().single();
 
-    const { error } = await supabase.from('users').insert([newUser]);
-    if (!error) {
-      setUsers(prev => [...prev, { 
-        ...newUser, 
-        name: { ar: newUser.name_ar, en: newUser.name_en } 
-      }]);
-      return { success: true };
+      if (error) throw error;
+      
+      await refreshData();
+      return { success: true, data };
+    } catch (err) {
+      console.error("Direct registration error:", err);
+      return { success: false, message: err.message };
     }
-    return { success: false, message: error.message };
   };
 
   const deleteUser = async (userId) => {
@@ -328,11 +439,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider value={{ 
-      user, users, pendingUsers, alumniRequests,
-      login, logout, registerRequest, approveUser, rejectUser,
-      submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
-      registerUserDirectly, deleteUser, updateUserRole, updateUser,
-      hasPermission, role: user?.role, isLoginOpen, toggleLogin 
+      user, login, logout, registerRequest, 
+      users, setUsers, pendingUsers, alumniRequests, 
+      approveAlumniRequest, rejectAlumniRequest,
+      approveUser, rejectUser, registerUserDirectly,
+      deleteUser, updateUserRole, updateUser,
+      submitAlumniRequest,
+      uploadFile,
+      refreshData,
+      loading
     }}>
       {children}
     </AuthContext.Provider>

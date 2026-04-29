@@ -136,14 +136,20 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Mobile Toggle Button */}
-      <button 
-        className="mobile-toggle" 
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        aria-label="Toggle Menu"
-      >
-        {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-      </button>
+      {/* Persistent Top Bar */}
+      <div className="top-bar">
+        <div className="top-bar-brand" onClick={() => navigate('/')}>
+          <img src="/logo.png" alt="Logo" className="top-logo" />
+          <span className="top-title">{t('faculty_name')}</span>
+        </div>
+        <button 
+          className="mobile-toggle" 
+          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          aria-label="Toggle Menu"
+        >
+          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+        </button>
+      </div>
 
       {/* Backdrop for mobile */}
       <AnimatePresence>
