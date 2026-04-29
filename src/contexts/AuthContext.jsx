@@ -40,10 +40,23 @@ export const AuthProvider = ({ children }) => {
         ]);
 
         if (usersData) {
-          setUsers(usersData.map(u => ({
+          const mappedUsers = usersData.map(u => ({
             ...u,
             name: { ar: u.name_ar, en: u.name_en }
-          })));
+          }));
+          setUsers(mappedUsers);
+          
+          // Refresh active user state if logged in
+          const savedUserStr = localStorage.getItem('site_user');
+          if (savedUserStr) {
+            const savedUser = JSON.parse(savedUserStr);
+            const freshUser = mappedUsers.find(u => u.id === savedUser.id);
+            if (freshUser) {
+              const updatedSession = { ...savedUser, ...freshUser };
+              setUser(updatedSession);
+              localStorage.setItem('site_user', JSON.stringify(updatedSession));
+            }
+          }
         }
 
         if (pendingData) {
