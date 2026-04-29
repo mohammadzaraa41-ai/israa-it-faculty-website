@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
+import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -9,20 +10,26 @@ export const AuthProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [users, setUsers] = useState(() => {
-    const savedUsers = localStorage.getItem('site_users');
-    return savedUsers ? JSON.parse(savedUsers) : DB_SCHEMA.users;
-  });
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [pendingUsers, setPendingUsers] = useState(() => {
-    const saved = localStorage.getItem('site_pending_users');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [pendingUsers, setPendingUsers] = useState([]);
+  const [alumniRequests, setAlumniRequests] = useState([]);
 
-  const [alumniRequests, setAlumniRequests] = useState(() => {
-    const saved = localStorage.getItem('site_alumni_requests');
-    return saved ? JSON.parse(saved) : [];
-  });
+  // --- FETCH USERS FROM SUPABASE ---
+  useEffect(() => {
+    const fetchAuthData = async () => {
+      const { data: usersData } = await supabase.from('users').select('*');
+      if (usersData) {
+        setUsers(usersData.map(u => ({
+          ...u,
+          name: { ar: u.name_ar, en: u.name_en }
+        })));
+      }
+      setLoading(false);
+    };
+    fetchAuthData();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('site_users', JSON.stringify(users));

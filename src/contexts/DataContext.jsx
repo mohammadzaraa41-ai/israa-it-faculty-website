@@ -1,76 +1,71 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
+import { supabase } from '../lib/supabase';
 
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
-  // --- SITE CONTENT STATE (THE "DATABASE") ---
-  
-  // Faculty Info
-  const [facultyData, setFacultyData] = useState(() => {
-    const saved = localStorage.getItem('db_faculty');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.facultyInfo;
-  });
+  // --- SITE CONTENT STATE ---
+  const [facultyData, setFacultyData] = useState(DB_SCHEMA.facultyInfo);
+  const [roadmap, setRoadmap] = useState(DB_SCHEMA.roadmap);
+  const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
+  const [projectBank, setProjectBank] = useState([]);
+  const [cvTemplates, setCvTemplates] = useState([]);
+  const [interviewResources, setInterviewResources] = useState([]);
+  const [linkedinTips, setLinkedinTips] = useState([]);
+  const [facultyMembers, setFacultyMembers] = useState([]);
+  const [offeredCourses, setOfferedCourses] = useState([]);
+  const [studentTips, setStudentTips] = useState([]);
+  const [quests, setQuests] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // --- FETCH DATA FROM SUPABASE ---
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      try {
+        const [
+          { data: facultyRes },
+          { data: coursesRes },
+          { data: projectsRes }
+        ] = await Promise.all([
+          supabase.from('faculty_members').select('*'),
+          supabase.from('offered_courses').select('*'),
+          supabase.from('project_bank').select('*')
+        ]);
+
+        if (facultyRes) setFacultyMembers(facultyRes);
+        if (coursesRes) setOfferedCourses(coursesRes);
+        if (projectsRes) setProjectBank(projectsRes.map(p => ({
+          ...p,
+          name: { ar: p.name_ar, en: p.name_en },
+          notes: { ar: p.notes_ar, en: '' }
+        })));
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching Supabase data:', error);
+        setLoading(false);
+      }
+    };
 
   // Roadmap
-  const [roadmap, setRoadmap] = useState(() => {
-    const saved = localStorage.getItem('db_roadmap');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.roadmap;
-  });
+  const [roadmap, setRoadmap] = useState(DB_SCHEMA.roadmap);
 
   // Alumni & Career
-  const [gradTemplates, setGradTemplates] = useState(() => {
-    const saved = localStorage.getItem('db_grad_templates');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.gradTemplates;
-  });
+  const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
+  const [cvTemplates, setCvTemplates] = useState(DB_SCHEMA.careerReadiness.cvTemplates);
+  const [interviewResources, setInterviewResources] = useState(DB_SCHEMA.careerReadiness.interviews);
+  const [linkedinTips, setLinkedinTips] = useState(DB_SCHEMA.careerReadiness.linkedinTips);
 
-  const [projectBank, setProjectBank] = useState(() => {
-    const saved = localStorage.getItem('db_projects');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.projectBank;
-  });
+  const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
+  const [quests, setQuests] = useState(DB_SCHEMA.quests);
 
-  const [cvTemplates, setCvTemplates] = useState(() => {
-    const saved = localStorage.getItem('db_cvs');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.cvTemplates;
-  });
-
-  const [interviewResources, setInterviewResources] = useState(() => {
-    const saved = localStorage.getItem('db_interviews');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.interviews;
-  });
-
-  const [linkedinTips, setLinkedinTips] = useState(() => {
-    const saved = localStorage.getItem('db_linkedin');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.careerReadiness.linkedinTips;
-  });
-
-  const [facultyMembers, setFacultyMembers] = useState(() => {
-    const saved = localStorage.getItem('db_faculty_members');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  // --- PERSISTENCE ---
+  // Persistence (only for non-Supabase data if needed)
   useEffect(() => {
-    localStorage.setItem('db_faculty', JSON.stringify(facultyData));
-    localStorage.setItem('db_roadmap', JSON.stringify(roadmap));
-    localStorage.setItem('db_grad_templates', JSON.stringify(gradTemplates));
-    localStorage.setItem('db_projects', JSON.stringify(projectBank));
-    localStorage.setItem('db_cvs', JSON.stringify(cvTemplates));
-    localStorage.setItem('db_interviews', JSON.stringify(interviewResources));
-    localStorage.setItem('db_linkedin', JSON.stringify(linkedinTips));
-    localStorage.setItem('db_faculty_members', JSON.stringify(facultyMembers));
-  }, [facultyData, roadmap, gradTemplates, projectBank, cvTemplates, interviewResources, linkedinTips, facultyMembers]);
-
-  // --- Current Students State ---
-  const [offeredCourses, setOfferedCourses] = useState(() => JSON.parse(localStorage.getItem('db_courses') || '[]'));
-  const [studentTips, setStudentTips] = useState(() => JSON.parse(localStorage.getItem('db_tips') || '[]'));
-  const [quests, setQuests] = useState(() => JSON.parse(localStorage.getItem('db_quests') || '[]'));
-
-  useEffect(() => {
-    localStorage.setItem('db_courses', JSON.stringify(offeredCourses));
-    localStorage.setItem('db_tips', JSON.stringify(studentTips));
-    localStorage.setItem('db_quests', JSON.stringify(quests));
-  }, [offeredCourses, studentTips, quests]);
+    // We can keep localStorage as a fallback or for session-only data if desired, 
+    // but the main data should come from Supabase now.
+  }, [roadmap, gradTemplates, cvTemplates, interviewResources, linkedinTips, studentTips, quests]);
 
   // --- CRUD OPERATIONS ---
   const addCourse = (c) => setOfferedCourses(prev => [...prev, { ...c, id: Date.now() }]);
