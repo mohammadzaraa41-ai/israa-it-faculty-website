@@ -96,8 +96,9 @@ const Alumni = () => {
 
     // REAL-TIME PULSE: Listen for status changes on the current user record
     if (user) {
+      const channelName = `user-sync-${user.id}-${Date.now()}`;
       const userSub = supabase
-        .channel(`user-sync-${user.id}`)
+        .channel(channelName)
         .on('postgres_changes', { 
           event: 'UPDATE', 
           schema: 'public', 

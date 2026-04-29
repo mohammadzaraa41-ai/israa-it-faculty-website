@@ -105,8 +105,9 @@ export const AdminProvider = ({ children }) => {
     fetchSocialData();
 
     // Real-time subscription for social feed
+    const channelName = `social-realtime-${Date.now()}`;
     const socialChannel = supabase
-      .channel('social-realtime')
+      .channel(channelName)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => fetchSocialData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => fetchSocialData())
       .subscribe();
