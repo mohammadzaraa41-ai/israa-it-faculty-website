@@ -29,11 +29,27 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
-        const { data: usersData } = await supabase.from('users').select('*');
-        if (usersData && usersData.length > 0) {
+        const [
+          { data: usersData },
+          { data: pendingData }
+        ] = await Promise.all([
+          supabase.from('users').select('*'),
+          supabase.from('pending_users').select('*').eq('status', 'pending')
+        ]);
+
+        if (usersData) {
           setUsers(usersData.map(u => ({
             ...u,
             name: { ar: u.name_ar, en: u.name_en }
+          })));
+        }
+
+        if (pendingData) {
+          setPendingUsers(pendingData.map(p => ({
+            ...p,
+            fullName: p.full_name,
+            universityId: p.university_id,
+            yearSem: p.year_sem
           })));
         }
       } catch (err) {
@@ -60,15 +76,27 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
   };
 
-  const registerRequest = (userData) => {
+  const registerRequest = async (userData) => {
+    const requestId = 'p' + Date.now();
     const newUserRequest = {
-      ...userData,
-      id: 'p' + Date.now(),
-      requestDate: new Date().toISOString(),
+      id: requestId,
+      full_name: userData.fullName,
+      phone: userData.phone,
+      university_id: userData.universityId,
+      dob: userData.dob,
+      major: userData.major,
+      year_sem: userData.yearSem,
+      hours: userData.hours,
+      password: userData.password,
       status: 'pending'
     };
-    setPendingUsers(prev => [...prev, newUserRequest]);
-    return { success: true };
+    
+    const { error } = await supabase.from('pending_users').insert([newUserRequest]);
+    if (!error) {
+      setPendingUsers(prev => [...prev, { ...userData, id: requestId, status: 'pending' }]);
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
   const submitAlumniRequest = (userId, data) => {
@@ -104,26 +132,40 @@ export const AuthProvider = ({ children }) => {
     setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
   };
 
-  const approveUser = (pendingId) => {
+  const approveUser = async (pendingId) => {
     const userToApprove = pendingUsers.find(u => u.id === pendingId);
     if (userToApprove) {
       const activeUser = {
-        ...userToApprove,
         id: 'u' + Date.now(),
+        username: userToApprove.universityId,
+        password: userToApprove.password,
         role: 'STUDENT',
-        status: 'active',
-        username: userToApprove.universityId, // The ID becomes the username as requested
-        permissions: ['VIEW_PORTAL', 'ACCESS_RESOURCES']
+        name_ar: userToApprove.fullName,
+        department_id: userToApprove.major === 'cs' ? 'cs' : userToApprove.major,
+        is_alumni: false
       };
-      setUsers(prev => [...prev, activeUser]);
+      
+      // 1. Insert into users table
+      const { error: insertErr } = await supabase.from('users').insert([activeUser]);
+      if (insertErr) return false;
+
+      // 2. Delete from pending_users
+      const { error: deleteErr } = await supabase.from('pending_users').delete().eq('id', pendingId);
+      
+      setUsers(prev => [...prev, { ...activeUser, name: { ar: activeUser.name_ar, en: '' } }]);
       setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
       return true;
     }
     return false;
   };
 
-  const rejectUser = (pendingId) => {
-    setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
+  const rejectUser = async (pendingId) => {
+    const { error } = await supabase.from('pending_users').delete().eq('id', pendingId);
+    if (!error) {
+      setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
+      return true;
+    }
+    return false;
   };
 
   const registerUserDirectly = async (userData) => {
