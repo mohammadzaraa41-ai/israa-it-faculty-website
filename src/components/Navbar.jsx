@@ -45,10 +45,10 @@ const Navbar = () => {
     confirmPassword: ''
   });
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setLoginError('');
-    const result = login(loginId, loginPassword);
+    const result = await login(loginId, loginPassword);
     if (result.success) {
       toggleLogin(false);
       if (result.user.role === 'SUPER_ADMIN' || result.user.role === 'DEAN') {

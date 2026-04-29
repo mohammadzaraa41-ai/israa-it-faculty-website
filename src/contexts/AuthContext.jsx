@@ -66,14 +66,33 @@ export const AuthProvider = ({ children }) => {
     if (alumniRequests.length > 0) localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
   }, [users, pendingUsers, alumniRequests]);
 
-  const login = (username, password) => {
-    const foundUser = users.find(u => u.username === username && u.password === password);
-    if (foundUser) {
-      setUser(foundUser);
-      localStorage.setItem('site_user', JSON.stringify(foundUser));
-      return { success: true, user: foundUser };
+  const login = async (username, password) => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password)
+        .single();
+      
+      if (error || !data) {
+        return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
+      }
+
+      const loggedUser = { 
+        ...data, 
+        name: { ar: data.name_ar, en: data.name_en },
+        permissions: data.role === 'SUPER_ADMIN' || data.role === 'DEAN' 
+          ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
+          : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
+      };
+
+      setUser(loggedUser);
+      localStorage.setItem('site_user', JSON.stringify(loggedUser));
+      return { success: true, user: loggedUser };
+    } catch (err) {
+      return { success: false, message: 'حدث خطأ أثناء الاتصال بالسيرفر' };
     }
-    return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
   };
 
   const registerRequest = async (userData) => {
