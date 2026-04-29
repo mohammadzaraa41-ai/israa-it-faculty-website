@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }) => {
       // 1. Insert into users table
       const { error: insertErr } = await supabase.from('users').insert([activeUser]);
       if (insertErr) {
-        console.error("Approve User Insert Error:", insertErr);
+        console.error("Approve User Insert Error:", JSON.stringify(insertErr, null, 2));
         return false;
       }
 
