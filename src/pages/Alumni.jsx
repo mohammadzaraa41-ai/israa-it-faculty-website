@@ -24,18 +24,20 @@ import {
   Eye,
   Lock,
   Clock,
-  RefreshCw,
   GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 
 const Alumni = () => {
   const { lang } = useLocale();
-  const { user, users, submitAlumniRequest, alumniRequests, toggleLogin, uploadFile, refreshData, loading, setUser } = useAuth();
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isForcedApproved, setIsForcedApproved] = useState(false);
-  const [checkingAccess, setCheckingAccess] = useState(true);
+  const { user, submitAlumniRequest, alumniRequests, toggleLogin } = useAuth();
+  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAuthenticated = !!user;
+  
+  // Check if current student has a pending or approved request
+  const myAlumniRequest = alumniRequests?.find(r => r.userId === user?.id);
+  const isApprovedAlumni = user?.isAlumni || user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const hasPendingRequest = myAlumniRequest && !isApprovedAlumni;
 
   const { 
     gradTemplates, addGradTemplate, deleteGradTemplate, editGradTemplate,
@@ -46,186 +48,24 @@ const Alumni = () => {
   } = useAdmin();
   
   const [activeTab, setActiveTab] = useState('projects');
-  const [activeModal, setActiveModal] = useState(null);
+  const [activeModal, setActiveModal] = useState(null); // 'template', 'cv', 'interview', 'linkedin'
   const [modalData, setModalData] = useState({});
   const [requestForm, setRequestForm] = useState({ hours: '', scheduleImage: null });
-  const [scheduleFile, setScheduleFile] = useState(null);
   const [requestSent, setRequestSent] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef(null);
   const cvFileInputRef = React.useRef(null);
   const scheduleRef = React.useRef(null);
-  
-  const checkDirectAccess = async () => {
-    if (!user) {
-      setCheckingAccess(false);
-      return;
-    }
-    setCheckingAccess(true);
-    try {
-      const cleanUsername = String(user?.username || '').trim().toLowerCase();
-      console.log("Checking Direct Access for UN:", cleanUsername);
-
-      // EMERGENCY BYPASS for specific users to ensure they get in NO MATTER WHAT
-      if (cleanUsername === '20240001' || cleanUsername === 'ae5555' || cleanUsername === 'ae1010') {
-        console.log("EMERGENCY BYPASS TRIGGERED for", cleanUsername);
-        setIsForcedApproved(true);
-        setCheckingAccess(false);
-        // Silently update their profile to avoid future checks
-        if (!user.isAlumni) {
-          const updated = { ...user, isAlumni: true };
-          setUser(updated);
-          localStorage.setItem('site_user', JSON.stringify(updated));
-        }
-        return;
-      }
-      
-      // Check User table AND Alumni Requests table in parallel
-      const [userRes, reqRes] = await Promise.all([
-        supabase.from('users').select('is_alumni, role, id').ilike('username', cleanUsername).maybeSingle(),
-        supabase.from('alumni_requests').select('status').ilike('university_id', cleanUsername).eq('status', 'approved').maybeSingle()
-      ]);
-      
-      const userData = userRes.data;
-      const hasApprovedReq = !!reqRes.data;
-      
-      console.log("DB Result for " + cleanUsername + ":", { isAlumni: userData?.is_alumni, hasApprovedReq });
-
-      if (hasApprovedReq || (userData && (userData.is_alumni === true || userData.is_alumni === 'true' || userData.role === 'SUPER_ADMIN' || userData.role === 'DEAN'))) {
-        setIsForcedApproved(true);
-        if (userData && (userData.is_alumni !== user.isAlumni || userData.id !== user.id)) {
-           const updated = { ...user, isAlumni: true, id: userData.id };
-           setUser(updated);
-           localStorage.setItem('site_user', JSON.stringify(updated));
-        }
-      }
-    } catch (e) {
-      console.error("Direct access check failed:", e);
-    } finally {
-      setCheckingAccess(false);
-    }
-  };
-
-  React.useEffect(() => {
-    const init = async () => {
-      await refreshData();
-      await checkDirectAccess();
-    };
-    init();
-
-    // Removed real-time subscription to prevent crash loops
-  }, [user?.id]);
-
-  const handleRefresh = async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshData();
-      await checkDirectAccess();
-      // Give UI time to reflect state changes
-      await new Promise(resolve => setTimeout(resolve, 1000));
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
-  const isAuthenticated = !!user;
-  
-  // Get live data for current user to reflect admin approvals immediately
-  const currentUserLive = users?.find(u => String(u.username) === String(user?.username));
-  
-  // Check if current student has a pending or approved request
-  const myAlumniRequest = alumniRequests?.find(r => String(r.university_id) === String(user?.username) || String(r.userId) === String(user?.id));
-  const isRequestApproved = myAlumniRequest?.status === 'approved';
-  const hasPendingRequest = myAlumniRequest?.status === 'pending';
-  const hasAnyRequest = !!myAlumniRequest;
-  
-  // MASTER ACCESS CHECK - Prioritize the direct DB check result
-  const isApprovedAlumni = isForcedApproved || user?.isAlumni || currentUserLive?.isAlumni || isRequestApproved || isAdmin;
-  const isEmergencyUser = ['20240001', 'ae5555', 'ae1010'].includes(String(user?.username || '').toLowerCase());
-  const finalIsApproved = isForcedApproved || isApprovedAlumni || isEmergencyUser;
-
-  if (loading || isRefreshing || checkingAccess) {
-    if (isEmergencyUser) {
-        // Don't wait for spinner if we KNOW they are emergency users
-        console.log("Skipping spinner for emergency user");
-    } else {
-        return (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-            <RefreshCw size={48} className="animate-spin" style={{ color: 'var(--primary-color)', opacity: 0.5 }} />
-            <p style={{ marginTop: '1rem', opacity: 0.6 }}>{lang === 'ar' ? 'جارٍ مزامنة البيانات...' : 'Syncing data...'}</p>
-            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(255,0,0,0.1)', borderRadius: '10px', fontSize: '0.8rem' }}>
-               Debug: {JSON.stringify({ loading, isRefreshing, checkingAccess, hasUser: !!user })}
-            </div>
-          </div>
-        );
-    }
-  }
-
-  // FORCE BYPASS for Ahmed and Khalil if they are still stuck
-  if (isEmergencyUser && !finalIsApproved) {
-     return (
-       <div style={{ padding: '4rem', textAlign: 'center' }}>
-          <h2 style={{ color: 'var(--primary-color)' }}>مرحباً خليل / أحمد علي</h2>
-          <p>إذا كنت ترى هذه الصفحة، يرجى الضغط على الزر أدناه للدخول القسري:</p>
-          <button className="btn-primary" onClick={() => setIsForcedApproved(true)} style={{ padding: '1rem 2rem', marginTop: '2rem' }}>
-            دخول قسري للبوابة (Emergency Open)
-          </button>
-       </div>
-     );
-  }
-
-  console.log("Alumni Check:", { 
-    userId: user?.id, 
-    currentUserLive, 
-    isApprovedAlumni, 
-    hasPendingRequest 
-  });
-
-  // Hooks moved to top
-
-  const handleScheduleUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setScheduleFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setRequestForm({ ...requestForm, scheduleImage: reader.result });
-      };
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
-    if (!scheduleFile) return;
-    
-    setIsUploading(true);
-    try {
-      const uploadRes = await uploadFile(scheduleFile, 'alumni-assets');
-      if (uploadRes.success) {
-        const submitRes = await submitAlumniRequest(user.id, {
-          fullName: user.name?.ar || user.username,
-          universityId: user.username,
-          hours: requestForm.hours,
-          scheduleImage: uploadRes.url
-        });
-        
-        if (submitRes.success) {
-          setRequestSent(true);
-        } else {
-          alert(lang === 'ar' ? 'حدث خطأ أثناء حفظ الطلب: ' + submitRes.message : 'Error saving request: ' + submitRes.message);
-        }
-      } else {
-        alert(lang === 'ar' ? 'فشل رفع الصورة: ' + uploadRes.message : 'Upload failed: ' + uploadRes.message);
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsUploading(false);
-    }
+    await submitAlumniRequest(user.id, {
+      fullName: user.fullName || user.username,
+      universityId: user.universityId || user.username,
+      hours: requestForm.hours,
+      scheduleImage: requestForm.scheduleImage
+    });
+    setRequestSent(true);
   };
-
 
   if (!isAuthenticated) {
     return (
@@ -243,27 +83,19 @@ const Alumni = () => {
       </div>
     );
   }
-  if (!finalIsApproved && !isAdmin && !isForcedApproved && !user?.isAlumni) {
+
+  if (!isApprovedAlumni) {
     return (
       <div style={{ maxWidth: '650px', margin: '4rem auto', padding: '2.5rem' }} className="glass-panel">
         {requestSent || hasPendingRequest ? (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', padding: '2rem' }}>
              <Clock size={70} style={{ color: 'var(--accent-color)', marginBottom: '2rem' }} />
              <h3 style={{ fontSize: '1.8rem', marginBottom: '1.5rem' }}>{lang === 'ar' ? 'طلبك قيد المراجعة' : 'Request Under Review'}</h3>
-             <p style={{ fontSize: '1.05rem', opacity: 0.8, lineHeight: '1.7', marginBottom: '2rem' }}>
+             <p style={{ fontSize: '1.05rem', opacity: 0.8, lineHeight: '1.7' }}>
                {lang === 'ar' 
                  ? 'شكراً لك. لقد استلمنا طلبك للوصول إلى صفحة الخريجين. سيتم تفعيل الصفحة لك فور مراجعة الإدارة لبياناتك وصورة الجدول الدراسي.' 
                  : 'Thank you. We have received your request for alumni access. The page will be activated for you once the administration reviews your data and schedule image.'}
              </p>
-             <button 
-               className="btn-outline" 
-               onClick={handleRefresh}
-               disabled={isRefreshing}
-               style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', margin: '0 auto', padding: '0.75rem 2rem' }}
-             >
-               <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
-               {lang === 'ar' ? 'تحديث الحالة' : 'Refresh Status'}
-             </button>
           </motion.div>
         ) : (
           <form onSubmit={handleRequestSubmit}>
@@ -312,21 +144,15 @@ const Alumni = () => {
                    type="file" 
                    ref={scheduleRef} 
                    hidden 
-                   onChange={handleScheduleUpload}
+                   onChange={e => setRequestForm({...requestForm, scheduleImage: URL.createObjectURL(e.target.files[0])})}
                    accept="image/*"
                    required
                  />
                </div>
             </div>
 
-            <button 
-              type="submit" 
-              className="btn-primary" 
-              disabled={isUploading}
-            >
-              {isUploading 
-                ? (lang === 'ar' ? 'جارٍ الرفع والإرسال...' : 'Uploading & Sending...') 
-                : (lang === 'ar' ? 'إرسال طلب التفعيل' : 'Submit Activation Request')}
+            <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1.2rem', fontSize: '1.2rem', fontWeight: 'bold' }}>
+              {lang === 'ar' ? 'إرسال طلب التفعيل' : 'Submit Activation Request'}
             </button>
           </form>
         )}
@@ -497,7 +323,7 @@ const Alumni = () => {
           <div className="glass-panel" style={{ padding: '2.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
               <div>
-                <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-color)', marginBottom: '0.5rem' }}>{viewingProject.name?.[lang] || viewingProject.name || 'Unnamed Project'}</h2>
+                <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-color)', marginBottom: '0.5rem' }}>{viewingProject.name[lang]}</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {[1, 2, 3, 4, 5].map(star => {
                     const full = star <= viewingProject.rating;
@@ -586,7 +412,7 @@ const Alumni = () => {
             <div style={{ marginBottom: '3rem' }}>
               <h4 style={{ fontWeight: 'bold', marginBottom: '1rem' }}>{lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}</h4>
               <p style={{ lineHeight: '1.8', opacity: 0.8, padding: '1.5rem', background: 'rgba(244, 180, 26, 0.05)', borderRadius: '12px', borderLeft: '4px solid var(--accent-color)' }}>
-                {viewingProject.notes?.[lang] || viewingProject.notes || 'No notes available'}
+                {viewingProject.notes[lang]}
               </p>
             </div>
 
@@ -627,7 +453,7 @@ const Alumni = () => {
                   border: '1px solid rgba(255,255,255,0.05)' 
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem' }}>{file.name?.[lang] || file.name || 'Unnamed Template'}</span>
+                    <span style={{ fontSize: '0.9rem' }}>{file.name[lang]}</span>
                     {file.type === 'img' && <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>(Image)</span>}
                   </div>
                   <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
@@ -635,11 +461,11 @@ const Alumni = () => {
                       size={18} 
                       style={{ color: 'var(--accent-color)', cursor: 'pointer' }} 
                       title="Download" 
-                      onClick={() => handleDownload(file.url, (file.name?.[lang] || 'Template') + '.' + (file.type || 'pdf'))}
+                      onClick={() => handleDownload(file.url, file.name[lang] + '.' + (file.type || 'pdf'))}
                     />
                     {isAdmin && (
                       <>
-                        <Edit2 size={16} color="var(--primary-light)" style={{ cursor: 'pointer' }} onClick={() => handleEditTemplate(file.id, file.name?.[lang] || 'Unnamed')} title="Edit Name" />
+                        <Edit2 size={16} color="var(--primary-light)" style={{ cursor: 'pointer' }} onClick={() => handleEditTemplate(file.id, file.name[lang])} title="Edit Name" />
                         <Trash2 size={18} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteGradTemplate(file.id)} title="Delete" />
                       </>
                     )}
@@ -676,7 +502,7 @@ const Alumni = () => {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>{project.name?.[lang] || project.name || 'Unnamed Project'}</h4>
+                    <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>{project.name[lang]}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                       <Star size={12} fill="var(--accent-color)" color="var(--accent-color)" />
                       <span style={{ fontSize: '0.75rem' }}>{project.rating}</span>
@@ -825,7 +651,7 @@ const Alumni = () => {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FileText size={16} color="var(--accent-color)" />
-                    <span>{cv.name?.[lang] || cv.name || 'Unnamed CV'}</span>
+                    <span>{cv.name[lang]}</span>
                   </div>
                   {isAdmin && <Trash2 size={16} color="#ff4444" onClick={(e) => { e.stopPropagation(); deleteCvTemplate(cv.id); }} />}
                 </div>
@@ -838,7 +664,7 @@ const Alumni = () => {
                   <div style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>{lang === 'ar' ? 'خيارات القالب:' : 'Template Options:'}</div>
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleViewFile(selectedCv.url)}><Eye size={14} /> {lang === 'ar' ? 'عرض' : 'View'}</button>
-                    <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleDownload(selectedCv.url, (selectedCv.name?.[lang] || 'CV') + '.' + (selectedCv.file?.split('.').pop() || 'pdf'))}><Download size={14} /> {lang === 'ar' ? 'تحميل' : 'Download'}</button>
+                    <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleDownload(selectedCv.url, selectedCv.name[lang] + '.' + (selectedCv.file.split('.').pop()))}><Download size={14} /> {lang === 'ar' ? 'تحميل' : 'Download'}</button>
                   </div>
                 </motion.div>
               )}
@@ -855,7 +681,7 @@ const Alumni = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {res.type === 'video' ? <Video size={16} color="var(--accent-color)" /> : <BookOpen size={16} color="#3498db" />}
-                      <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{res.title?.[lang] || res.title || 'Untitled'}</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{res.title[lang]}</span>
                     </div>
                     {isAdmin && <Trash2 size={16} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteInterviewResource(res.id)} />}
                   </div>
@@ -875,7 +701,7 @@ const Alumni = () => {
               {linkedinTips.map(tip => (
                 <div key={tip.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{tip.title?.[lang] || tip.title || 'Untitled'}</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{tip.title[lang]}</span>
                     {isAdmin && <Trash2 size={16} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteLinkedinTip(tip.id)} />}
                   </div>
                   {tip.type !== 'tip' ? (
@@ -1012,21 +838,62 @@ const Alumni = () => {
         )}
       </AnimatePresence>
 
-      <input type="file" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
-      <input type="file" ref={cvFileInputRef} style={{ display: 'none' }} onChange={handleCvFileChange} accept=".pdf,.doc,.docx" />
+      {/* Hidden File Inputs for Admins */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        style={{ display: 'none' }} 
+        onChange={handleFileChange}
+        accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+      />
+      <input 
+        type="file" 
+        ref={cvFileInputRef} 
+        style={{ display: 'none' }} 
+        onChange={handleCvFileChange}
+        accept=".pdf,.doc,.docx"
+      />
       
       <header style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
         <h1 className="title" style={{ fontSize: '2.5rem', marginBottom: '0.5rem', color: 'var(--primary-color)' }}>
-          {lang === 'ar' ? 'بوابة الخريجين' : 'Alumni Portal'}
+          {lang === 'ar' ? 'بوابة المتوقع تخرجهم' : 'Graduation Portal'}
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>
-          {lang === 'ar' ? 'بوابتك نحو سوق العمل ومشاريع التخرج المتميزة' : 'Your gateway to the job market and outstanding graduation projects'}
+          {lang === 'ar' ? 'خطواتك الأخيرة نحو التخرج وسوق العمل.' : 'Your final steps towards graduation and career.'}
         </p>
       </header>
 
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '0.75rem', marginBottom: '2.5rem', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '15px', width: 'fit-content', margin: '0 auto 2.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        gap: '0.75rem', 
+        marginBottom: '2.5rem', 
+        flexWrap: 'wrap',
+        background: 'rgba(255,255,255,0.02)',
+        padding: '0.5rem',
+        borderRadius: '15px',
+        width: 'fit-content',
+        margin: '0 auto 2.5rem',
+        border: '1px solid rgba(255,255,255,0.05)'
+      }}>
         {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{ padding: '0.6rem 1.2rem', borderRadius: '10px', border: 'none', background: activeTab === tab.id ? 'var(--accent-color)' : 'transparent', color: activeTab === tab.id ? '#000' : 'var(--text-secondary)', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.3s' }}>
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            style={{
+              padding: '0.6rem 1.2rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === tab.id ? 'var(--accent-color)' : 'transparent',
+              color: activeTab === tab.id ? '#000' : 'var(--text-secondary)',
+              fontWeight: 'bold',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.3s'
+            }}
+          >
             <tab.icon size={18} />
             {tab.label}
           </button>

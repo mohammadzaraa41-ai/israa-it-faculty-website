@@ -7,11 +7,6 @@
     <title>isra-it-faculty</title>
   </head>
   <body>
-    <script>
-      window.onerror = function(message, source, lineno, colno, error) {
-        document.body.innerHTML = '<div style="color:red; padding:20px; font-family:monospace; white-space:pre-wrap; background:white; position:fixed; top:0; left:0; right:0; z-index:9999;"><h3>Runtime Error:</h3>' + message + '<br/>' + (error && error.stack ? error.stack : '') + '</div>' + document.body.innerHTML;
-      };
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
