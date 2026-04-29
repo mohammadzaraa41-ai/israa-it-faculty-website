@@ -139,14 +139,10 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }, 5000);
 
-    // Real-time subscription for auth-related tables
-    // Use a unique channel name to prevent errors if React StrictMode re-runs useEffect quickly
-    const channelName = `auth-realtime-${Date.now()}`;
+    // Real-time subscription for auth-related tables - Simplified to prevent crashes
     const authChannel = supabase
-      .channel(channelName)
+      .channel('auth-public-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => refreshData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_users' }, () => refreshData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'alumni_requests' }, () => refreshData())
       .subscribe();
 
     return () => {

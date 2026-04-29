@@ -104,12 +104,10 @@ export const AdminProvider = ({ children }) => {
   useEffect(() => {
     fetchSocialData();
 
-    // Real-time subscription for social feed
-    const channelName = `social-realtime-${Date.now()}`;
+    // Real-time subscription for social feed - Simplified
     const socialChannel = supabase
-      .channel(channelName)
+      .channel('social-feed-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => fetchSocialData())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => fetchSocialData())
       .subscribe();
 
     return () => {
