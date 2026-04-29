@@ -22,6 +22,7 @@ const AdminDashboard = () => {
 
   }, [users, pendingUsers, alumniRequests]);
   
+  const { 
     facultyMembers, addFaculty, editFaculty, deleteFaculty,
     departments, addDepartment, deleteDepartment, updateDepartment,
     posts, pendingPosts, approvePost, rejectPost, deletePost,
