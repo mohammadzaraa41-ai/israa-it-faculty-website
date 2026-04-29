@@ -73,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Attempting login for:", cleanUsername);
       
-      // Fetch the first user that matches the username
+      // Fetch the first user that matches the username AND password
       const { data: usersFound, error: fetchError } = await supabase
         .from('users')
         .select('*')
@@ -88,24 +88,17 @@ export const AuthProvider = ({ children }) => {
 
       const data = usersFound && usersFound.length > 0 ? usersFound[0] : null;
       console.log("Login query result:", data);
-      
-      if (error) {
-        console.error("Supabase Login Error:", error);
-        return { success: false, message: 'خطأ في الاتصال: ' + error.message };
-      }
-
-      console.log("Login query result:", data);
 
       if (!data) {
         // Let's check if the user exists at all without checking password
-        const { count } = await supabase
+        const { count, error: countError } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
           .ilike('username', cleanUsername);
         
         console.log("User existence check (count):", count);
         
-        if (count === 0) {
+        if (!countError && count === 0) {
           return { success: false, message: 'اسم المستخدم غير موجود في النظام' };
         }
         return { success: false, message: 'كلمة المرور غير صحيحة' };
@@ -124,7 +117,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true, user: loggedUser };
     } catch (err) {
       console.error("Login catch error:", err);
-      return { success: false, message: 'حدث خطأ غير متوقع' };
+      return { success: false, message: 'حدث خطأ تقني في تسجيل الدخول' };
     }
   };
 
