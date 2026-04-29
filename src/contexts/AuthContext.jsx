@@ -186,14 +186,16 @@ export const AuthProvider = ({ children }) => {
         password: userToApprove.password,
         role: 'STUDENT',
         name_ar: userToApprove.fullName,
-        department_id: userToApprove.major === 'cs' ? 'cs' : userToApprove.major,
+        department_id: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
         is_alumni: false
       };
+
+      console.log("Attempting to insert user with data:", activeUser);
       
       // 1. Insert into users table
       const { error: insertErr } = await supabase.from('users').insert([activeUser]);
       if (insertErr) {
-        console.error("Approve User Insert Error:", JSON.stringify(insertErr, null, 2));
+        console.error("Approve User Insert Error Details:", JSON.stringify(insertErr, null, 2));
         return false;
       }
 
