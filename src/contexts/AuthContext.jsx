@@ -192,7 +192,10 @@ export const AuthProvider = ({ children }) => {
       
       // 1. Insert into users table
       const { error: insertErr } = await supabase.from('users').insert([activeUser]);
-      if (insertErr) return false;
+      if (insertErr) {
+        console.error("Approve User Insert Error:", insertErr);
+        return false;
+      }
 
       // 2. Delete from pending_users
       const { error: deleteErr } = await supabase.from('pending_users').delete().eq('id', pendingId);
