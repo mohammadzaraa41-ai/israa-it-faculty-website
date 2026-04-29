@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
 import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
 
 const AdminContext = createContext();
 
@@ -10,172 +11,77 @@ export const AdminProvider = ({ children }) => {
   const { user } = useAuth();
   const isAuthenticated = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
 
-
-  const [facultyMembers, setFacultyMembers] = useState(() => {
-    try {
-      const saved = localStorage.getItem('facultyMembers');
-      if (saved === 'null' || saved === null) return DB_SCHEMA.facultyMembers;
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : DB_SCHEMA.facultyMembers;
-    } catch (e) {
-      console.error("Error parsing facultyMembers:", e);
-      return DB_SCHEMA.facultyMembers;
-    }
-  });
-
-  const [departments, setDepartments] = useState(() => {
-    try {
-      const saved = localStorage.getItem('site_departments');
-      if (saved === 'null' || saved === null) return DB_SCHEMA.departments;
-      const parsed = JSON.parse(saved);
-      return Array.isArray(parsed) ? parsed : DB_SCHEMA.departments;
-    } catch (e) {
-      return DB_SCHEMA.departments;
-    }
-  });
-
-  const [students, setStudents] = useState(() => {
-    try {
-      const saved = localStorage.getItem('students');
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) { return []; }
-  });
-
-  const [pendingRegistrations, setPendingRegistrations] = useState(() => {
-    try {
-      const saved = localStorage.getItem('pendingRegistrations');
-      return saved ? JSON.parse(saved) : [
-        { id: 101, name: 'محمد علي', type: 'Student', major: 'علم حاسوب', date: '2026-04-20' },
-        { id: 102, name: 'د. خالد حسن', type: 'Faculty', department: 'أمن المعلومات', date: '2026-04-21' }
-      ];
-    } catch (e) { return []; }
-  });
-
-  const [offeredCourses, setOfferedCourses] = useState(() => {
-    try {
-      const saved = localStorage.getItem('offeredCourses');
-      return saved ? JSON.parse(saved) : [
-        { id: 1, title: 'معسكر تطوير واجهات الويب (React)', hours: '40 ساعة', instructor: 'د. أحمد', state: 'متاح للتسجيل' },
-        { id: 2, title: 'دورة الأمن السيبراني المتقدم', hours: '30 ساعة', instructor: 'م. سارة', state: 'متاح للتسجيل' },
-        { id: 3, title: 'تحليل البيانات باستخدام Python', hours: '25 ساعة', instructor: 'د. عمر', state: 'مغلق' },
-      ];
-    } catch (e) { return []; }
-  });
-
-  const [studentTips, setStudentTips] = useState(() => {
-    const saved = localStorage.getItem('studentTips');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, text: 'احرص على تنظيم وقتك بين المحاضرات والمشاريع العملية.' },
-      { id: 2, text: 'لا تعتمد على المادة النظرية فقط، البرمجة تحتاج لممارسة يومية بيدك.' },
-      { id: 3, text: 'شارك في المسابقات البرمجية (مثل IEEE و ACM) لتقوية مهاراتك.' },
-      { id: 4, text: 'ابنِ شبكة علاقات مع زملائك ودكاترتك، العمل الجماعي أساس النجاح.' },
-    ];
-  });
-
-  const [quests, setQuests] = useState(() => {
-    const saved = localStorage.getItem('quests');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: 'حل 5 تحديات على LeetCode', xp: 50 },
-      { id: 2, title: 'بناء مشروع React.js بسيط', xp: 100 },
-      { id: 3, title: 'تعلم أساسيات Git & GitHub', xp: 80 },
-      { id: 4, title: 'حضور ورشة عمل تقنية في الكلية', xp: 120 },
-      { id: 5, title: 'المساهمة في مشروع مفتوح المصدر', xp: 200 },
-    ];
-  });
-
-  // Prospective Graduates content
-  const [gradTemplates, setGradTemplates] = useState(() => {
-    const saved = localStorage.getItem('gradTemplates');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: { ar: 'قالب التقرير النهائي', en: 'Final Report Template' }, type: 'doc' },
-      { id: 2, name: { ar: 'نموذج العرض التقديمي', en: 'Presentation Template' }, type: 'ppt' }
-    ];
-  });
-
-  const [projectBank, setProjectBank] = useState(() => {
-    const saved = localStorage.getItem('projectBank');
-    return saved ? JSON.parse(saved) : [
-      { 
-        id: 1, 
-        name: { ar: 'نظام إدارة المستشفيات الذكي', en: 'Smart Hospital Management' }, 
-        students: ['أحمد محمد', 'خالد علي', 'رامي حسن'], 
-        supervisor: 'د. سارة عيسى', 
-        link: 'https://demo.project.com',
-        files: [{ name: 'Final Report.pdf', type: 'pdf' }, { name: 'Manual.docx', type: 'docx' }],
-        images: ['https://placehold.co/600x400?text=Project+1', 'https://placehold.co/600x400?text=Project+2'],
-        rating: 4.5,
-        notes: { ar: 'مشروع متميز جداً واستخدم تقنيات حديثة.', en: 'Excellent project using modern tech.' }
-      }
-    ];
-  });
-
-  const [cvTemplates, setCvTemplates] = useState(() => {
-    const saved = localStorage.getItem('cvTemplates');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, name: { ar: 'سيرة ذاتية تقنية - نمط 1', en: 'Tech CV - Style 1' }, file: 'template1.docx' }
-    ];
-  });
-
-  const [interviewResources, setInterviewResources] = useState(() => {
-    const saved = localStorage.getItem('interviewResources');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: { ar: 'أسئلة خوارزميات', en: 'Algo Questions' }, type: 'text', content: '...' },
-      { id: 2, title: { ar: 'فيديو تحضيري', en: 'Prep Video' }, type: 'video', url: 'https://youtube.com/...' }
-    ];
-  });
-
-  const [linkedinTips, setLinkedinTips] = useState(() => {
-    const saved = localStorage.getItem('linkedinTips');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, title: { ar: 'تحسين البروفايل', en: 'Profile Optimization' }, type: 'tip', content: '...' },
-      { id: 2, title: { ar: 'رابط خبير', en: 'Expert Link' }, type: 'link', url: 'https://linkedin.com/in/...' }
-    ];
-  });
+  const [facultyMembers, setFacultyMembers] = useState(DB_SCHEMA.facultyMembers);
+  const [departments, setDepartments] = useState(DB_SCHEMA.departments);
+  const [students, setStudents] = useState([]);
+  const [pendingRegistrations, setPendingRegistrations] = useState([]);
+  const [offeredCourses, setOfferedCourses] = useState([]);
+  const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
+  const [quests, setQuests] = useState(DB_SCHEMA.quests);
+  const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
+  const [projectBank, setProjectBank] = useState([]);
+  const [cvTemplates, setCvTemplates] = useState([]);
+  const [interviewResources, setInterviewResources] = useState([]);
+  const [linkedinTips, setLinkedinTips] = useState([]);
 
   // Social Feed & Announcements
-  const [posts, setPosts] = useState(() => {
-    const saved = localStorage.getItem('site_posts');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.posts;
-  });
+  const [posts, setPosts] = useState([]);
+  const [pendingPosts, setPendingPosts] = useState([]);
+  const [announcements, setAnnouncements] = useState(DB_SCHEMA.announcements);
+  const [events, setEvents] = useState([
+    { id: 1, date: '28 APR', text: { ar: "يوم مفتوح لمشاريع التخرج", en: "Graduation Projects Open Day" } },
+    { id: 2, date: '30 APR', text: { ar: "ورشة عمل الأمن السيبراني", en: "Cyber Security Workshop" } }
+  ]);
 
-  const [pendingPosts, setPendingPosts] = useState(() => {
-    const saved = localStorage.getItem('site_pending_posts');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.pendingPosts;
-  });
+  const [loading, setLoading] = useState(true);
 
-  const [announcements, setAnnouncements] = useState(() => {
-    const saved = localStorage.getItem('site_announcements');
-    return saved ? JSON.parse(saved) : DB_SCHEMA.announcements;
-  });
+  // --- FETCH SOCIAL FEED FROM SUPABASE ---
+  useEffect(() => {
+    const fetchSocialData = async () => {
+      try {
+        const [
+          { data: postsData },
+          { data: commentsData },
+          { data: pendingData }
+        ] = await Promise.all([
+          supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
+          supabase.from('comments').select('*').order('created_at', { ascending: true }),
+          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+        ]);
 
-  const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('site_events');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, date: '28 APR', text: { ar: "يوم مفتوح لمشاريع التخرج", en: "Graduation Projects Open Day" } },
-      { id: 2, date: '30 APR', text: { ar: "ورشة عمل الأمن السيبراني", en: "Cyber Security Workshop" } }
-    ];
-  });
+        if (postsData) {
+          const processedPosts = postsData.map(p => ({
+            ...p,
+            author: { name: p.author_name, role: p.author_role },
+            date: new Date(p.created_at).toLocaleDateString('en-GB'),
+            comments: commentsData ? commentsData.filter(c => c.post_id === p.id) : []
+          }));
+          setPosts(processedPosts);
+        }
 
+        if (pendingData) {
+          setPendingPosts(pendingData.map(p => ({
+            ...p,
+            author: { name: p.author_name, role: p.author_role },
+            date: new Date(p.created_at).toLocaleDateString('en-GB'),
+            comments: []
+          })));
+        }
+      } catch (err) {
+        console.error("Error fetching social feed:", err);
+      }
+      setLoading(false);
+    };
+    fetchSocialData();
+  }, []);
 
-
+  // Persistence (Fallback for non-DB entities)
   useEffect(() => {
     localStorage.setItem('facultyMembers', JSON.stringify(facultyMembers || []));
     localStorage.setItem('site_departments', JSON.stringify(departments || []));
-    localStorage.setItem('students', JSON.stringify(students || []));
-    localStorage.setItem('pendingRegistrations', JSON.stringify(pendingRegistrations || []));
-    localStorage.setItem('offeredCourses', JSON.stringify(offeredCourses || []));
-    localStorage.setItem('studentTips', JSON.stringify(studentTips || []));
-    localStorage.setItem('quests', JSON.stringify(quests || []));
-    localStorage.setItem('gradTemplates', JSON.stringify(gradTemplates || []));
-    localStorage.setItem('projectBank', JSON.stringify(projectBank || []));
-    localStorage.setItem('cvTemplates', JSON.stringify(cvTemplates || []));
-    localStorage.setItem('interviewResources', JSON.stringify(interviewResources || []));
-    localStorage.setItem('linkedinTips', JSON.stringify(linkedinTips || []));
-    localStorage.setItem('site_posts', JSON.stringify(posts || []));
-    localStorage.setItem('site_pending_posts', JSON.stringify(pendingPosts || []));
     localStorage.setItem('site_announcements', JSON.stringify(announcements || []));
     localStorage.setItem('site_events', JSON.stringify(events || []));
-  }, [facultyMembers, departments, students, pendingRegistrations, offeredCourses, studentTips, quests, gradTemplates, projectBank, cvTemplates, interviewResources, linkedinTips, posts, pendingPosts, announcements, events]);
+  }, [facultyMembers, departments, announcements, events]);
 
 
 
@@ -202,69 +108,92 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Social Feed Actions
-  const addPost = (post, user) => {
+  const addPost = async (post, user) => {
     if (!user) return { status: 'ERROR' };
+    
     const newPost = {
-      ...post,
-      id: Date.now(),
-      author: { 
-        name: user.name?.ar || user.name || user.username, 
-        role: user.role,
-        username: user.username 
-      },
-      date: new Date().toLocaleDateString('en-GB'),
-      likes: [],
+      content: post.content,
+      image: post.image,
+      author_id: user.id,
+      author_name: user.name?.ar || user.name || user.username,
+      author_role: user.role,
+      status: user.role === 'STUDENT' ? 'pending' : 'published',
+      likes: []
+    };
+
+    const { data, error } = await supabase.from('posts').insert([newPost]).select();
+    if (error) return { status: 'ERROR', message: error.message };
+
+    const processed = {
+      ...data[0],
+      author: { name: data[0].author_name, role: data[0].author_role },
+      date: new Date(data[0].created_at).toLocaleDateString('en-GB'),
       comments: []
     };
 
-    if (user.role === 'STUDENT') {
-      setPendingPosts(prev => [newPost, ...(prev || [])]);
+    if (newPost.status === 'pending') {
+      setPendingPosts(prev => [processed, ...prev]);
       return { status: 'PENDING' };
     } else {
-      setPosts(prev => [newPost, ...(prev || [])]);
+      setPosts(prev => [processed, ...prev]);
       return { status: 'PUBLISHED' };
     }
   };
 
-  const approvePost = (postId) => {
-    const post = pendingPosts.find(p => p.id === postId);
-    if (post) {
-      setPosts([post, ...posts]);
-      setPendingPosts(pendingPosts.filter(p => p.id !== postId));
+  const approvePost = async (postId) => {
+    const { error } = await supabase.from('posts').update({ status: 'published' }).eq('id', postId);
+    if (!error) {
+      const post = pendingPosts.find(p => p.id === postId);
+      if (post) {
+        setPosts([post, ...posts]);
+        setPendingPosts(pendingPosts.filter(p => p.id !== postId));
+      }
     }
   };
 
-  const rejectPost = (postId) => {
-    setPendingPosts(pendingPosts.filter(p => p.id !== postId));
+  const rejectPost = async (postId) => {
+    const { error } = await supabase.from('posts').delete().eq('id', postId);
+    if (!error) setPendingPosts(pendingPosts.filter(p => p.id !== postId));
   };
 
-  const deletePost = (postId) => {
-    setPosts(posts.filter(p => p.id !== postId));
+  const deletePost = async (postId) => {
+    const { error } = await supabase.from('posts').delete().eq('id', postId);
+    if (!error) setPosts(posts.filter(p => p.id !== postId));
   };
 
-  const toggleLike = (postId, username) => {
-    setPosts(posts.map(p => {
-      if (p.id === postId) {
-        const hasLiked = p.likes.includes(username);
-        return {
-          ...p,
-          likes: hasLiked ? p.likes.filter(u => u !== username) : [...p.likes, username]
-        };
-      }
-      return p;
-    }));
+  const toggleLike = async (postId, username) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+
+    const hasLiked = post.likes.includes(username);
+    const newLikes = hasLiked ? post.likes.filter(u => u !== username) : [...post.likes, username];
+
+    const { error } = await supabase.from('posts').update({ likes: newLikes }).eq('id', postId);
+    if (!error) {
+      setPosts(posts.map(p => p.id === postId ? { ...p, likes: newLikes } : p));
+    }
   };
 
-  const addComment = (postId, comment) => {
-    setPosts(posts.map(p => {
-      if (p.id === postId) {
-        return {
-          ...p,
-          comments: [...p.comments, { ...comment, id: Date.now(), date: new Date().toISOString() }]
-        };
-      }
-      return p;
-    }));
+  const addComment = async (postId, comment) => {
+    const newComment = {
+      post_id: postId,
+      author_name: comment.author?.name || 'User',
+      author_role: comment.author?.role || 'STUDENT',
+      content: comment.content
+    };
+
+    const { data, error } = await supabase.from('comments').insert([newComment]).select();
+    if (!error && data) {
+      setPosts(posts.map(p => {
+        if (p.id === postId) {
+          return {
+            ...p,
+            comments: [...(p.comments || []), data[0]]
+          };
+        }
+        return p;
+      }));
+    }
   };
 
   const addAnnouncement = (ann) => setAnnouncements([...announcements, { ...ann, id: Date.now() }]);
