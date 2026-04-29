@@ -139,15 +139,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }, 5000);
 
-    // Real-time subscription for auth-related tables - Simplified to prevent crashes
-    const authChannel = supabase
-      .channel('auth-public-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, () => refreshData())
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(authChannel);
-    };
+    // Removed real-time subscription to prevent crash loops
   }, []);
 
   useEffect(() => {

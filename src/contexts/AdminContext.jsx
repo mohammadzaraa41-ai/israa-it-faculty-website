@@ -104,15 +104,7 @@ export const AdminProvider = ({ children }) => {
   useEffect(() => {
     fetchSocialData();
 
-    // Real-time subscription for social feed - Simplified
-    const socialChannel = supabase
-      .channel('social-feed-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => fetchSocialData())
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(socialChannel);
-    };
+    // Removed real-time subscription to prevent crash loops
   }, []);
 
   // Persistence (Fallback for non-DB entities)

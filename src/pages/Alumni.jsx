@@ -94,26 +94,7 @@ const Alumni = () => {
     };
     init();
 
-    // REAL-TIME PULSE: Listen for status changes on the current user record
-    if (user) {
-      const channelName = `user-sync-${user.id}-${Date.now()}`;
-      const userSub = supabase
-        .channel(channelName)
-        .on('postgres_changes', { 
-          event: 'UPDATE', 
-          schema: 'public', 
-          table: 'users',
-          filter: `id=eq.${user.id}`
-        }, () => {
-          console.log("REAL-TIME ACCESS UPDATE DETECTED!");
-          checkDirectAccess();
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(userSub);
-      };
-    }
+    // Removed real-time subscription to prevent crash loops
   }, [user?.id]);
 
   const handleRefresh = async () => {
