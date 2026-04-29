@@ -56,9 +56,9 @@ const Alumni = () => {
   const cvFileInputRef = React.useRef(null);
   const scheduleRef = React.useRef(null);
 
-  const handleRequestSubmit = (e) => {
+  const handleRequestSubmit = async (e) => {
     e.preventDefault();
-    submitAlumniRequest(user.id, {
+    await submitAlumniRequest(user.id, {
       fullName: user.fullName || user.username,
       universityId: user.universityId || user.username,
       hours: requestForm.hours,

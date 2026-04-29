@@ -31,10 +31,12 @@ export const AuthProvider = ({ children }) => {
       try {
         const [
           { data: usersData },
-          { data: pendingData }
+          { data: pendingData },
+          { data: alumniData }
         ] = await Promise.all([
           supabase.from('users').select('*'),
-          supabase.from('pending_users').select('*').eq('status', 'pending')
+          supabase.from('pending_users').select('*').eq('status', 'pending'),
+          supabase.from('alumni_requests').select('*').eq('status', 'pending')
         ]);
 
         if (usersData) {
@@ -50,6 +52,16 @@ export const AuthProvider = ({ children }) => {
             fullName: p.full_name,
             universityId: p.university_id,
             yearSem: p.year_sem
+          })));
+        }
+
+        if (alumniData) {
+          setAlumniRequests(alumniData.map(a => ({
+            ...a,
+            fullName: a.full_name,
+            universityId: a.university_id,
+            userId: a.user_id,
+            scheduleImage: a.schedule_image
           })));
         }
       } catch (err) {
@@ -144,27 +156,45 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: error.message };
   };
 
-  const submitAlumniRequest = (userId, data) => {
+  const submitAlumniRequest = async (userId, data) => {
+    const requestId = 'ar' + Date.now();
     const request = {
-      ...data,
-      id: 'ar' + Date.now(),
-      userId,
-      requestDate: new Date().toISOString(),
+      id: requestId,
+      user_id: userId,
+      full_name: data.fullName,
+      university_id: data.universityId,
+      hours: data.hours,
+      schedule_image: data.scheduleImage,
       status: 'pending'
     };
-    setAlumniRequests(prev => [...prev, request]);
-    return { success: true };
+    
+    const { error } = await supabase.from('alumni_requests').insert([request]);
+    if (!error) {
+      setAlumniRequests(prev => [...prev, { ...data, id: requestId, userId, status: 'pending' }]);
+      return { success: true };
+    }
+    return { success: false, message: error.message };
   };
 
-  const approveAlumniRequest = (requestId) => {
+  const approveAlumniRequest = async (requestId) => {
     const req = alumniRequests.find(r => r.id === requestId);
     if (req) {
-      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true, permissions: [...u.permissions, 'ACCESS_ALUMNI'] } : u));
+      // 1. Update user to is_alumni = true
+      const { error: userErr } = await supabase
+        .from('users')
+        .update({ is_alumni: true })
+        .eq('id', req.userId);
+      
+      if (userErr) return false;
+
+      // 2. Delete the request
+      const { error: reqErr } = await supabase.from('alumni_requests').delete().eq('id', requestId);
+      
+      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true } : u));
       setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
       
-      // Update current user if it's the one being approved
       if (user?.id === req.userId) {
-        const updatedUser = { ...user, isAlumni: true, permissions: [...user.permissions, 'ACCESS_ALUMNI'] };
+        const updatedUser = { ...user, isAlumni: true };
         setUser(updatedUser);
         localStorage.setItem('site_user', JSON.stringify(updatedUser));
       }
@@ -173,8 +203,13 @@ export const AuthProvider = ({ children }) => {
     return false;
   };
 
-  const rejectAlumniRequest = (requestId) => {
-    setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
+  const rejectAlumniRequest = async (requestId) => {
+    const { error } = await supabase.from('alumni_requests').delete().eq('id', requestId);
+    if (!error) {
+      setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
+      return true;
+    }
+    return false;
   };
 
   const approveUser = async (pendingId) => {
