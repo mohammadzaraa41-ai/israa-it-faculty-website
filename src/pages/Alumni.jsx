@@ -497,7 +497,7 @@ const Alumni = () => {
           <div className="glass-panel" style={{ padding: '2.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
               <div>
-                <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-color)', marginBottom: '0.5rem' }}>{viewingProject.name[lang]}</h2>
+                <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--accent-color)', marginBottom: '0.5rem' }}>{viewingProject.name?.[lang] || viewingProject.name || 'Unnamed Project'}</h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   {[1, 2, 3, 4, 5].map(star => {
                     const full = star <= viewingProject.rating;
@@ -586,7 +586,7 @@ const Alumni = () => {
             <div style={{ marginBottom: '3rem' }}>
               <h4 style={{ fontWeight: 'bold', marginBottom: '1rem' }}>{lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}</h4>
               <p style={{ lineHeight: '1.8', opacity: 0.8, padding: '1.5rem', background: 'rgba(244, 180, 26, 0.05)', borderRadius: '12px', borderLeft: '4px solid var(--accent-color)' }}>
-                {viewingProject.notes[lang]}
+                {viewingProject.notes?.[lang] || viewingProject.notes || 'No notes available'}
               </p>
             </div>
 
@@ -627,7 +627,7 @@ const Alumni = () => {
                   border: '1px solid rgba(255,255,255,0.05)' 
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.9rem' }}>{file.name[lang]}</span>
+                    <span style={{ fontSize: '0.9rem' }}>{file.name?.[lang] || file.name || 'Unnamed Template'}</span>
                     {file.type === 'img' && <span style={{ fontSize: '0.7rem', opacity: 0.5 }}>(Image)</span>}
                   </div>
                   <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
@@ -635,11 +635,11 @@ const Alumni = () => {
                       size={18} 
                       style={{ color: 'var(--accent-color)', cursor: 'pointer' }} 
                       title="Download" 
-                      onClick={() => handleDownload(file.url, file.name[lang] + '.' + (file.type || 'pdf'))}
+                      onClick={() => handleDownload(file.url, (file.name?.[lang] || 'Template') + '.' + (file.type || 'pdf'))}
                     />
                     {isAdmin && (
                       <>
-                        <Edit2 size={16} color="var(--primary-light)" style={{ cursor: 'pointer' }} onClick={() => handleEditTemplate(file.id, file.name[lang])} title="Edit Name" />
+                        <Edit2 size={16} color="var(--primary-light)" style={{ cursor: 'pointer' }} onClick={() => handleEditTemplate(file.id, file.name?.[lang] || 'Unnamed')} title="Edit Name" />
                         <Trash2 size={18} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteGradTemplate(file.id)} title="Delete" />
                       </>
                     )}
@@ -676,7 +676,7 @@ const Alumni = () => {
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>{project.name[lang]}</h4>
+                    <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>{project.name?.[lang] || project.name || 'Unnamed Project'}</h4>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                       <Star size={12} fill="var(--accent-color)" color="var(--accent-color)" />
                       <span style={{ fontSize: '0.75rem' }}>{project.rating}</span>
@@ -825,7 +825,7 @@ const Alumni = () => {
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <FileText size={16} color="var(--accent-color)" />
-                    <span>{cv.name[lang]}</span>
+                    <span>{cv.name?.[lang] || cv.name || 'Unnamed CV'}</span>
                   </div>
                   {isAdmin && <Trash2 size={16} color="#ff4444" onClick={(e) => { e.stopPropagation(); deleteCvTemplate(cv.id); }} />}
                 </div>
@@ -838,7 +838,7 @@ const Alumni = () => {
                   <div style={{ fontSize: '0.9rem', marginBottom: '1rem' }}>{lang === 'ar' ? 'خيارات القالب:' : 'Template Options:'}</div>
                   <div style={{ display: 'flex', gap: '1rem' }}>
                     <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleViewFile(selectedCv.url)}><Eye size={14} /> {lang === 'ar' ? 'عرض' : 'View'}</button>
-                    <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleDownload(selectedCv.url, selectedCv.name[lang] + '.' + (selectedCv.file.split('.').pop()))}><Download size={14} /> {lang === 'ar' ? 'تحميل' : 'Download'}</button>
+                    <button className="btn-outline" style={{ padding: '0.5rem 1rem', fontSize: '0.8rem' }} onClick={() => handleDownload(selectedCv.url, (selectedCv.name?.[lang] || 'CV') + '.' + (selectedCv.file?.split('.').pop() || 'pdf'))}><Download size={14} /> {lang === 'ar' ? 'تحميل' : 'Download'}</button>
                   </div>
                 </motion.div>
               )}
@@ -855,7 +855,7 @@ const Alumni = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {res.type === 'video' ? <Video size={16} color="var(--accent-color)" /> : <BookOpen size={16} color="#3498db" />}
-                      <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{res.title[lang]}</span>
+                      <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{res.title?.[lang] || res.title || 'Untitled'}</span>
                     </div>
                     {isAdmin && <Trash2 size={16} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteInterviewResource(res.id)} />}
                   </div>
@@ -875,7 +875,7 @@ const Alumni = () => {
               {linkedinTips.map(tip => (
                 <div key={tip.id} style={{ padding: '1rem', background: 'rgba(255,255,255,0.02)', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{tip.title[lang]}</span>
+                    <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{tip.title?.[lang] || tip.title || 'Untitled'}</span>
                     {isAdmin && <Trash2 size={16} color="#ff4444" style={{ cursor: 'pointer' }} onClick={() => deleteLinkedinTip(tip.id)} />}
                   </div>
                   {tip.type !== 'tip' ? (
