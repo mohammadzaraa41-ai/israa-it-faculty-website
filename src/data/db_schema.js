@@ -136,7 +136,7 @@ export const DB_SCHEMA = {
       id: 1,
       author: { name: "د. سارة عيسى", role: "FACULTY" },
       content: "أهلاً بكم في الفصل الدراسي الجديد! نتمنى لجميع الطلاب التوفيق والنجاح في مسيرتهم الأكاديمية.",
-      image: "https://images.unsplash.com/photo-1523050335392-938511794244?auto=format&fit=crop&q=80&w=800",
+      image: "",
       date: "2026-04-26",
       likes: [],
       comments: []

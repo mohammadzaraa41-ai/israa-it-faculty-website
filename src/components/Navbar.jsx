@@ -160,7 +160,7 @@ const Navbar = () => {
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
             <div className="sidebar-logo clickable-logo" onClick={() => { setActiveTab('login'); toggleLogin(true); }}>
-              <img src="/hero.png" alt="Logo" className="logo-img" />
+              <img src="/logo.png" alt="Logo" className="logo-img" />
               <div className="logo-info">
                 <span className="logo-text">{t('faculty_name')}</span>
                 {user && (

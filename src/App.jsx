@@ -22,7 +22,7 @@ const GlobalBackground = () => {
     if (path === '/' || path === '') {
       currentClass = 'bg-home';
       currentStyle = {
-        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('/home-bg.jpg')`,
+        backgroundImage: `linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url('/main-bg.jpg')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed'
