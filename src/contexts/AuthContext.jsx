@@ -68,21 +68,29 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
+      const cleanUsername = username.trim();
+      const cleanPassword = password.trim();
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('username', username)
-        .eq('password', password)
-        .single();
+        .ilike('username', cleanUsername) // Case-insensitive matching
+        .eq('password', cleanPassword)
+        .maybeSingle(); // Returns null if not found instead of error
       
-      if (error || !data) {
+      if (error) {
+        console.error("Login DB error:", error);
+        return { success: false, message: 'خطأ في الاتصال بقاعدة البيانات' };
+      }
+
+      if (!data) {
         return { success: false, message: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
       }
 
       const loggedUser = { 
         ...data, 
         name: { ar: data.name_ar, en: data.name_en },
-        permissions: data.role === 'SUPER_ADMIN' || data.role === 'DEAN' 
+        permissions: (data.role === 'SUPER_ADMIN' || data.role === 'DEAN')
           ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
           : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
       };
@@ -91,7 +99,8 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('site_user', JSON.stringify(loggedUser));
       return { success: true, user: loggedUser };
     } catch (err) {
-      return { success: false, message: 'حدث خطأ أثناء الاتصال بالسيرفر' };
+      console.error("Login catch error:", err);
+      return { success: false, message: 'حدث خطأ غير متوقع' };
     }
   };
 
