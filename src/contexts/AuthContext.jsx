@@ -96,7 +96,7 @@ export const AuthProvider = ({ children }) => {
       const cleanUsername = username.trim();
       const cleanPassword = password.trim();
 
-      console.log("Attempting login for:", cleanUsername);
+
       
       // Fetch the first user that matches the username AND password
       const { data: usersFound, error: fetchError } = await supabase
@@ -112,7 +112,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       const data = usersFound && usersFound.length > 0 ? usersFound[0] : null;
-      console.log("Login query result:", data);
+
 
       if (!data) {
         // Let's check if the user exists at all without checking password
@@ -121,7 +121,7 @@ export const AuthProvider = ({ children }) => {
           .select('*', { count: 'exact', head: true })
           .ilike('username', cleanUsername);
         
-        console.log("User existence check (count):", count);
+
         
         if (!countError && count === 0) {
           return { success: false, message: 'اسم المستخدم غير موجود في النظام' };
@@ -238,7 +238,7 @@ export const AuthProvider = ({ children }) => {
         is_alumni: false
       };
 
-      console.log("Attempting to insert user with data:", activeUser);
+
       
       // 1. Insert into users table
       const { error: insertErr } = await supabase.from('users').insert([activeUser]);

@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
-import { useData } from '../contexts/DataContext';
+
 import { useLocale } from '../contexts/LocalizationContext';
-import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, Search, Shield, Settings, Mail, Phone, BookOpen, AlertCircle, Info, Send, Plus } from 'lucide-react';
+import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, AlertCircle, Info, Send, Plus } from 'lucide-react';
 
 const AdminDashboard = () => {
   const { 
@@ -12,19 +12,16 @@ const AdminDashboard = () => {
     users,
     pendingUsers, approveUser, rejectUser,
     alumniRequests, approveAlumniRequest, rejectAlumniRequest,
-    registerUserDirectly,
-    deleteUser, updateUserRole, updateUser
+    deleteUser
   } = useAuth();
   
   useEffect(() => {
     if (users) localStorage.setItem('site_users', JSON.stringify(users));
     if (pendingUsers) localStorage.setItem('site_pending_users', JSON.stringify(pendingUsers));
     if (alumniRequests) localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
-    console.log("Saving users to storage:", users?.length || 0);
+
   }, [users, pendingUsers, alumniRequests]);
   
-  const { 
-    isAuthenticated,
     facultyMembers, addFaculty, editFaculty, deleteFaculty,
     departments, addDepartment, deleteDepartment, updateDepartment,
     posts, pendingPosts, approvePost, rejectPost, deletePost,
@@ -32,7 +29,7 @@ const AdminDashboard = () => {
     events, addEvent, deleteEvent, updateEvent
   } = useAdmin();
   const navigate = useNavigate();
-  const { t, lang } = useLocale();
+  const { lang } = useLocale();
 
   const [activeTab, setActiveTab] = useState('approvals');
 

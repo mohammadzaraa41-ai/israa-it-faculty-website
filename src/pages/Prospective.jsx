@@ -4,12 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Monitor, Cpu, ShieldCheck, Database, GraduationCap, ClipboardCheck, UserCheck, Rocket, ArrowRight, ArrowLeft, Network, Video, Brain, PenTool, X, Briefcase, Star, TrendingUp, Info, Phone, Calendar, Clock, BookOpen, Lock, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
-import { useData } from '../contexts/DataContext';
+
 import './Prospective.css';
 
 const Prospective = () => {
-  const { t, lang } = useLocale();
-  const { registerRequest } = useAuth();
+  const { lang } = useLocale();
+  const { } = useAuth();
   const isRtl = lang === 'ar';
 
   const [regForm, setRegForm] = useState({ 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
-import { useData } from '../contexts/DataContext';
+
 import { 
   FileText, 
   Briefcase, 
@@ -11,7 +11,7 @@ import {
   ExternalLink, 
   ClipboardList, 
   Presentation,
-  Search,
+
   BookOpen,
   Trophy,
   Plus,
