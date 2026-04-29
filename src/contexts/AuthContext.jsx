@@ -73,6 +73,11 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Attempting login for:", cleanUsername);
       
+      // DEBUG: Let's see ALL users in the table to verify connection
+      const { data: allUsers, error: fetchAllError } = await supabase.from('users').select('*');
+      console.log("All users currently in DB:", allUsers);
+      if (fetchAllError) console.error("Fetch all error:", fetchAllError);
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
