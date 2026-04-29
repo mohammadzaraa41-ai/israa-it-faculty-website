@@ -10,21 +10,34 @@ export const AuthProvider = ({ children }) => {
     return savedUser ? JSON.parse(savedUser) : null;
   });
 
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(() => {
+    const saved = localStorage.getItem('site_users');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [loading, setLoading] = useState(true);
 
-  const [pendingUsers, setPendingUsers] = useState([]);
-  const [alumniRequests, setAlumniRequests] = useState([]);
+  const [pendingUsers, setPendingUsers] = useState(() => {
+    const saved = localStorage.getItem('site_pending_users');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [alumniRequests, setAlumniRequests] = useState(() => {
+    const saved = localStorage.getItem('site_alumni_requests');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   // --- FETCH USERS FROM SUPABASE ---
   useEffect(() => {
     const fetchAuthData = async () => {
-      const { data: usersData } = await supabase.from('users').select('*');
-      if (usersData) {
-        setUsers(usersData.map(u => ({
-          ...u,
-          name: { ar: u.name_ar, en: u.name_en }
-        })));
+      try {
+        const { data: usersData } = await supabase.from('users').select('*');
+        if (usersData && usersData.length > 0) {
+          setUsers(usersData.map(u => ({
+            ...u,
+            name: { ar: u.name_ar, en: u.name_en }
+          })));
+        }
+      } catch (err) {
+        console.error("Supabase fetch error:", err);
       }
       setLoading(false);
     };
@@ -32,9 +45,9 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('site_users', JSON.stringify(users));
-    localStorage.setItem('site_pending_users', JSON.stringify(pendingUsers));
-    localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
+    if (users.length > 0) localStorage.setItem('site_users', JSON.stringify(users));
+    if (pendingUsers.length > 0) localStorage.setItem('site_pending_users', JSON.stringify(pendingUsers));
+    if (alumniRequests.length > 0) localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
   }, [users, pendingUsers, alumniRequests]);
 
   const login = (username, password) => {

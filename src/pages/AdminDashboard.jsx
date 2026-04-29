@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   }, [users, pendingUsers, alumniRequests]);
   
   const { 
-    isAuthenticated, login, logout: adminLogout,
+    isAuthenticated,
     facultyMembers, addFaculty, editFaculty, deleteFaculty,
     departments, addDepartment, deleteDepartment, updateDepartment,
     posts, pendingPosts, approvePost, rejectPost, deletePost,

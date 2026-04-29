@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
+import { useAuth } from './AuthContext';
 
 const AdminContext = createContext();
 
 export const useAdmin = () => useContext(AdminContext);
 
 export const AdminProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('adminAuth') === 'true';
-  });
+  const { user } = useAuth();
+  const isAuthenticated = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+
 
   const [facultyMembers, setFacultyMembers] = useState(() => {
     try {
@@ -155,10 +156,7 @@ export const AdminProvider = ({ children }) => {
     ];
   });
 
-  // Persist data
-  useEffect(() => {
-    localStorage.setItem('adminAuth', isAuthenticated);
-  }, [isAuthenticated]);
+
 
   useEffect(() => {
     localStorage.setItem('facultyMembers', JSON.stringify(facultyMembers || []));
@@ -179,20 +177,7 @@ export const AdminProvider = ({ children }) => {
     localStorage.setItem('site_events', JSON.stringify(events || []));
   }, [facultyMembers, departments, students, pendingRegistrations, offeredCourses, studentTips, quests, gradTemplates, projectBank, cvTemplates, interviewResources, linkedinTips, posts, pendingPosts, announcements, events]);
 
-  // Auth functions
-  const login = (username, password) => {
-    const cleanUser = username.trim();
-    const cleanPass = password.trim();
-    if (cleanUser === 'AE2551' && cleanPass === 'AE12345') {
-      setIsAuthenticated(true);
-      return true;
-    }
-    return false;
-  };
 
-  const logout = () => {
-    setIsAuthenticated(false);
-  };
 
   // Faculty functions
   const addFaculty = (member) => {
@@ -373,8 +358,6 @@ export const AdminProvider = ({ children }) => {
   return (
     <AdminContext.Provider value={{
       isAuthenticated,
-      login,
-      logout,
       facultyMembers,
       addFaculty,
       editFaculty,
