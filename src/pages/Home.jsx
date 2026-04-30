@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
+import { CardSkeleton } from '../components/Skeleton';
 import './Home.css';
 
 const Home = () => {
