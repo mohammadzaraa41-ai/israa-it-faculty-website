@@ -3,7 +3,6 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLocale } from '../contexts/LocalizationContext';
 
-// Lazy load pages for better performance
 const Home = lazy(() => import('../pages/Home'));
 const Prospective = lazy(() => import('../pages/Prospective'));
 const CurrentStudents = lazy(() => import('../pages/CurrentStudents'));

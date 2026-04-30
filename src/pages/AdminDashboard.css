@@ -1,0 +1,114 @@
+
+.admin-container {
+  padding: 2rem;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 80vh;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  marginBottom: 3rem;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 1rem;
+  marginBottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.admin-content-panel {
+  padding: 2rem;
+  min-height: 500px;
+}
+
+.badge-count {
+  background: #e74c3c;
+  color: white;
+  border-radius: 50%;
+  padding: 2px 8px;
+  font-size: 0.8rem;
+  margin-left: 5px;
+}
+
+/* Faculty Management Styles */
+.faculty-form {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 3rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.faculty-input, .faculty-select {
+  flex: 1 1 200px;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-color);
+  color: var(--text-primary);
+}
+
+.faculty-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.faculty-card {
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.faculty-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* User Management Styles */
+.user-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.user-search-container {
+  flex: 1;
+  position: relative;
+  min-width: 250px;
+}
+
+.user-role-filter {
+  display: flex;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+}
+
+.user-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}

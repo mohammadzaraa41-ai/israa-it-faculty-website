@@ -1,16 +1,46 @@
-# React + Vite
+# IT Faculty Management System
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive web application designed for the Faculty of Information Technology to manage academic processes, student interactions, and administrative tasks.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Multilingual Support**: Full support for Arabic and English languages.
+- **Admin Dashboard**: Comprehensive control panel for managing faculty members, departments, and user accounts.
+- **Student Portal**: Access to academic resources, roadmaps, and career readiness tools.
+- **Alumni Gateway**: Dedicated space for graduates to stay connected and access career tips.
+- **AI Academic Advisor**: Intelligent assistant to help students with course selection and career paths.
+- **Social Feed**: Real-time announcements, events, and community posts.
 
-## React Compiler
+## 🛠️ Technology Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Frontend**: React 18, Vite, Framer Motion
+- **Icons**: Lucide React
+- **Styling**: Modern CSS with Glassmorphism effects
+- **State Management**: React Context API
+- **Backend Integration**: Supabase (ready for deployment)
 
-## Expanding the ESLint configuration
+## 📦 Installation
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/mohammadzaraa41-ai/israa-it-faculty-website.git
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+4. Build for production:
+   ```bash
+   npm run build
+   ```
+
+## 📄 License
+
+This project is licensed under the MIT License.

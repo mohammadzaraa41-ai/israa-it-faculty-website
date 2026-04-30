@@ -10,39 +10,39 @@ export const DB_SCHEMA = {
 
   users: [
     {
-      id: "u1", // PK
+      id: "u1",
       username: "admin",
       password: "123",
       role: "SUPER_ADMIN",
       name: { ar: "مدير النظام", en: "System Admin" },
-      departmentId: "cs", // FK -> departments.id
+      departmentId: "cs",
       permissions: ["EDIT_ALL", "MANAGE_USERS"]
     },
     {
-      id: "u2", // PK
+      id: "u2",
       username: "20240001",
       password: "123",
       role: "STUDENT",
       name: { ar: "أحمد علي", en: "Ahmed Ali" },
-      departmentId: "se", // FK -> departments.id
+      departmentId: "se",
       isAlumni: false
     }
   ],
 
   facultyMembers: [
     { 
-      id: 1, // PK
+      id: 1,
       name: 'أ.د. أحمد محمد', 
-      departmentId: "cs", // FK -> departments.id
+      departmentId: "cs",
       role: 'العميد', 
       specialization: 'الذكاء الاصطناعي', 
       office: 'مكتب العميد - الطابق الثاني', 
       officeHours: 'الأحد والثلاثاء (10:00 - 12:00)' 
     },
     { 
-      id: 2, // PK
+      id: 2,
       name: 'د. سارة عيسى', 
-      departmentId: "se", // FK -> departments.id
+      departmentId: "se",
       role: 'رئيس قسم', 
       specialization: 'هندسة البرمجيات', 
       office: 'مكتب 304 - الطابق الثالث', 
@@ -52,67 +52,76 @@ export const DB_SCHEMA = {
 
   offeredCourses: [
     { 
-      id: 1, // PK
+      id: 1,
       title: 'معسكر تطوير واجهات الويب (React)', 
       hours: '40 ساعة', 
-      instructorId: 1, // FK -> facultyMembers.id
+      instructorId: 1,
       state: 'متاح للتسجيل' 
     },
     { 
-      id: 2, // PK
+      id: 2,
       title: 'دورة الأمن السيبراني المتقدم', 
       hours: '30 ساعة', 
-      instructorId: 2, // FK -> facultyMembers.id
+      instructorId: 2,
       state: 'متاح للتسجيل' 
     }
   ],
 
   projectBank: [
     { 
-      id: 1, // PK
+      id: 1,
       name: { ar: 'نظام إدارة المستشفيات الذكي', en: 'Smart Hospital Management' }, 
-      studentIds: ["u2"], // FK -> Array of users.id
-      supervisorId: 2, // FK -> facultyMembers.id
+      studentIds: ["u2"],
+      supervisorId: 2,
       rating: 4.5,
-      images: ['https://placehold.co/600x400?text=Project+1'],
-      notes: { ar: 'مشروع متميز جداً.', en: 'Excellent project.' }
+      images: ['https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800'],
+      notes: { ar: 'مشروع متميز جداً يهدف لرقمنة الخدمات الصحية.', en: 'An outstanding project aimed at digitizing healthcare services.' }
     }
   ],
 
   alumniRequests: [
     {
-      id: "ar1", // PK
-      userId: "u2", // FK -> users.id
+      id: "ar1",
+      userId: "u2",
       status: "pending",
-      requestDate: "2026-04-26",
+      requestDate: "2024-04-26",
       details: "طلب انضمام لبوابة الخريجين"
     }
   ],
 
   roadmap: [
-    { id: 1, title: { ar: 'السنة الأولى', en: 'Year 1' }, description: { ar: 'أساسيات البرمجة', en: 'Programming Basics' } }
+    { id: 1, title: { ar: 'السنة الأولى', en: 'Year 1' }, description: { ar: 'أساسيات البرمجة وهياكل البيانات', en: 'Programming Basics & Data Structures' } }
   ],
 
   facultyInfo: {
-    deanMessage: { ar: 'رسالة العميد...', en: "Dean's Message..." }
+    deanMessage: { 
+      ar: 'أهلاً بكم في كلية تكنولوجيا المعلومات، حيث نسعى لإعداد جيل مبدع ومتمكن تقنياً لمواجهة تحديات المستقبل.', 
+      en: "Welcome to the Faculty of IT, where we strive to prepare a creative and technically skilled generation to face future challenges." 
+    }
   },
 
   careerReadiness: {
-    cvTemplates: [],
-    interviews: [],
-    linkedinTips: []
+    cvTemplates: [
+      { id: 1, title: { ar: "نموذج سيرة ذاتية تقني", en: "Technical CV Template" }, url: "#" }
+    ],
+    interviews: [
+      { id: 1, title: { ar: "أسئلة مقابلات البرمجيات", en: "Software Interview Questions" }, url: "#" }
+    ],
+    linkedinTips: [
+      { id: 1, title: { ar: "تحسين ملفك الشخصي", en: "Optimize Your Profile" }, url: "#" }
+    ]
   },
 
   studentTips: [
-    { id: 1, text: 'نصيحة 1...' },
-    { id: 2, text: 'نصيحة 2...' }
+    { id: 1, text: 'ابدأ بالتعلم الذاتي من اليوم الأول.' },
+    { id: 2, text: 'شارك في مسابقات البرمجة المحلية والدولية.' }
   ],
   quests: [
-    { id: 1, title: 'مهمة 1', xp: 50 },
-    { id: 2, title: 'مهمة 2', xp: 100 }
+    { id: 1, title: 'إكمال الدورة التدريبية الأولى', xp: 50 },
+    { id: 2, title: 'المشاركة في هاكاثون الكلية', xp: 100 }
   ],
   gradTemplates: [
-    { id: 1, name: { ar: 'قالب 1', en: 'Template 1' }, type: 'pdf' }
+    { id: 1, name: { ar: 'نموذج مشروع تخرج 1', en: 'Graduation Template 1' }, type: 'pdf' }
   ],
 
   posts: [
@@ -121,7 +130,7 @@ export const DB_SCHEMA = {
       author: { name: "د. سارة عيسى", role: "FACULTY" },
       content: "أهلاً بكم في الفصل الدراسي الجديد! نتمنى لجميع الطلاب التوفيق والنجاح في مسيرتهم الأكاديمية.",
       image: "",
-      date: "2026-04-26",
+      date: "2024-04-26",
       likes: [],
       comments: []
     }
@@ -136,3 +145,4 @@ export const DB_SCHEMA = {
     { id: 2, date: "05 MAY", text: { ar: "يوم الخريجين المفتوح", en: "Alumni Open Day" } }
   ]
 };
+

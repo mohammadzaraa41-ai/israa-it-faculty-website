@@ -13,7 +13,6 @@ const AIAdvisor = () => {
 
   const data = curriculumData[lang];
 
-  // Initial Greeting
   useEffect(() => {
     if (messages.length === 0) {
       setIsTyping(true);
@@ -27,7 +26,6 @@ const AIAdvisor = () => {
     }
   }, [lang, messages.length, data.generalResponses]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

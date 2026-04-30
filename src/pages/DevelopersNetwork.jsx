@@ -9,7 +9,6 @@ const DevelopersNetwork = () => {
   const [repos, setRepos] = useState([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
 
-  // Mock Data for Leaderboard
   const leaderboardData = [
     { id: 1, name: 'Ahmad Salem', points: 2850, solved: 42, avatar: 'AS', rank: 1, badge: 'Grandmaster' },
     { id: 2, name: 'Sara Khalid', points: 2420, solved: 38, avatar: 'SK', rank: 2, badge: 'Expert' },
@@ -18,7 +17,6 @@ const DevelopersNetwork = () => {
     { id: 5, name: 'Zaid Fawzi', points: 1720, solved: 26, avatar: 'ZF', rank: 5, badge: 'Competitor' },
   ];
 
-  // Mock Data for Competitions
   const competitions = [
     { 
       id: 1, 

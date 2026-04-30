@@ -27,7 +27,6 @@ const StudentPortal = () => {
         navigate('/'); // Students go to home or student portal
       }
     } else {
-      // Mock student login failure for now
       setError(lang === 'ar' ? 'بيانات الدخول غير صحيحة' : 'Invalid login credentials');
     }
   };

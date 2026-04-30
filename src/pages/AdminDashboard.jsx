@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 
 import { useLocale } from '../contexts/LocalizationContext';
-import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, AlertCircle, Info, Send, Plus } from 'lucide-react';
+import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, AlertCircle, Info, Send, Plus, Search, Shield, BookOpen, Settings } from 'lucide-react';
+import './AdminDashboard.css';
 
 const AdminDashboard = () => {
   const { 
@@ -19,7 +20,6 @@ const AdminDashboard = () => {
     if (users) localStorage.setItem('site_users', JSON.stringify(users));
     if (pendingUsers) localStorage.setItem('site_pending_users', JSON.stringify(pendingUsers));
     if (alumniRequests) localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
-
   }, [users, pendingUsers, alumniRequests]);
   
   const { 
@@ -42,9 +42,9 @@ const AdminDashboard = () => {
 
   if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'DEAN')) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', flexDirection: 'column', gap: '1rem' }}>
+      <div className="flex-center-vh">
         <div className="loader-spinner" />
-        <p style={{ color: 'var(--text-secondary)' }}>{lang === 'ar' ? 'جارٍ التحقق من الصلاحيات...' : 'Checking permissions...'}</p>
+        <p className="text-secondary">{lang === 'ar' ? 'جارٍ التحقق من الصلاحيات...' : 'Checking permissions...'}</p>
       </div>
     );
   }
@@ -59,8 +59,8 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1280px', margin: '0 auto', minHeight: '80vh' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+    <div className="admin-container">
+      <div className="admin-header">
         <h1 className="title" style={{ margin: 0 }}>
           {lang === 'ar' ? 'لوحة التحكم والإدارة' : 'Admin Control Panel'}
         </h1>
@@ -74,28 +74,27 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+      <div className="admin-tabs">
         {tabs.map(tab => (
           <button 
             key={tab.id}
-            className={activeTab === tab.id ? 'btn-primary' : 'btn-outline'}
+            className={`${activeTab === tab.id ? 'btn-primary' : 'btn-outline'} admin-tab-btn`}
             onClick={() => setActiveTab(tab.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, justifyContent: 'center' }}
           >
             {tab.icon}
             {tab.label}
             {tab.id === 'approvals' && pendingUsers.length > 0 && (
-              <span style={{ background: '#e74c3c', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8rem', marginLeft: '5px' }}>
+              <span className="badge-count">
                 {pendingUsers.length}
               </span>
             )}
             {tab.id === 'social' && pendingPosts.length > 0 && (
-              <span style={{ background: '#e74c3c', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8rem', marginLeft: '5px' }}>
+              <span className="badge-count">
                 {pendingPosts.length}
               </span>
             )}
             {tab.id === 'alumni' && alumniRequests?.length > 0 && (
-              <span style={{ background: '#e74c3c', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '0.8rem', marginLeft: '5px' }}>
+              <span className="badge-count">
                 {alumniRequests.length}
               </span>
             )}
@@ -103,7 +102,7 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      <div className="glass-panel" style={{ padding: '2rem', minHeight: '500px' }}>
+      <div className="glass-panel admin-content-panel">
         {activeTab === 'approvals' && pendingUsers && (
           <PendingApprovals 
             pendingUsers={pendingUsers} 
