@@ -214,29 +214,33 @@ export const AuthProvider = ({ children }) => {
     }
     return false;
   };
-
   const approveUser = async (pendingId) => {
     const userToApprove = pendingUsers.find(u => u.id === pendingId);
     if (userToApprove) {
-      const activeUser = {
-        id: 'u' + Date.now(),
-        username: userToApprove.universityId,
-        password: userToApprove.password,
-        role: 'STUDENT',
-        name_ar: userToApprove.fullName,
-        department_id: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
-        is_alumni: false
-      };
+      const { error: insertErr } = await supabase.rpc('register_user_secure', {
+        p_username: userToApprove.universityId,
+        p_password: userToApprove.password,
+        p_role: 'STUDENT',
+        p_name_ar: userToApprove.fullName,
+        p_name_en: '',
+        p_dept_id: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs'
+      });
 
-      const { error: insertErr } = await supabase.from('users').insert([activeUser]);
       if (insertErr) {
         console.error("Approve User Error:", insertErr);
         return false;
       }
 
-      const { error: deleteErr } = await supabase.from('pending_users').delete().eq('id', pendingId);
-      
-      setUsers(prev => [...prev, { ...activeUser, name: { ar: activeUser.name_ar, en: '' } }]);
+      setUsers(prev => [...prev, { 
+        id: 'u' + Date.now(),
+        username: userToApprove.universityId,
+        role: 'STUDENT',
+        name: { ar: userToApprove.fullName, en: '' },
+        department_id: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
+        is_alumni: false
+      }]);
+
+      await supabase.from('pending_users').delete().eq('id', pendingId);
       setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
       return true;
     }
@@ -253,22 +257,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   const registerUserDirectly = async (userData) => {
-    const newUser = {
-      id: 'u' + Date.now(),
-      username: userData.username,
-      password: userData.password,
-      role: userData.role,
-      name_ar: userData.name?.ar || userData.nameAr,
-      name_en: userData.name?.en || userData.nameEn,
-      department_id: userData.departmentId,
-      is_alumni: false
-    };
+    const { error } = await supabase.rpc('register_user_secure', {
+      p_username: userData.username,
+      p_password: userData.password,
+      p_role: userData.role,
+      p_name_ar: userData.name?.ar || userData.nameAr,
+      p_name_en: userData.name?.en || userData.nameEn,
+      p_dept_id: userData.departmentId
+    });
 
-    const { error } = await supabase.from('users').insert([newUser]);
     if (!error) {
       setUsers(prev => [...prev, { 
-        ...newUser, 
-        name: { ar: newUser.name_ar, en: newUser.name_en } 
+        id: 'u' + Date.now(),
+        username: userData.username,
+        role: userData.role,
+        name: { 
+          ar: userData.name?.ar || userData.nameAr, 
+          en: userData.name?.en || userData.nameEn 
+        },
+        department_id: userData.departmentId,
+        is_alumni: false
       }]);
       return { success: true };
     }
