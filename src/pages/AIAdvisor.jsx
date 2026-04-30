@@ -43,7 +43,6 @@ const AIAdvisor = () => {
       let responseText = "";
       let foundSpec = null;
 
-      // Logic to find specialization based on keywords
       const lowerText = text.toLowerCase();
       foundSpec = data.specializations.find(spec => 
         spec.logicKeywords.some(kw => lowerText.includes(kw))

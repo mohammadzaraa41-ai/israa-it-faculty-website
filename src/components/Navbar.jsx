@@ -24,7 +24,6 @@ const Navbar = () => {
     portals: false
   });
 
-
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -190,7 +189,6 @@ const Navbar = () => {
       </nav>
 
       <MajorsShowcase isOpen={isShowcaseOpen} onClose={() => setIsShowcaseOpen(false)} />
-
 
       {/* Login Modal */}
       <AnimatePresence>

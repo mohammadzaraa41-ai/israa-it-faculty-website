@@ -24,7 +24,6 @@ body {
   }
 }
 
-
 /* Animated Mesh Overlay for Premium Look */
 body::before {
   content: '';

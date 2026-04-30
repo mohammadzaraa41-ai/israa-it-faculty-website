@@ -38,7 +38,6 @@ const DevelopersNetwork = () => {
     }
   ];
 
-  // Fetch GitHub Repos for Honor Roll
   useEffect(() => {
     if (activeTab === 'honor_roll') {
       setLoadingRepos(true);
