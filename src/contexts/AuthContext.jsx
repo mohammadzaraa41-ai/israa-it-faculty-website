@@ -267,19 +267,20 @@ export const AuthProvider = ({ children }) => {
     });
 
     if (!error) {
-      setUsers(prev => [...prev, { 
-        id: 'u' + Date.now(),
-        username: userData.username,
-        role: userData.role,
-        name: { 
-          ar: userData.name?.ar || userData.nameAr, 
-          en: userData.name?.en || userData.nameEn 
-        },
-        department_id: userData.departmentId,
-        is_alumni: false
-      }]);
+      // Force refresh users list from DB to get the correct generated ID and data
+      const { data: refreshedUsers } = await supabase.from('users').select('*');
+      if (refreshedUsers) setUsers(refreshedUsers);
+      
       return { success: true };
     }
+    
+    // Check if it's just a "No rows returned" message which is actually success for VOID functions
+    if (error.message && error.message.includes("No rows returned")) {
+      const { data: refreshedUsers } = await supabase.from('users').select('*');
+      if (refreshedUsers) setUsers(refreshedUsers);
+      return { success: true };
+    }
+
     return { success: false, message: error.message };
   };
 
