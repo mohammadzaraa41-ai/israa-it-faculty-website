@@ -34,5 +34,26 @@
     "subtitle": "Israa University - Pioneers of Technology & the Future",
     "cta": "Discover Our Majors",
     "video_text": "Watch Your Journey"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "approve": "Approve",
+    "reject": "Reject"
+  },
+  "admin": {
+    "dashboard": "Admin Control Panel",
+    "analytics": "Analytics",
+    "accounts": "User Accounts",
+    "faculty": "Faculty Management",
+    "pending": "Pending Approvals",
+    "stats": {
+      "total": "Total Users",
+      "pending": "Pending",
+      "alumni": "Alumni",
+      "distribution": "Students Distribution"
+    }
   }
 }

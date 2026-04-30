@@ -6,6 +6,7 @@ import AnimatedRoutes from './components/AnimatedRoutes';
 import { AdminProvider } from './contexts/AdminContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
+import { ToastProvider } from './contexts/ToastContext';
 import './App.css';
 
 const GlobalBackground = () => {
@@ -32,20 +33,22 @@ const GlobalBackground = () => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <DataProvider>
-        <AdminProvider>
-          <Router>
-            <GlobalBackground />
-            <Navbar />
-            <main className="main-content">
-              <AnimatedRoutes />
-            </main>
-            <Chatbot />
-          </Router>
-        </AdminProvider>
-      </DataProvider>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <DataProvider>
+          <AdminProvider>
+            <Router>
+              <GlobalBackground />
+              <Navbar />
+              <main className="main-content">
+                <AnimatedRoutes />
+              </main>
+              <Chatbot />
+            </Router>
+          </AdminProvider>
+        </DataProvider>
+      </AuthProvider>
+    </ToastProvider>
   );
 };
 

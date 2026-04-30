@@ -7,7 +7,11 @@ import { useLocale } from '../contexts/LocalizationContext';
 import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, AlertCircle, Info, Send, Plus, Search, Shield, BookOpen, Settings } from 'lucide-react';
 import './AdminDashboard.css';
 
+import { useToast } from '../contexts/ToastContext';
+
 const AdminDashboard = () => {
+  const { lang, t } = useLocale();
+  const { addToast } = useToast();
   const { 
     user, logout, 
     users,
@@ -30,7 +34,6 @@ const AdminDashboard = () => {
     events, addEvent, deleteEvent, updateEvent
   } = useAdmin();
   const navigate = useNavigate();
-  const { lang } = useLocale();
 
   const [activeTab, setActiveTab] = useState('approvals');
 
@@ -50,20 +53,20 @@ const AdminDashboard = () => {
   }
 
   const tabs = [
-    { id: 'approvals', label: lang === 'ar' ? 'الموافقات المعلقة' : 'Pending Approvals', icon: <CheckSquare size={20} /> },
+    { id: 'approvals', label: t('admin.pending'), icon: <CheckSquare size={20} /> },
     { id: 'social', label: lang === 'ar' ? 'إدارة المنشورات والإعلانات' : 'Social & Announcements', icon: <Send size={20} /> },
     { id: 'alumni', label: lang === 'ar' ? 'طلبات الخريجين' : 'Alumni Requests', icon: <GraduationCap size={20} /> },
-    { id: 'faculty', label: lang === 'ar' ? 'إدارة الأقسام / الهيئة' : 'Faculty Management', icon: <Users size={20} /> },
-    { id: 'analytics', label: lang === 'ar' ? 'الإحصائيات' : 'Analytics', icon: <Shield size={20} /> },
+    { id: 'faculty', label: t('admin.faculty'), icon: <Users size={20} /> },
+    { id: 'analytics', label: t('admin.analytics'), icon: <Shield size={20} /> },
     { id: 'register', label: lang === 'ar' ? 'تسجيل مستخدم' : 'Register User', icon: <UserPlus size={20} /> },
-    { id: 'users', label: lang === 'ar' ? 'إدارة الحسابات' : 'User Accounts', icon: <Users size={20} /> }
+    { id: 'users', label: t('admin.accounts'), icon: <Users size={20} /> }
   ];
 
   return (
     <div className="admin-container">
       <div className="admin-header">
         <h1 className="title" style={{ margin: 0 }}>
-          {lang === 'ar' ? 'لوحة التحكم والإدارة' : 'Admin Control Panel'}
+          {t('admin.dashboard')}
         </h1>
         <button 
           className="btn-outline" 
@@ -262,7 +265,19 @@ const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang }) => {
               <button 
                 onClick={async () => {
                   const success = await approveUser(reg.id);
-                  if (!success) alert(lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user');
+                  if (success) {
+                    addToast(
+                      lang === 'ar' ? 'تمت الموافقة' : 'Approved',
+                      lang === 'ar' ? `تم تفعيل حساب ${reg.fullName} بنجاح` : `Account for ${reg.fullName} activated.`,
+                      'success'
+                    );
+                  } else {
+                    addToast(
+                      lang === 'ar' ? 'خطأ' : 'Error',
+                      lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user',
+                      'error'
+                    );
+                  }
                 }}
                 style={{ padding: '0.5rem 1rem', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
               >
