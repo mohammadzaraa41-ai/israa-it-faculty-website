@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, AlertCircle, Info, X } from 'lucide-react';
-import './Toast.css';
+import '../components/Toast.css';
 
 const ToastContext = createContext();
 
