@@ -23,8 +23,7 @@ const CourseRoadmap = () => {
   const isHighlighted = (course) => {
     if (!selectedCourse) return false;
     if (course.id === selectedCourse.id) return true;
-    if (selectedCourse.prereqs.includes(course.id)) return true; // highlights prerequisites
-    if (course.prereqs.includes(selectedCourse.id)) return true; // highlights next courses
+
     return false;
   };
 

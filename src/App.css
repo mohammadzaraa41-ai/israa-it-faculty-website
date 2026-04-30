@@ -71,7 +71,7 @@
 }
 
 .main-content {
-  margin-right: 0;
+  margin-right: 320px; /* Leave space for the 280px sidebar + padding */
   position: relative;
   overflow-x: hidden; /* prevent scrollbar flash during slide transitions */
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -241,10 +241,12 @@
 
 .global-page-bg.bg-home {
   background: 
-    linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
-    url('./assets/WhatsApp Image 2026-04-20 at 10.29.04 PM.jpeg');
+    linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.7)),
+    url('/main-bg.jpg');
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
+  filter: saturate(1.1) brightness(0.9);
 }
 
 .global-page-bg.bg-prospective {
@@ -280,19 +282,18 @@
 }
 
 .global-page-bg.bg-faculty {
-  background: #05080f;
-}
-.global-page-bg.bg-faculty::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 20px);
+  background: 
+    linear-gradient(rgba(5, 23, 56, 0.75), rgba(5, 23, 56, 0.9)),
+    url('/faculty-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
 }
 
 .global-page-bg.bg-alumni {
-  background: #050505 !important;
-  position: relative;
+  background: var(--bg-color);
 }
+<<<<<<< HEAD
 .global-page-bg.bg-alumni::before {
   content: '';
   position: absolute;
@@ -326,6 +327,8 @@
   0% { transform: translateY(0); }
   100% { transform: translateY(20%); }
 }
+=======
+>>>>>>> cb36387c9f130ce27e26de3043899d300d05c2c9
 
 .global-page-bg.bg-contact {
   background: #05140a;

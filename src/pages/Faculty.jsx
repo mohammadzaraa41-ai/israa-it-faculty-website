@@ -1,36 +1,166 @@
 import React from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
-import { Mail, Phone } from 'lucide-react';
+import { Mail, Phone, Book, MapPin, Clock, Award } from 'lucide-react';
+import { useAdmin } from '../contexts/AdminContext';
+import { DB_SCHEMA } from '../data/db_schema';
+import { motion } from 'framer-motion';
 
 const Faculty = () => {
-  const { t, lang } = useLocale();
-  
-  const staff = [
-    { name: lang === 'ar' ? 'أ.د. أحمد محمد' : 'Prof. Ahmad Mohammad', role: lang === 'ar' ? 'عميد الكلية' : 'Dean of IT Faculty' },
-    { name: lang === 'ar' ? 'د. سارة عيسى' : 'Dr. Sarah Issa', role: lang === 'ar' ? 'رئيس قسم علم الحاسوب' : 'Head of CS Dept.' },
-  ];
+  const { lang } = useLocale();
+  const { facultyMembers: adminFaculty, departments } = useAdmin();
+
+  const facultyMembers = (adminFaculty && adminFaculty.length > 0)
+    ? adminFaculty
+    : DB_SCHEMA.facultyMembers;
+
+  const resolveName = (name) => {
+    if (!name) return '---';
+    if (typeof name === 'string') return name;
+    return name[lang] || name.ar || name.en || '---';
+  };
+
+  const resolveDept = (member) => {
+    if (member.department) return member.department;
+    const dept = (departments || DB_SCHEMA.departments).find(d => d.id === member.departmentId);
+    return dept ? (dept.name?.[lang] || dept.name?.ar || member.departmentId) : (member.departmentId || '---');
+  };
+
+  const deans = facultyMembers.filter(m => m.role === 'العميد');
+  const heads = facultyMembers.filter(m => m.role === 'رئيس قسم');
+  const doctors = facultyMembers.filter(m => m.role === 'دكتور');
+
+  const MemberCard = ({ member, size = 'medium' }) => (
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      className="glass-panel" 
+      style={{ 
+        padding: size === 'large' ? '3rem' : '2rem', 
+        textAlign: 'center',
+        borderTop: size === 'large' ? '4px solid var(--accent-color)' : '1px solid var(--border-color)',
+        maxWidth: size === 'large' ? '600px' : 'none',
+        margin: size === 'large' ? '0 auto' : '0'
+      }}
+    >
+      <div style={{ 
+        width: size === 'large' ? '140px' : '100px', 
+        height: size === 'large' ? '140px' : '100px', 
+        backgroundColor: 'var(--primary-color)', 
+        borderRadius: '50%', 
+        margin: '0 auto 1.5rem', 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: 'center', 
+        color: 'var(--accent-color)', 
+        fontSize: size === 'large' ? '3rem' : '2rem', 
+        fontWeight: 'bold',
+        boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+      }}>
+        {resolveName(member.name).charAt(0)}
+      </div>
+      
+      <h3 style={{ fontSize: size === 'large' ? '1.8rem' : '1.4rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
+        {resolveName(member.name)}
+      </h3>
+      
+      <div style={{ 
+        display: 'inline-block', 
+        padding: '0.3rem 1rem', 
+        borderRadius: '20px', 
+        backgroundColor: 'rgba(241, 196, 15, 0.1)', 
+        color: 'var(--accent-color)',
+        fontSize: '0.9rem',
+        fontWeight: 'bold',
+        marginBottom: '1rem'
+      }}>
+        {member.role} - {resolveDept(member)}
+      </div>
+
+      <p style={{ color: 'var(--primary-light)', fontWeight: 'bold', marginBottom: '1.5rem' }}>
+        <Award size={16} style={{ verticalAlign: 'middle', marginInlineEnd: '5px' }} />
+        {member.specialization}
+      </p>
+
+      <div style={{ textAlign: 'start', fontSize: '0.95rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+          <Book size={18} style={{ flexShrink: 0, color: 'var(--primary-color)', marginTop: '3px' }} />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            <strong>{lang === 'ar' ? 'المواد:' : 'Courses:'}</strong>
+            {member.courses ? member.courses.split('،').join(',').split(',').map((course, idx) => (
+              <span key={idx} style={{ 
+                backgroundColor: 'rgba(255,255,255,0.05)', 
+                padding: '2px 8px', 
+                borderRadius: '4px', 
+                fontSize: '0.85rem',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}>
+                {course.trim()}
+              </span>
+            )) : '---'}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <MapPin size={18} style={{ flexShrink: 0, color: 'var(--primary-color)' }} />
+          <span><strong>{lang === 'ar' ? 'المكتب:' : 'Office:'}</strong> {member.office}</span>
+        </div>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <Clock size={18} style={{ flexShrink: 0, color: 'var(--primary-color)' }} />
+          <span><strong>{lang === 'ar' ? 'الساعات المكتبية:' : 'Office Hours:'}</strong> {member.officeHours}</span>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+        <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><Mail size={22} /></button>
+        <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><Phone size={22} /></button>
+      </div>
+    </motion.div>
+  );
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1280px', margin: '0 auto' }}>
-      <h1 className="title" style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        {t('nav.faculty')}
-      </h1>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem' }}>
-        {staff.map((member, idx) => (
-          <div key={idx} className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
-            <div style={{ width: '100px', height: '100px', backgroundColor: 'var(--primary-color)', borderRadius: '50%', margin: '0 auto 1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-color)', fontSize: '2rem', fontWeight: 'bold' }}>
-              {member.name.charAt(0)}
-            </div>
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{member.name}</h3>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1rem' }}>{member.role}</p>
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', color: 'var(--primary-light)' }}>
-              <Mail size={20} />
-              <Phone size={20} />
-            </div>
+    <div style={{ padding: '4rem 2rem', maxWidth: '1280px', margin: '0 auto' }}>
+      <header style={{ textAlign: 'center', marginBottom: '5rem' }}>
+        <h1 className="title" style={{ fontSize: '3rem', marginBottom: '1rem' }}>
+          {lang === 'ar' ? 'الهيئة التدريسية' : 'Faculty Members'}
+        </h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem', maxWidth: '700px', margin: '0 auto' }}>
+          {lang === 'ar' ? 'نخبة من الكفاءات العلمية والأكاديمية المتميزة في مجالات تكنولوجيا المعلومات.' : 'A group of distinguished scientific and academic competencies in the fields of information technology.'}
+        </p>
+      </header>
+
+      {deans.length > 0 && (
+        <section style={{ marginBottom: '6rem' }}>
+          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+            {lang === 'ar' ? 'عمادة الكلية' : 'Deanery'}
+          </h2>
+          {deans.map(dean => <MemberCard key={dean.id} member={dean} size="large" />)}
+        </section>
+      )}
+
+      {heads.length > 0 && (
+        <section style={{ marginBottom: '6rem' }}>
+          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+            {lang === 'ar' ? 'رؤساء الأقسام' : 'Heads of Departments'}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
+            {heads.map(head => <MemberCard key={head.id} member={head} />)}
           </div>
-        ))}
-      </div>
+        </section>
+      )}
+
+      {doctors.length > 0 && (
+        <section>
+          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+            {lang === 'ar' ? 'أعضاء الهيئة التدريسية' : 'Faculty Members'}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+            {doctors.map(doctor => <MemberCard key={doctor.id} member={doctor} />)}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
+
 export default Faculty;
+

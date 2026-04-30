@@ -17,13 +17,8 @@ const LiveLabs = lazy(() => import('../pages/LiveLabs'));
 const Events = lazy(() => import('../pages/Events'));
 const StudentPortal = lazy(() => import('../pages/StudentPortal'));
 const DevelopersNetwork = lazy(() => import('../pages/DevelopersNetwork'));
-
-const AdminDashboard = () => (
-  <div style={{ padding: '2rem', textAlign: 'center' }}>
-    <h1 className="title">Admin Dashboard</h1>
-    <p>Secure CMS Area</p>
-  </div>
-);
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
+const AdminLogin = lazy(() => import('../pages/AdminLogin'));
 
 const PageLoader = () => (
   <div className="page-loader">

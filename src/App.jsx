@@ -3,9 +3,11 @@ import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Chatbot from './components/Chatbot';
 import AnimatedRoutes from './components/AnimatedRoutes';
+import { AdminProvider } from './contexts/AdminContext';
+import { AuthProvider } from './contexts/AuthContext';
+import { DataProvider } from './contexts/DataContext';
 import './App.css';
 
-// Global Background Component that reacts to route changes
 const GlobalBackground = () => {
   const location = useLocation();
   const [bgClass, setBgClass] = useState('bg-home');
@@ -13,7 +15,9 @@ const GlobalBackground = () => {
   useEffect(() => {
     const path = location.pathname;
     let currentClass = 'bg-home';
-    if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
+    
+    if (path === '/' || path === '') currentClass = 'bg-home';
+    else if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
     else if (path === '/current' || path === '/roadmap' || path === '/events') currentClass = 'bg-current';
     else if (path === '/faculty' || path === '/live-labs') currentClass = 'bg-faculty';
     else if (path === '/alumni') currentClass = 'bg-alumni';
@@ -28,14 +32,20 @@ const GlobalBackground = () => {
 
 const App = () => {
   return (
-    <Router>
-      <GlobalBackground />
-      <Navbar />
-      <main className="main-content">
-        <AnimatedRoutes />
-      </main>
-      <Chatbot />
-    </Router>
+    <AuthProvider>
+      <DataProvider>
+        <AdminProvider>
+          <Router>
+            <GlobalBackground />
+            <Navbar />
+            <main className="main-content">
+              <AnimatedRoutes />
+            </main>
+            <Chatbot />
+          </Router>
+        </AdminProvider>
+      </DataProvider>
+    </AuthProvider>
   );
 };
 

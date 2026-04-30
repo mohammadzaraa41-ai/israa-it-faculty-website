@@ -153,6 +153,7 @@ ul {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  padding-top: 70px;
 }
 
 .main-content::after {
