@@ -282,7 +282,7 @@ const FacultyManagement = ({
   lang = 'ar' 
 }) => {
   const [isEditing, setIsEditing] = useState(null);
-  const [activeSubTab, setActiveSubTab] = useState('faculty'); // 'faculty' or 'departments'
+  const [activeSubTab, setActiveSubTab] = useState('faculty');
   const [formData, setFormData] = useState({ 
     name: '', 
     departmentId: (departments && departments.length > 0) ? departments[0].id : '', 

@@ -1,4 +1,4 @@
-export const GEMINI_API_KEY = 'AIzaSyC3fSWXEH_ApM0ubIbf-aYy-Bn4tO5WIMU';
+export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 export const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 
 export const SYSTEM_PROMPT = `أنت "إسرا"، المساعد الذكي الرسمي لكلية تكنولوجيا المعلومات في جامعة الإسراء - فلسطين.

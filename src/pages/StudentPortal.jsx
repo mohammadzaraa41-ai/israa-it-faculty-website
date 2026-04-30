@@ -24,7 +24,7 @@ const StudentPortal = () => {
       if (result.user.role === 'SUPER_ADMIN' || result.user.role === 'DEAN') {
         navigate('/admin-dashboard');
       } else {
-        navigate('/'); // Students go to home or student portal
+        navigate('/');
       }
     } else {
       setError(lang === 'ar' ? 'بيانات الدخول غير صحيحة' : 'Invalid login credentials');

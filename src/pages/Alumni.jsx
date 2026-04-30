@@ -47,7 +47,7 @@ const Alumni = () => {
   } = useAdmin();
   
   const [activeTab, setActiveTab] = useState('projects');
-  const [activeModal, setActiveModal] = useState(null); // 'template', 'cv', 'interview', 'linkedin'
+  const [activeModal, setActiveModal] = useState(null);
   const [modalData, setModalData] = useState({});
   const [requestForm, setRequestForm] = useState({ hours: '', scheduleImage: null });
   const [requestSent, setRequestSent] = useState(false);

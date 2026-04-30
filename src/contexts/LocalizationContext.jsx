@@ -8,7 +8,7 @@ const translations = { en, ar };
 
 export const LocalizationProvider = ({ children }) => {
   const [lang, setLang] = useState(() => {
-    return localStorage.getItem('lang') || 'ar'; // Default Arabic
+    return localStorage.getItem('lang') || 'ar';
   });
 
   useEffect(() => {
