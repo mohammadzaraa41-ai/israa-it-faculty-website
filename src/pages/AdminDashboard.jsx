@@ -13,7 +13,7 @@ const AdminDashboard = () => {
     users,
     pendingUsers, approveUser, rejectUser,
     alumniRequests, approveAlumniRequest, rejectAlumniRequest,
-    deleteUser
+    deleteUser, registerUserDirectly, updateUserRole, updateUser
   } = useAuth();
   
   useEffect(() => {
