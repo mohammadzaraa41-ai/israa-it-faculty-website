@@ -297,7 +297,8 @@ export const AdminProvider = ({ children }) => {
       departments, addDepartment, deleteDepartment, updateDepartment,
       posts, addPost, approvePost, rejectPost, deletePost, toggleLike, addComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
-      events, addEvent, deleteEvent, updateEvent
+      events, addEvent, deleteEvent, updateEvent,
+      loading
     }}>
       {children}
     </AdminContext.Provider>

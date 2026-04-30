@@ -10,7 +10,7 @@ const Home = () => {
   const { lang } = useLocale();
   const { user, toggleLogin } = useAuth();
   const { users } = useAuth(); 
-  const { posts, addPost, deletePost, toggleLike, addComment, announcements, events } = useAdmin();
+  const { posts, addPost, deletePost, toggleLike, addComment, announcements, events, loading } = useAdmin();
   
   const [newPost, setNewPost] = useState({ content: '', image: '' });
   const [showCommentForm, setShowCommentForm] = useState(null);
@@ -169,111 +169,115 @@ const Home = () => {
           </motion.div>
 
           <div className="posts-feed">
-            {posts.map((post, index) => (
-              <motion.div 
-                key={post.id}
-                className="glass-panel post-card"
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <div className="post-header">
-                  <div className="post-author-info">
-                    <div className="author-avatar">
-                      <User size={24} />
-                    </div>
-                    <div>
-                      <h4 
-                        className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
-                        onClick={() => isAdmin && showUserInfo(post.author.username)}
-                      >
-                        {post.author.name}
-                      </h4>
-                      <span className="post-date">{post.date} • {post.author.role}</span>
-                    </div>
-                  </div>
-                  {isAdmin && (
-                    <button className="delete-post-btn" onClick={() => deletePost(post.id)}>
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="post-content">
-                  <p>{post.content}</p>
-                  {post.image && <img src={post.image} alt="Post content" className="post-image" />}
-                </div>
-
-                <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
-                  <div className="stat-item">
-                    <Heart size={16} fill={user && post.likes.includes(user.username) ? "var(--primary-color)" : "none"} />
-                    <span>{post.likes.length}</span>
-                  </div>
-                  <div className="stat-item">
-                    <MessageCircle size={16} />
-                    <span>{post.comments.length} {lang === 'ar' ? 'تعليقات' : 'comments'}</span>
-                  </div>
-                </div>
-
-                <div className="post-actions-buttons">
-                  <button 
-                    className={`action-btn ${user && post.likes.includes(user.username) ? 'active' : ''}`}
-                    onClick={() => user ? toggleLike(post.id, user.username) : toggleLogin(true)}
-                  >
-                    <Heart size={20} />
-                    <span>{lang === 'ar' ? "إعجاب" : "Like"}</span>
-                  </button>
-                  <button 
-                    className="action-btn"
-                    onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)}
-                  >
-                    <MessageCircle size={20} />
-                    <span>{lang === 'ar' ? "تعليق" : "Comment"}</span>
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {showCommentForm === post.id && (
-                    <motion.div 
-                      className="comments-section"
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      style={{ overflow: 'hidden' }}
-                    >
-                      {showCommentForm === post.id && (
-                        <div className="comment-input-area">
-                          <input 
-                            type="text" 
-                            placeholder={lang === 'ar' ? "اكتب تعليقاً..." : "Write a comment..."}
-                            value={newComment}
-                            onChange={(e) => setNewComment(e.target.value)}
-                            onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                          />
-                          <button onClick={() => handleAddComment(post.id)}>
-                            <Send size={18} />
-                          </button>
-                        </div>
-                      )}
-                      
-                      <div className="comments-list">
-                        {post.comments.map((comment) => (
-                          <div key={comment.id} className="comment-item">
-                            <h5 
-                              className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-                              onClick={() => isAdmin && showUserInfo(comment.username)}
-                            >
-                              {comment.author}
-                            </h5>
-                            <p className="comment-text">{comment.text}</p>
-                          </div>
-                        ))}
+            {loading ? (
+              [1, 2, 3].map(i => <CardSkeleton key={i} />)
+            ) : (
+              posts.map((post, index) => (
+                <motion.div 
+                  key={post.id}
+                  className="glass-panel post-card"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                >
+                  <div className="post-header">
+                    <div className="post-author-info">
+                      <div className="author-avatar">
+                        <User size={24} />
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
+                      <div>
+                        <h4 
+                          className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
+                          onClick={() => isAdmin && showUserInfo(post.author.username)}
+                        >
+                          {post.author.name}
+                        </h4>
+                        <span className="post-date">{post.date} • {post.author.role}</span>
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <button className="delete-post-btn" onClick={() => deletePost(post.id)}>
+                        <Trash2 size={18} />
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="post-content">
+                    <p>{post.content}</p>
+                    {post.image && <img src={post.image} alt="Post content" className="post-image" />}
+                  </div>
+
+                  <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
+                    <div className="stat-item">
+                      <Heart size={16} fill={user && post.likes.includes(user.username) ? "var(--primary-color)" : "none"} />
+                      <span>{post.likes.length}</span>
+                    </div>
+                    <div className="stat-item">
+                      <MessageCircle size={16} />
+                      <span>{post.comments.length} {lang === 'ar' ? 'تعليقات' : 'comments'}</span>
+                    </div>
+                  </div>
+
+                  <div className="post-actions-buttons">
+                    <button 
+                      className={`action-btn ${user && post.likes.includes(user.username) ? 'active' : ''}`}
+                      onClick={() => user ? toggleLike(post.id, user.username) : toggleLogin(true)}
+                    >
+                      <Heart size={20} />
+                      <span>{lang === 'ar' ? "إعجاب" : "Like"}</span>
+                    </button>
+                    <button 
+                      className="action-btn"
+                      onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)}
+                    >
+                      <MessageCircle size={20} />
+                      <span>{lang === 'ar' ? "تعليق" : "Comment"}</span>
+                    </button>
+                  </div>
+
+                  <AnimatePresence>
+                    {showCommentForm === post.id && (
+                      <motion.div 
+                        className="comments-section"
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        {showCommentForm === post.id && (
+                          <div className="comment-input-area">
+                            <input 
+                              type="text" 
+                              placeholder={lang === 'ar' ? "اكتب تعليقاً..." : "Write a comment..."}
+                              value={newComment}
+                              onChange={(e) => setNewComment(e.target.value)}
+                              onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
+                            />
+                            <button onClick={() => handleAddComment(post.id)}>
+                              <Send size={18} />
+                            </button>
+                          </div>
+                        )}
+                        
+                        <div className="comments-list">
+                          {post.comments.map((comment) => (
+                            <div key={comment.id} className="comment-item">
+                              <h5 
+                                className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
+                                onClick={() => isAdmin && showUserInfo(comment.username)}
+                              >
+                                {comment.author}
+                              </h5>
+                              <p className="comment-text">{comment.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))
+            )}
           </div>
         </main>
 

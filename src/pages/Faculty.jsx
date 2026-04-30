@@ -4,10 +4,11 @@ import { Mail, Phone, Book, MapPin, Clock, Award } from 'lucide-react';
 import { useAdmin } from '../contexts/AdminContext';
 import { DB_SCHEMA } from '../data/db_schema';
 import { motion } from 'framer-motion';
+import { CardSkeleton } from '../components/Skeleton';
 
 const Faculty = () => {
   const { lang } = useLocale();
-  const { facultyMembers: adminFaculty, departments } = useAdmin();
+  const { facultyMembers: adminFaculty, departments, loading } = useAdmin();
 
   const facultyMembers = (adminFaculty && adminFaculty.length > 0)
     ? adminFaculty
@@ -128,35 +129,43 @@ const Faculty = () => {
         </p>
       </header>
 
-      {deans.length > 0 && (
-        <section style={{ marginBottom: '6rem' }}>
-          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
-            {lang === 'ar' ? 'عمادة الكلية' : 'Deanery'}
-          </h2>
-          {deans.map(dean => <MemberCard key={dean.id} member={dean} size="large" />)}
-        </section>
-      )}
+      {loading ? (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+          {[1, 2, 3, 4, 5, 6].map(i => <CardSkeleton key={i} />)}
+        </div>
+      ) : (
+        <>
+          {deans.length > 0 && (
+            <section style={{ marginBottom: '6rem' }}>
+              <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+                {lang === 'ar' ? 'عمادة الكلية' : 'Deanery'}
+              </h2>
+              {deans.map(dean => <MemberCard key={dean.id} member={dean} size="large" />)}
+            </section>
+          )}
 
-      {heads.length > 0 && (
-        <section style={{ marginBottom: '6rem' }}>
-          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
-            {lang === 'ar' ? 'رؤساء الأقسام' : 'Heads of Departments'}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
-            {heads.map(head => <MemberCard key={head.id} member={head} />)}
-          </div>
-        </section>
-      )}
+          {heads.length > 0 && (
+            <section style={{ marginBottom: '6rem' }}>
+              <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+                {lang === 'ar' ? 'رؤساء الأقسام' : 'Heads of Departments'}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '2.5rem' }}>
+                {heads.map(head => <MemberCard key={head.id} member={head} />)}
+              </div>
+            </section>
+          )}
 
-      {doctors.length > 0 && (
-        <section>
-          <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
-            {lang === 'ar' ? 'أعضاء الهيئة التدريسية' : 'Faculty Members'}
-          </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-            {doctors.map(doctor => <MemberCard key={doctor.id} member={doctor} />)}
-          </div>
-        </section>
+          {doctors.length > 0 && (
+            <section>
+              <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
+                {lang === 'ar' ? 'أعضاء الهيئة التدريسية' : 'Faculty Members'}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
+                {doctors.map(doctor => <MemberCard key={doctor.id} member={doctor} />)}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   );

@@ -54,6 +54,7 @@ const AdminDashboard = () => {
     { id: 'social', label: lang === 'ar' ? 'إدارة المنشورات والإعلانات' : 'Social & Announcements', icon: <Send size={20} /> },
     { id: 'alumni', label: lang === 'ar' ? 'طلبات الخريجين' : 'Alumni Requests', icon: <GraduationCap size={20} /> },
     { id: 'faculty', label: lang === 'ar' ? 'إدارة الأقسام / الهيئة' : 'Faculty Management', icon: <Users size={20} /> },
+    { id: 'analytics', label: lang === 'ar' ? 'الإحصائيات' : 'Analytics', icon: <Shield size={20} /> },
     { id: 'register', label: lang === 'ar' ? 'تسجيل مستخدم' : 'Register User', icon: <UserPlus size={20} /> },
     { id: 'users', label: lang === 'ar' ? 'إدارة الحسابات' : 'User Accounts', icon: <Users size={20} /> }
   ];
@@ -147,6 +148,14 @@ const AdminDashboard = () => {
             addDepartment={addDepartment}
             deleteDepartment={deleteDepartment}
             updateDepartment={updateDepartment}
+            lang={lang}
+          />
+        )}
+        {activeTab === 'analytics' && (
+          <AnalyticsDashboard 
+            users={users} 
+            pendingUsers={pendingUsers} 
+            alumniRequests={alumniRequests}
             lang={lang}
           />
         )}
@@ -936,6 +945,76 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
           ))}
         </div>
       </section>
+    </div>
+  );
+};
+
+const AnalyticsDashboard = ({ users = [], pendingUsers = [], alumniRequests = [], lang }) => {
+  const stats = {
+    total: users.length,
+    pending: pendingUsers.length,
+    alumni: alumniRequests.length,
+    byDept: {
+      cs: users.filter(u => u.departmentId === 'cs').length,
+      se: users.filter(u => u.departmentId === 'se').length,
+      cyber: users.filter(u => u.departmentId === 'cyber').length,
+      dsai: users.filter(u => u.departmentId === 'dsai').length,
+    }
+  };
+
+  const maxDept = Math.max(...Object.values(stats.byDept), 1);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+        {[
+          { label: lang === 'ar' ? 'إجمالي المستخدمين' : 'Total Users', value: stats.total, color: 'var(--primary-color)' },
+          { label: lang === 'ar' ? 'طلبات معلقة' : 'Pending', value: stats.pending, color: '#f1c40f' },
+          { label: lang === 'ar' ? 'طلبات خريجين' : 'Alumni', value: stats.alumni, color: 'var(--accent-color)' }
+        ].map((item, idx) => (
+          <div key={idx} className="glass-panel" style={{ padding: '1.5rem', textAlign: 'center', borderBottom: `4px solid ${item.color}` }}>
+            <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>{item.label}</h4>
+            <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: item.color }}>{item.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="glass-panel" style={{ padding: '2rem' }}>
+        <h3 style={{ marginBottom: '2rem', color: 'var(--primary-light)' }}>
+          {lang === 'ar' ? 'توزيع الطلاب حسب الأقسام' : 'Students Distribution by Department'}
+        </h3>
+        
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', height: '250px', paddingTop: '2rem', borderBottom: '2px solid var(--border-color)' }}>
+          {Object.entries(stats.byDept).map(([dept, count]) => {
+            const height = (count / maxDept) * 100;
+            const deptLabels = {
+              cs: { ar: 'علم الحاسوب', en: 'CS' },
+              se: { ar: 'هندسة البرمجيات', en: 'SE' },
+              cyber: { ar: 'الأمن السيبراني', en: 'Cyber' },
+              dsai: { ar: 'الذكاء الاصطناعي', en: 'AI' }
+            };
+            return (
+              <div key={dept} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, gap: '1rem' }}>
+                <div style={{ 
+                  width: '40px', 
+                  height: `${height}%`, 
+                  background: 'linear-gradient(to top, var(--primary-color), var(--accent-color))',
+                  borderRadius: '6px 6px 0 0',
+                  position: 'relative',
+                  transition: 'height 1s ease'
+                }}>
+                  <div style={{ position: 'absolute', top: '-25px', left: '50%', transform: 'translateX(-50%)', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                    {count}
+                  </div>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  {deptLabels[dept][lang]}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 };
