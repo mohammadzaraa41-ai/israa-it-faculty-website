@@ -27,7 +27,7 @@ const Prospective = () => {
       alert(lang === 'ar' ? 'كلمات المرور غير متطابقة' : 'Passwords do not match');
       return;
     }
-    // Save to the mock DB as a pending student application
+
     submitRegistrationApplication({
       type: 'Student',
       name: regForm.name,
@@ -161,7 +161,7 @@ const Prospective = () => {
 
   return (
     <div className="prospective-container">
-      {/* Hero Section */}
+
       <motion.div 
         className="prospective-hero"
         initial={{ opacity: 0, y: -30 }}
@@ -178,7 +178,6 @@ const Prospective = () => {
         </p>
       </motion.div>
 
-      {/* Pillars Section */}
       <motion.div 
         className="pillars-grid"
         variants={containerVariants}
@@ -205,7 +204,6 @@ const Prospective = () => {
         ))}
       </motion.div>
 
-      {/* Selected Major Modal */}
       <AnimatePresence>
         {selectedMajor && (
           <div className="login-modal-overlay" onClick={() => setSelectedMajor(null)} style={{zIndex: 5000}}>
@@ -261,7 +259,6 @@ const Prospective = () => {
         )}
       </AnimatePresence>
 
-      {/* Steps Section */}
       <div className="steps-section">
         <h2 className="section-title">
           {lang === 'ar' ? 'رحلة الالتحاق بالكلية' : 'College Enrollment Journey'}
@@ -283,7 +280,6 @@ const Prospective = () => {
         </motion.div>
       </div>
 
-      {/* Embedded Registration Form matching Navbar form exactly */}
       <motion.div 
         className="glass-panel"
         style={{ maxWidth: '800px', margin: '4rem auto', padding: '3rem', position: 'relative', zIndex: 10 }}

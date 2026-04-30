@@ -8,7 +8,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import './App.css';
 
-// Global Background Component that reacts to route changes
 const GlobalBackground = () => {
   const location = useLocation();
   const [bgClass, setBgClass] = useState('bg-home');

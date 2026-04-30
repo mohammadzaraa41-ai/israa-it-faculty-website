@@ -24,7 +24,6 @@ export const AdminProvider = ({ children }) => {
   const [interviewResources, setInterviewResources] = useState([]);
   const [linkedinTips, setLinkedinTips] = useState([]);
 
-  // Social Feed & Announcements
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
   const [announcements, setAnnouncements] = useState(DB_SCHEMA.announcements);
@@ -35,7 +34,6 @@ export const AdminProvider = ({ children }) => {
 
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH SOCIAL FEED FROM SUPABASE ---
   useEffect(() => {
     const fetchSocialData = async () => {
       try {
@@ -75,7 +73,6 @@ export const AdminProvider = ({ children }) => {
     fetchSocialData();
   }, []);
 
-  // Persistence (Fallback for non-DB entities)
   useEffect(() => {
     localStorage.setItem('facultyMembers', JSON.stringify(facultyMembers || []));
     localStorage.setItem('site_departments', JSON.stringify(departments || []));
@@ -83,9 +80,6 @@ export const AdminProvider = ({ children }) => {
     localStorage.setItem('site_events', JSON.stringify(events || []));
   }, [facultyMembers, departments, announcements, events]);
 
-
-
-  // Faculty functions
   const addFaculty = (member) => {
     setFacultyMembers([...facultyMembers, { ...member, id: Date.now() }]);
   };
@@ -96,7 +90,6 @@ export const AdminProvider = ({ children }) => {
     setFacultyMembers(prev => prev.filter(m => m.id !== id));
   };
 
-  // Department functions
   const addDepartment = (dept) => {
     setDepartments(prev => [...prev, { ...dept, id: dept.id || `dept_${Date.now()}` }]);
   };
@@ -107,7 +100,6 @@ export const AdminProvider = ({ children }) => {
     setDepartments(prev => prev.map(d => d.id === updatedDept.id ? updatedDept : d));
   };
 
-  // Social Feed Actions
   const addPost = async (post, user) => {
     if (!user) return { status: 'ERROR' };
     
@@ -210,7 +202,6 @@ export const AdminProvider = ({ children }) => {
     setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
   };
 
-  // Registration functions
   const approveRegistration = (reg) => {
     if (reg.type === 'Student') {
       setStudents(prev => [...prev, { id: Date.now(), name: reg.name, major: reg.major, year: '1st Year' }]);
@@ -249,7 +240,6 @@ export const AdminProvider = ({ children }) => {
     ]);
   };
 
-  // Content Management Functions
   const addCourse = (course) => setOfferedCourses([...offeredCourses, { ...course, id: Date.now() }]);
   const deleteCourse = (id) => setOfferedCourses(offeredCourses.filter(c => c.id !== id));
   const editCourse = (updatedCourse) => setOfferedCourses(offeredCourses.map(c => c.id === updatedCourse.id ? updatedCourse : c));
@@ -265,7 +255,6 @@ export const AdminProvider = ({ children }) => {
   const editQuest = (updatedQuest) => setQuests(quests.map(q => q.id === updatedQuest.id ? updatedQuest : q));
   const reorderQuests = (newOrder) => setQuests(newOrder);
 
-  // Alumni Management
   const addGradTemplate = (t) => setGradTemplates([...gradTemplates, { ...t, id: Date.now() }]);
   const deleteGradTemplate = (id) => setGradTemplates(gradTemplates.filter(t => t.id !== id));
   const editGradTemplate = (id, newName, lang) => {

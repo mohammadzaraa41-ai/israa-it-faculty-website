@@ -34,7 +34,6 @@ const Alumni = () => {
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
   const isAuthenticated = !!user;
   
-  // Check if current student has a pending or approved request
   const myAlumniRequest = alumniRequests?.find(r => r.userId === user?.id);
   const isApprovedAlumni = user?.is_alumni || user?.isAlumni || user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
   const hasPendingRequest = myAlumniRequest && !isApprovedAlumni;
@@ -271,7 +270,6 @@ const Alumni = () => {
     const projectFilesRef = React.useRef(null);
     const projectImagesRef = React.useRef(null);
     
-    // Form State
     const [newProj, setNewProj] = useState({
       name: { ar: '', en: '' },
       students: ['', '', '', '', ''],
@@ -433,7 +431,6 @@ const Alumni = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
           
-          {/* Column 1: Templates & Reports (Restored) */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <SectionTitle title={lang === 'ar' ? 'نماذج وتقارير' : 'Templates & Reports'} icon={FileText} />
             <AdminControl 
@@ -475,7 +472,6 @@ const Alumni = () => {
             </div>
           </div>
 
-          {/* Column 2: Project Bank */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
               <SectionTitle title={lang === 'ar' ? 'بنك المشاريع المتميزة' : 'Excellence Project Bank'} icon={Trophy} />
@@ -529,7 +525,6 @@ const Alumni = () => {
           </div>
         </div>
 
-        {/* Add Project Modal (Restored) */}
         <AnimatePresence>
           {isAdding && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
@@ -633,7 +628,6 @@ const Alumni = () => {
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
           
-          {/* CVs Section */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <SectionTitle title={lang === 'ar' ? 'السيرة الذاتية' : 'CV Builder'} icon={FileText} />
             <AdminControl label={lang === 'ar' ? 'إضافة قالب من الجهاز' : 'Add Template from Device'} onAdd={handleAddCvTemplate} />
@@ -671,7 +665,6 @@ const Alumni = () => {
             </AnimatePresence>
           </div>
 
-          {/* Interviews Section */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <SectionTitle title={lang === 'ar' ? 'المقابلات' : 'Interviews'} icon={Video} />
             <AdminControl label={lang === 'ar' ? 'إضافة فيديو/أسئلة' : 'Add Video/Questions'} onAdd={handleAddInterview} />
@@ -693,7 +686,6 @@ const Alumni = () => {
             </div>
           </div>
 
-          {/* LinkedIn Section */}
           <div className="glass-panel" style={{ padding: '1.5rem' }}>
             <SectionTitle title="LinkedIn" icon={ExternalLink} />
             <AdminControl label={lang === 'ar' ? 'إضافة نصيحة/فيديو' : 'Add Tip/Video'} onAdd={handleAddLinkedin} />

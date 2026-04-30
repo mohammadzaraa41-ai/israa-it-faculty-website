@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  // --- FETCH USERS FROM SUPABASE ---
   useEffect(() => {
     const fetchAuthData = async () => {
       try {
@@ -46,7 +45,6 @@ export const AuthProvider = ({ children }) => {
           }));
           setUsers(mappedUsers);
           
-          // Refresh active user state if logged in
           const savedUserStr = localStorage.getItem('site_user');
           if (savedUserStr) {
             const savedUser = JSON.parse(savedUserStr);
@@ -96,9 +94,6 @@ export const AuthProvider = ({ children }) => {
       const cleanUsername = username.trim();
       const cleanPassword = password.trim();
 
-
-      
-      // Fetch the first user that matches the username AND password
       const { data: usersFound, error: fetchError } = await supabase
         .from('users')
         .select('*')
@@ -113,15 +108,12 @@ export const AuthProvider = ({ children }) => {
 
       const data = usersFound && usersFound.length > 0 ? usersFound[0] : null;
 
-
       if (!data) {
-        // Let's check if the user exists at all without checking password
+
         const { count, error: countError } = await supabase
           .from('users')
           .select('*', { count: 'exact', head: true })
           .ilike('username', cleanUsername);
-        
-
         
         if (!countError && count === 0) {
           return { success: false, message: 'اسم المستخدم غير موجود في النظام' };
@@ -192,7 +184,7 @@ export const AuthProvider = ({ children }) => {
   const approveAlumniRequest = async (requestId) => {
     const req = alumniRequests.find(r => r.id === requestId);
     if (req) {
-      // 1. Update user to is_alumni = true
+
       const { error: userErr } = await supabase
         .from('users')
         .update({ is_alumni: true })
@@ -200,7 +192,6 @@ export const AuthProvider = ({ children }) => {
       
       if (userErr) return false;
 
-      // 2. Delete the request
       const { error: reqErr } = await supabase.from('alumni_requests').delete().eq('id', requestId);
       
       setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, isAlumni: true, is_alumni: true } : u));
@@ -238,16 +229,12 @@ export const AuthProvider = ({ children }) => {
         is_alumni: false
       };
 
-
-      
-      // 1. Insert into users table
       const { error: insertErr } = await supabase.from('users').insert([activeUser]);
       if (insertErr) {
         console.error("Approve User Insert Error Details:", JSON.stringify(insertErr, null, 2));
         return false;
       }
 
-      // 2. Delete from pending_users
       const { error: deleteErr } = await supabase.from('pending_users').delete().eq('id', pendingId);
       
       setUsers(prev => [...prev, { ...activeUser, name: { ar: activeUser.name_ar, en: '' } }]);
@@ -315,7 +302,7 @@ export const AuthProvider = ({ children }) => {
       name_en: updatedData.name?.en,
       department_id: updatedData.departmentId
     };
-    // Remove undefined fields
+
     Object.keys(dbData).forEach(key => dbData[key] === undefined && delete dbData[key]);
 
     const { error } = await supabase.from('users').update(dbData).eq('id', userId);

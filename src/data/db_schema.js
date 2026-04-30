@@ -1,13 +1,6 @@
-/* 
-  RELATIONAL DATABASE SCHEMA - Israa IT Faculty
-  --------------------------------------------
-  This file implements a Relational Database structure using JSON.
-  PK = Primary Key (Unique Identifier)
-  FK = Foreign Key (Link to another table's PK)
-*/
 
 export const DB_SCHEMA = {
-  // --- TABLE: DEPARTMENTS (Majors) ---
+
   departments: [
     { id: "cs", name: { ar: "علم الحاسوب", en: "Computer Science" } },
     { id: "se", name: { ar: "هندسة البرمجيات", en: "Software Engineering" } },
@@ -15,7 +8,6 @@ export const DB_SCHEMA = {
     { id: "dsai", name: { ar: "علم البيانات والذكاء الاصطناعي", en: "Data Science & AI" } }
   ],
 
-  // --- TABLE: USERS ---
   users: [
     {
       id: "u1", // PK
@@ -37,7 +29,6 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- TABLE: FACULTY_MEMBERS ---
   facultyMembers: [
     { 
       id: 1, // PK
@@ -59,7 +50,6 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- TABLE: OFFERED_COURSES ---
   offeredCourses: [
     { 
       id: 1, // PK
@@ -77,7 +67,6 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- TABLE: PROJECT_BANK (Graduation Projects) ---
   projectBank: [
     { 
       id: 1, // PK
@@ -90,7 +79,6 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- TABLE: ALUMNI_REQUESTS ---
   alumniRequests: [
     {
       id: "ar1", // PK
@@ -101,24 +89,20 @@ export const DB_SCHEMA = {
     }
   ],
 
-  // --- TABLE: ROADMAP ---
   roadmap: [
     { id: 1, title: { ar: 'السنة الأولى', en: 'Year 1' }, description: { ar: 'أساسيات البرمجة', en: 'Programming Basics' } }
   ],
 
-  // --- TABLE: FACULTY_INFO ---
   facultyInfo: {
     deanMessage: { ar: 'رسالة العميد...', en: "Dean's Message..." }
   },
 
-  // --- ALUMNI CAREER READINESS ---
   careerReadiness: {
     cvTemplates: [],
     interviews: [],
     linkedinTips: []
   },
 
-  // --- EXISTING DATA ---
   studentTips: [
     { id: 1, text: 'نصيحة 1...' },
     { id: 2, text: 'نصيحة 2...' }
@@ -130,7 +114,7 @@ export const DB_SCHEMA = {
   gradTemplates: [
     { id: 1, name: { ar: 'قالب 1', en: 'Template 1' }, type: 'pdf' }
   ],
-  // --- NEW TABLES FOR SOCIAL FEED ---
+
   posts: [
     {
       id: 1,

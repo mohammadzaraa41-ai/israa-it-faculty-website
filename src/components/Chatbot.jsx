@@ -32,7 +32,6 @@ const Chatbot = () => {
 
   const isAr = lang === 'ar';
 
-  // Greeting message when opened
   useEffect(() => {
     if (isOpen && messages.length === 0) {
       setMessages([{
@@ -44,12 +43,10 @@ const Chatbot = () => {
     }
   }, [isOpen, isAr, messages.length]);
 
-  // Auto-scroll to bottom
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
 
-  // Focus input when opened
   useEffect(() => {
     if (isOpen) {
       const timer = setTimeout(() => inputRef.current?.focus(), 300);
@@ -103,7 +100,7 @@ const Chatbot = () => {
     try {
       return await callGeminiAPI(body);
     } catch (err) {
-      // Auto-retry once after 3s on rate limit
+
       if (err.status === 429) {
         await new Promise(r => setTimeout(r, 3000));
         return await callGeminiAPI(body);
@@ -125,7 +122,7 @@ const Chatbot = () => {
       const reply = await sendToGemini(msgText);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-      // On rate-limit: use local fallback silently
+
       if (err.status === 429) {
         const fallback = getLocalFallback(msgText, lang);
         setMessages(prev => [...prev, { text: fallback, isBot: true }]);

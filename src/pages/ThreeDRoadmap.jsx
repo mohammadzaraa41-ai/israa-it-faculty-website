@@ -210,9 +210,5 @@ const ThreeDRoadmap = () => {
   );
 };
 
-
 export default ThreeDRoadmap;
-
-
-
 

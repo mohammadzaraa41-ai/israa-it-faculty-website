@@ -74,7 +74,6 @@ const AdminDashboard = () => {
         </button>
       </div>
 
-      {/* Tabs */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
         {tabs.map(tab => (
           <button 
@@ -104,7 +103,6 @@ const AdminDashboard = () => {
         ))}
       </div>
 
-      {/* Content Area */}
       <div className="glass-panel" style={{ padding: '2rem', minHeight: '500px' }}>
         {activeTab === 'approvals' && pendingUsers && (
           <PendingApprovals 
@@ -639,14 +637,14 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser })
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* Header & Controls */}
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <h3 style={{ color: 'var(--primary-light)', fontSize: '1.5rem' }}>
           {lang === 'ar' ? 'إدارة حسابات المستخدمين' : 'User Accounts Management'}
         </h3>
         
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%', maxWidth: '800px' }}>
-          {/* Search Bar */}
+
           <div style={{ flex: 1, position: 'relative', minWidth: '250px' }}>
             <Search size={18} style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
             <input 
@@ -658,7 +656,6 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser })
             />
           </div>
 
-          {/* Role Filter Tabs */}
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
             {['ALL', 'SUPER_ADMIN', 'DEAN', 'STUDENT'].map(role => (
               <button 
@@ -679,7 +676,6 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser })
         </div>
       </div>
 
-      {/* Users Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {filteredUsers.map(u => {
           const badge = getRoleBadgeStyle(u.role);
@@ -770,7 +766,7 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-      {/* Announcements Management */}
+
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
           <h3 style={{ color: 'var(--primary-light)', fontSize: '1.5rem', margin: 0 }}>
@@ -778,7 +774,6 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
           </h3>
         </div>
         
-        {/* Add New Announcement Form */}
         <form onSubmit={handleAddAnn} className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', border: '1px solid var(--primary-color)' }}>
           <input 
             required type="text" placeholder={lang === 'ar' ? 'نص الإعلان بالعربي' : 'Arabic Text'} 
@@ -947,5 +942,4 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
 };
 
 export default AdminDashboard;
-
 

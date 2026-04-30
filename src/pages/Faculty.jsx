@@ -9,19 +9,16 @@ const Faculty = () => {
   const { lang } = useLocale();
   const { facultyMembers: adminFaculty, departments } = useAdmin();
 
-  // Use admin-managed data; fall back to DB_SCHEMA defaults if empty
   const facultyMembers = (adminFaculty && adminFaculty.length > 0)
     ? adminFaculty
     : DB_SCHEMA.facultyMembers;
 
-  // Helper: resolve name from string or {ar, en} object
   const resolveName = (name) => {
     if (!name) return '---';
     if (typeof name === 'string') return name;
     return name[lang] || name.ar || name.en || '---';
   };
 
-  // Helper: resolve department name from departmentId
   const resolveDept = (member) => {
     if (member.department) return member.department;
     const dept = (departments || DB_SCHEMA.departments).find(d => d.id === member.departmentId);
@@ -131,7 +128,6 @@ const Faculty = () => {
         </p>
       </header>
 
-      {/* Dean Section */}
       {deans.length > 0 && (
         <section style={{ marginBottom: '6rem' }}>
           <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
@@ -141,7 +137,6 @@ const Faculty = () => {
         </section>
       )}
 
-      {/* Heads Section */}
       {heads.length > 0 && (
         <section style={{ marginBottom: '6rem' }}>
           <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>
@@ -153,7 +148,6 @@ const Faculty = () => {
         </section>
       )}
 
-      {/* Doctors Section */}
       {doctors.length > 0 && (
         <section>
           <h2 style={{ textAlign: 'center', color: 'var(--primary-light)', marginBottom: '2.5rem', fontSize: '2rem' }}>

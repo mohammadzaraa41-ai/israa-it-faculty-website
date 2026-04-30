@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 const DataContext = createContext();
 
 export const DataProvider = ({ children }) => {
-  // --- SITE CONTENT STATE ---
+
   const [facultyData, setFacultyData] = useState(DB_SCHEMA.facultyInfo);
   const [roadmap, setRoadmap] = useState(DB_SCHEMA.roadmap);
   const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
@@ -19,7 +19,6 @@ export const DataProvider = ({ children }) => {
   const [quests, setQuests] = useState(DB_SCHEMA.quests);
   const [loading, setLoading] = useState(true);
 
-  // --- FETCH DATA FROM SUPABASE ---
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
@@ -52,13 +51,6 @@ export const DataProvider = ({ children }) => {
     fetchAllData();
   }, []);
 
-  // Persistence (only for non-Supabase data if needed)
-  useEffect(() => {
-    // We can keep localStorage as a fallback or for session-only data if desired, 
-    // but the main data should come from Supabase now.
-  }, [roadmap, gradTemplates, cvTemplates, interviewResources, linkedinTips, studentTips, quests]);
-
-  // --- CRUD OPERATIONS ---
   const addCourse = async (c) => {
     const newCourse = {
       title: c.title,

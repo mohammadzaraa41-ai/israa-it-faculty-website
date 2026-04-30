@@ -9,7 +9,7 @@ import './Home.css';
 const Home = () => {
   const { lang } = useLocale();
   const { user, toggleLogin } = useAuth();
-  const { users } = useAuth(); // Need users list for lookup
+  const { users } = useAuth(); 
   const { posts, addPost, deletePost, toggleLike, addComment, announcements, events } = useAdmin();
   
   const [newPost, setNewPost] = useState({ content: '', image: '' });
@@ -74,7 +74,7 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {/* Announcements Bar */}
+
       <div className="announcements-container">
         {announcements.map((ann) => (
           <motion.div 
@@ -92,7 +92,7 @@ const Home = () => {
 
       <div className="feed-layout">
         <main className="feed-main">
-          {/* Post Creation Card */}
+
           <motion.div 
             className="glass-panel post-creation-card"
             initial={{ opacity: 0, y: 20 }}
@@ -168,7 +168,6 @@ const Home = () => {
             </AnimatePresence>
           </motion.div>
 
-          {/* Social Feed */}
           <div className="posts-feed">
             {posts.map((post, index) => (
               <motion.div 
@@ -233,7 +232,6 @@ const Home = () => {
                   </button>
                 </div>
 
-                {/* Comments Section */}
                 <AnimatePresence>
                   {showCommentForm === post.id && (
                     <motion.div 
@@ -280,7 +278,7 @@ const Home = () => {
         </main>
 
         <aside className="feed-sidebar">
-          {/* Recent Events or Trends */}
+
           <div className="glass-panel sidebar-widget">
             <h3>{lang === 'ar' ? "الأحداث القادمة" : "Upcoming Events"}</h3>
             {events.map(event => (
@@ -293,7 +291,6 @@ const Home = () => {
         </aside>
       </div>
 
-      {/* User Info Modal for Admins */}
       <AnimatePresence>
         {selectedUser && (
           <div className="login-modal-overlay" onClick={() => setSelectedUser(null)}>

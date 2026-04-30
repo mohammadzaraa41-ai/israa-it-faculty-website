@@ -14,7 +14,7 @@ const Navbar = () => {
   const { isDark, toggleTheme } = useTheme();
   const { lang, toggleLang, t } = useLocale();
   const { user, login, logout, registerRequest, isLoginOpen, toggleLogin } = useAuth();
-  const [activeTab, setActiveTab ] = useState('login'); // 'login' or 'register'
+  const [activeTab, setActiveTab ] = useState('login'); 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -32,7 +32,6 @@ const Navbar = () => {
   const [loginPassword, setLoginPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Register state
   const [regData, setRegData] = useState({
     fullName: '',
     phone: '',
@@ -80,7 +79,6 @@ const Navbar = () => {
       alert(lang === 'ar' ? 'حدث خطأ أثناء التسجيل: ' + result.message : 'Error during registration: ' + result.message);
     }
   };
-
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -136,7 +134,7 @@ const Navbar = () => {
 
   return (
     <>
-      {/* Persistent Top Bar */}
+
       <div className="top-bar">
         <div className="top-bar-brand" onClick={() => navigate('/')}>
           <img src="/logo.png" alt="Logo" className="top-logo" />
@@ -151,7 +149,6 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* Backdrop for mobile */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div 
@@ -277,8 +274,6 @@ const Navbar = () => {
 
       <MajorsShowcase isOpen={isShowcaseOpen} onClose={() => setIsShowcaseOpen(false)} />
 
-
-      {/* Login Modal */}
       <AnimatePresence>
         {isLoginOpen && !user && (
           <div className="login-modal-overlay">

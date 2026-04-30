@@ -33,7 +33,6 @@ const CurrentStudents = () => {
         </p>
       </motion.div>
 
-      {/* Tabs Navigation */}
       <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
         {tabs.map(tab => (
           <button 
@@ -48,7 +47,6 @@ const CurrentStudents = () => {
         ))}
       </div>
 
-      {/* Tabs Content */}
       <div className="glass-panel" style={{ padding: '2rem', minHeight: '500px', position: 'relative', overflow: 'hidden' }}>
         <AnimatePresence mode="wait">
           <motion.div
@@ -69,8 +67,6 @@ const CurrentStudents = () => {
     </div>
   );
 };
-
-// --- Tab Components ---
 
 const CourseRoadmapTab = ({ lang }) => (
   <div>
@@ -367,10 +363,8 @@ const CodingQuests = ({ lang }) => {
     setEditingId(null);
   };
 
-  // Local state to track completion
   const [questsState, setQuestsState] = useState(quests.map(q => ({ ...q, done: false })));
 
-  // Sync when admin changes quests
   React.useEffect(() => {
     setQuestsState(quests.map(q => ({ ...q, done: false })));
   }, [quests]);
@@ -403,7 +397,6 @@ const CodingQuests = ({ lang }) => {
           {lang === 'ar' ? 'أنجز المهام التالية لزيادة نقاط خبرتك (XP) ورفع مستواك البرمجي!' : 'Complete tasks to earn XP and level up your programming skills!'}
         </p>
 
-        {/* Level & XP Bar */}
         <div style={{ background: 'rgba(0,0,0,0.3)', padding: '2rem', borderRadius: '15px', border: '1px solid var(--primary-color)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
             <div style={{ textAlign: 'right' }}>
