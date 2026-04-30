@@ -175,6 +175,7 @@ const AdminDashboard = () => {
           <RegisterUser 
             registerUserDirectly={registerUserDirectly} 
             lang={lang}
+            addToast={addToast}
           />
         )}
       </div>
@@ -551,7 +552,7 @@ const FacultyManagement = ({
   );
 };
 
-const RegisterUser = ({ registerUserDirectly, lang }) => {
+const RegisterUser = ({ registerUserDirectly, lang, addToast }) => {
   const [formData, setFormData] = useState({ 
     username: '', 
     password: '', 
@@ -563,19 +564,31 @@ const RegisterUser = ({ registerUserDirectly, lang }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await registerUserDirectly({ 
-      username: formData.username,
-      password: formData.password,
-      role: formData.role,
-      name: { ar: formData.nameAr, en: formData.nameEn },
-      departmentId: formData.departmentId
-    });
-    
-    if (result.success) {
-      setFormData({ username: '', password: '', role: 'STUDENT', nameAr: '', nameEn: '', departmentId: 'cs' });
-      alert(lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account created successfully');
-    } else {
-      alert(lang === 'ar' ? 'خطأ في إنشاء الحساب: ' + result.message : 'Error: ' + result.message);
+    try {
+      const result = await registerUserDirectly({ 
+        username: formData.username,
+        password: formData.password,
+        role: formData.role,
+        name: { ar: formData.nameAr, en: formData.nameEn },
+        departmentId: formData.departmentId
+      });
+      
+      if (result.success) {
+        setFormData({ username: '', password: '', role: 'STUDENT', nameAr: '', nameEn: '', departmentId: 'cs' });
+        addToast(
+          lang === 'ar' ? 'تم بنجاح' : 'Success',
+          lang === 'ar' ? 'تم إنشاء الحساب بنجاح' : 'Account created successfully',
+          'success'
+        );
+      } else {
+        addToast(
+          lang === 'ar' ? 'خطأ' : 'Error',
+          result.message || (lang === 'ar' ? 'فشل إنشاء الحساب' : 'Failed to create account'),
+          'error'
+        );
+      }
+    } catch (err) {
+      addToast(lang === 'ar' ? 'خطأ تقني' : 'System Error', err.message, 'error');
     }
   };
 

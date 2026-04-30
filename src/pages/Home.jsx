@@ -5,10 +5,12 @@ import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Inf
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
+import { useToast } from '../contexts/ToastContext';
 import './Home.css';
 
 const Home = () => {
-  const { lang } = useLocale();
+  const { lang, t } = useLocale();
+  const { addToast } = useToast();
   const { user, toggleLogin } = useAuth();
   const { users } = useAuth(); 
   const { posts, addPost, deletePost, toggleLike, addComment, announcements, events, loading } = useAdmin();
@@ -22,23 +24,41 @@ const Home = () => {
 
   const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
 
-  const handleCreatePost = (e) => {
+  const handleCreatePost = async (e) => {
     e.preventDefault();
     if (!user) {
       toggleLogin(true);
       return;
     }
-    const result = addPost(newPost, user);
-    setNewPost({ content: '', image: '' });
-    setPostStatus(result.status);
     
-    if (result.status === 'PENDING') {
-      alert(lang === 'ar' 
-        ? 'تم إرسال منشورك للمراجعة. سيظهر بعد موافقة الإدارة.' 
-        : 'Your post has been sent for review. It will appear after admin approval.');
+    try {
+      const result = await addPost(newPost, user);
+      if (result.status === 'ERROR') {
+        addToast(t('common.error'), result.message, 'error');
+        return;
+      }
+
+      setNewPost({ content: '', image: '' });
+      setPostStatus(result.status);
+      
+      if (result.status === 'PENDING') {
+        addToast(
+          lang === 'ar' ? 'تم الإرسال' : 'Sent',
+          lang === 'ar' ? 'منشورك قيد المراجعة' : 'Your post is under review',
+          'info'
+        );
+      } else {
+        addToast(
+          lang === 'ar' ? 'تم النشر' : 'Published',
+          lang === 'ar' ? 'تم نشر منشورك بنجاح' : 'Post published successfully',
+          'success'
+        );
+      }
+      
+      setTimeout(() => setPostStatus(null), 5000);
+    } catch (err) {
+      addToast(t('common.error'), err.message, 'error');
     }
-    
-    setTimeout(() => setPostStatus(null), 5000);
   };
 
   const handleImageUpload = (e) => {
