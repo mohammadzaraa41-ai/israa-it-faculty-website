@@ -95,15 +95,14 @@ export const AuthProvider = ({ children }) => {
       const cleanPassword = password.trim();
 
       const { data: usersFound, error: fetchError } = await supabase
-        .from('users')
-        .select('*')
-        .ilike('username', cleanUsername)
-        .eq('password', cleanPassword)
-        .limit(1);
+        .rpc('secure_login', { 
+          p_username: cleanUsername, 
+          p_password: cleanPassword 
+        });
       
       if (fetchError) {
-        console.error("Supabase Login Error:", fetchError);
-        return { success: false, message: 'خطأ في الاتصال: ' + fetchError.message };
+        console.error("Login Error:", fetchError);
+        return { success: false, message: 'خطأ في الاتصال بقاعدة البيانات' };
       }
 
       const data = usersFound && usersFound.length > 0 ? usersFound[0] : null;
