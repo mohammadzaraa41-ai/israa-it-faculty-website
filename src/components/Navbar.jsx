@@ -138,10 +138,6 @@ const Navbar = () => {
     <>
 
       <div className="top-bar">
-        <div className="top-bar-brand" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="Logo" className="top-logo" />
-          <span className="top-title">{t('faculty_name')}</span>
-        </div>
         <button 
           className="mobile-toggle" 
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -149,6 +145,10 @@ const Navbar = () => {
         >
           {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
+        <div className="top-bar-brand" onClick={() => navigate('/')}>
+          <img src="/logo.png" alt="Logo" className="top-logo" />
+          <span className="top-title">{t('faculty_name')}</span>
+        </div>
       </div>
 
       <AnimatePresence>
