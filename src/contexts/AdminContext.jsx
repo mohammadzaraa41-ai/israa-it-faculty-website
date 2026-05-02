@@ -34,43 +34,41 @@ export const AdminProvider = ({ children }) => {
   useEffect(() => {
     const fetchAllData = async () => {
       setLoading(true);
+      
+      const safeFetch = async (table, select = '*') => {
+        try {
+          const { data, error } = await supabase.from(table).select(select);
+          if (error) {
+            console.warn(`Table ${table} not found or inaccessible:`, error.message);
+            return null;
+          }
+          return data;
+        } catch (err) {
+          console.error(`Unexpected error fetching ${table}:`, err);
+          return null;
+        }
+      };
+
       try {
-        const [
-          { data: postsData },
-          { data: commentsData },
-          { data: pendingPostsData },
-          { data: facultyRes },
-          { data: coursesRes },
-          { data: tipsRes },
-          { data: questsRes },
-          { data: annRes },
-          { data: eventsRes },
-          { data: deptsRes }
-        ] = await Promise.all([
+        // Social Feed (Existing tables)
+        const [postsRes, commentsRes, pendingRes] = await Promise.all([
           supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
           supabase.from('comments').select('*').order('created_at', { ascending: true }),
-          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false }),
-          supabase.from('faculty_members').select('*'),
-          supabase.from('offered_courses').select('*'),
-          supabase.from('student_tips').select('*'),
-          supabase.from('quests').select('*'),
-          supabase.from('announcements').select('*'),
-          supabase.from('events').select('*'),
-          supabase.from('departments').select('*')
+          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
         ]);
 
-        if (postsData) {
-          const processedPosts = postsData.map(p => ({
+        if (postsRes.data) {
+          const processedPosts = postsRes.data.map(p => ({
             ...p,
             author: { name: p.author_name, role: p.author_role },
             date: new Date(p.created_at).toLocaleDateString('en-GB'),
-            comments: commentsData ? commentsData.filter(c => c.post_id === p.id) : []
+            comments: commentsRes.data ? commentsRes.data.filter(c => c.post_id === p.id) : []
           }));
           setPosts(processedPosts);
         }
 
-        if (pendingPostsData) {
-          setPendingPosts(pendingPostsData.map(p => ({
+        if (pendingRes.data) {
+          setPendingPosts(pendingRes.data.map(p => ({
             ...p,
             author: { name: p.author_name, role: p.author_role },
             date: new Date(p.created_at).toLocaleDateString('en-GB'),
@@ -78,16 +76,38 @@ export const AdminProvider = ({ children }) => {
           })));
         }
 
+        // Fetch other tables individually to avoid one failure breaking all
+        const facultyRes = await safeFetch('faculty_members');
+        const coursesRes = await safeFetch('offered_courses');
+        const tipsRes = await safeFetch('student_tips');
+        const questsRes = await safeFetch('quests');
+        const annRes = await safeFetch('announcements');
+        const eventsRes = await safeFetch('events');
+        const deptsRes = await safeFetch('departments');
+
         if (facultyRes) setFacultyMembers(facultyRes);
+        else setFacultyMembers(DB_SCHEMA.facultyMembers);
+
         if (coursesRes) setOfferedCourses(coursesRes);
+        else setOfferedCourses(DB_SCHEMA.offeredCourses);
+
         if (tipsRes) setStudentTips(tipsRes);
+        else setStudentTips(DB_SCHEMA.studentTips);
+
         if (questsRes) setQuests(questsRes);
+        else setQuests(DB_SCHEMA.quests);
+
         if (annRes) setAnnouncements(annRes);
+        else setAnnouncements(DB_SCHEMA.announcements);
+
         if (eventsRes) setEvents(eventsRes);
+        else setEvents(DB_SCHEMA.events);
+
         if (deptsRes && deptsRes.length > 0) setDepartments(deptsRes);
+        else setDepartments(DB_SCHEMA.departments);
 
       } catch (err) {
-        console.error("Error fetching admin data:", err);
+        console.error("Critical error in AdminContext fetch:", err);
       }
       setLoading(false);
     };
