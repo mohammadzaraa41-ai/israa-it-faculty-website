@@ -504,6 +504,17 @@
 }
 
 @media (max-width: 992px) {
+  .top-bar {
+    height: 60px;
+    padding: 0 1rem;
+  }
+
+  .top-title { font-size: 1rem; }
+  .top-logo  { width: 32px; height: 32px; }
+
+  /* Utility bar hidden on mobile — header height is just top-bar (60px) */
+  .utility-bar { display: none; }
+
   .sidebar {
     width: 280px;
     left: 0;

@@ -192,7 +192,7 @@
   .top-logo  { width: 32px !important; height: 32px !important; }
 
   /* Fix main-content padding-top for shorter mobile header */
-  .main-content { padding-top: 65px !important; }
+  .main-content { padding-top: 72px !important; }
 
   /* ── MODAL ── */
   .login-modal { padding: 1.25rem !important; }

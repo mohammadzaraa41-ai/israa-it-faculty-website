@@ -160,13 +160,13 @@ const ThreeDRoadmap = () => {
 
   return (
     <div style={{
-      padding: isMobile ? '1rem' : '2rem',
+      padding: isMobile ? '0.75rem' : '1.5rem',
       width: '100%',
       boxSizing: 'border-box',
-      minHeight: 'calc(100vh - 120px)',
+      height: 'calc(100vh - 75px)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '1rem'
+      gap: isMobile ? '0.75rem' : '1rem'
     }}>
       {/* Header */}
       <header style={{ textAlign: 'center' }}>
@@ -199,19 +199,21 @@ const ThreeDRoadmap = () => {
         </div>
       </header>
 
-      {/* Canvas Container */}
+      {/* Canvas Container — fills remaining height */}
       <div
         className="glass-panel"
         style={{
           flex: 1,
-          minHeight: isMobile ? '55vh' : '65vh',
-          borderRadius: '24px',
+          height: 0,         /* forces flex to control height */
+          borderRadius: isMobile ? '16px' : '24px',
           overflow: 'hidden',
           position: 'relative',
-          background: '#02040a'
+          background: '#02040a',
+          display: 'flex',
+          flexDirection: 'column'
         }}
       >
-        {/* Instructions overlay — adapted for touch on mobile */}
+        {/* Instructions overlay */}
         <div style={{
           position: 'absolute',
           top: '0.75rem',
@@ -241,15 +243,22 @@ const ThreeDRoadmap = () => {
           )}
         </div>
 
-        <Suspense fallback={<div style={{ color: 'white', textAlign: 'center', paddingTop: '20%', fontSize: '1.2rem' }}>Initializing Galaxy...</div>}>
-          <Canvas
-            camera={{ position: [0, 5, isMobile ? 40 : 28], fov: isMobile ? 55 : 45 }}
-            gl={{ antialias: !isMobile }}
-            style={{ width: '100%', height: '100%' }}
-          >
-            <RoadmapScene majorKey={selectedMajor} lang={lang} />
-          </Canvas>
-        </Suspense>
+        {/* Canvas fills entire panel */}
+        <div style={{ flex: 1, width: '100%', height: '100%' }}>
+          <Suspense fallback={
+            <div style={{ color: 'white', textAlign: 'center', paddingTop: '20%', fontSize: '1.2rem' }}>
+              Initializing Galaxy...
+            </div>
+          }>
+            <Canvas
+              camera={{ position: [0, 5, isMobile ? 40 : 28], fov: isMobile ? 55 : 45 }}
+              gl={{ antialias: !isMobile }}
+              style={{ width: '100%', height: '100%', display: 'block' }}
+            >
+              <RoadmapScene majorKey={selectedMajor} lang={lang} />
+            </Canvas>
+          </Suspense>
+        </div>
       </div>
     </div>
   );

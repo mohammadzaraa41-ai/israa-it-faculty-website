@@ -87,11 +87,14 @@
   padding: 0 2rem;
   box-sizing: border-box;
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 @media (max-width: 992px) {
   .main-content {
-    padding-top: 80px;
+    /* Mobile: utility-bar hidden, top-bar = 60px */
+    padding-top: 72px !important;
   }
   .page-center-wrapper {
     padding: 0 1rem;
