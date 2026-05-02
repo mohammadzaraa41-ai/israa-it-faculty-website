@@ -85,7 +85,7 @@ export const AdminProvider = ({ children }) => {
                 role: p.author_role,
                 avatar_url: authorUser.avatar_url || null
               },
-              date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
+              date: new Date(p.created_at).toLocaleDateString('en-GB'),
               comments: (commentsData || [])
                 .filter(c => c.post_id === p.id)
                 .map(c => {
@@ -154,7 +154,7 @@ export const AdminProvider = ({ children }) => {
       setLoading(false);
     };
     fetchAllData();
-  }, [lang]);
+  }, []);
 
   // Faculty CRUD
   const addFaculty = async (member) => {
@@ -228,7 +228,7 @@ export const AdminProvider = ({ children }) => {
       content: postData.content,
       image: postData.image,
       author_username: user.username,
-      author_name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+      author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
       author_role: user.role,
       status: isAdmin ? 'APPROVED' : 'PENDING'
     }]).select();
@@ -239,7 +239,7 @@ export const AdminProvider = ({ children }) => {
       ...data[0],
       author: {
         username: user.username,
-        name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+        name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
         role: user.role,
         avatar_url: user.avatar_url || null
       },
@@ -295,7 +295,7 @@ export const AdminProvider = ({ children }) => {
       post_id: postId,
       content: commentData.text,
       author_username: user.username,
-      author_name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+      author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
       author_role: user.role
     }]).select();
 
