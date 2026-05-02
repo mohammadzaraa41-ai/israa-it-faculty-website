@@ -18,6 +18,7 @@ const StudentPortal = lazy(() => import('../pages/StudentPortal'));
 const DevelopersNetwork = lazy(() => import('../pages/DevelopersNetwork'));
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
 const AdminLogin = lazy(() => import('../pages/AdminLogin'));
+const Profile = lazy(() => import('../pages/Profile'));
 
 const PageLoader = () => (
   <div className="page-loader">
@@ -89,6 +90,7 @@ const AnimatedRoutes = () => {
         <Route path="/student-portal" element={<PageWrapper><StudentPortal /></PageWrapper>} />
         <Route path="/admin-dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
         <Route path="/dev-network" element={<PageWrapper><DevelopersNetwork /></PageWrapper>} />
+        <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );

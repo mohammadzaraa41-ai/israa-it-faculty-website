@@ -321,6 +321,40 @@ export const AuthProvider = ({ children }) => {
     return { success: false, message: error.message };
   };
 
+  const updateUserProfile = async (updates) => {
+    try {
+      if (!user) return { success: false, message: 'No user logged in' };
+
+      const { data, error } = await supabase
+        .from('users')
+        .update({
+          name_ar: updates.name_ar,
+          name_en: updates.name_en,
+          phone: updates.phone,
+          avatar_url: updates.avatar_url
+        })
+        .eq('id', user.id)
+        .select();
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const updatedUser = { 
+          ...user, 
+          ...data[0],
+          name: { ar: data[0].name_ar, en: data[0].name_en }
+        };
+        setUser(updatedUser);
+        localStorage.setItem('site_user', JSON.stringify(updatedUser));
+        return { success: true };
+      }
+      return { success: false, message: 'Failed to update' };
+    } catch (error) {
+      console.error('Update Profile Error:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('site_user');
@@ -340,7 +374,7 @@ export const AuthProvider = ({ children }) => {
       login, logout, registerRequest, approveUser, rejectUser,
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
       registerUserDirectly, deleteUser, updateUserRole, updateUser,
-      hasPermission, role: user?.role, isLoginOpen, toggleLogin 
+      updateUserProfile, hasPermission, role: user?.role, isLoginOpen, toggleLogin 
     }}>
       {children}
     </AuthContext.Provider>

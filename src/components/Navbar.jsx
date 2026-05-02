@@ -124,15 +124,16 @@ const Navbar = () => {
         ...(user?.role === 'SUPER_ADMIN' ? [{ to: '/admin-dashboard', label: lang === 'ar' ? 'لوحة التحكم (أدمن)' : 'Admin Dashboard' }] : [])
       ]
     },
-    ...(!!user ? [] : [{
-      id: 'auth',
-      title: lang === 'ar' ? 'نظام التسجيل' : 'Registration System',
+    }]),
+    ...(user ? [{
+      id: 'account',
+      title: lang === 'ar' ? 'حسابي' : 'My Account',
       links: [
-        { to: '#', label: lang === 'ar' ? 'إنشاء حساب جديد' : 'Create Account', onClick: () => { setActiveTab('register'); toggleLogin(true); } },
-        { to: '#', label: lang === 'ar' ? 'تسجيل الدخول' : 'Sign In', onClick: () => { setActiveTab('login'); toggleLogin(true); } }
+        { to: '/profile', label: lang === 'ar' ? 'الملف الشخصي' : 'Profile Settings' },
+        { to: '#', label: lang === 'ar' ? 'تسجيل الخروج' : 'Logout', onClick: () => { logout(); navigate('/'); } }
       ]
-    }])
-  ], [t, lang, toggleLogin, user]);
+    }] : [])
+  ], [t, lang, toggleLogin, user, logout, navigate]);
 
   return (
     <>
@@ -196,10 +197,10 @@ const Navbar = () => {
       <nav className={`sidebar ${isMobileMenuOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
-            <div className="sidebar-logo clickable-logo" onClick={() => { setActiveTab('login'); toggleLogin(true); }}>
-              <img src="/logo.png" alt="Logo" className="logo-img" />
+            <div className="sidebar-logo clickable-logo" onClick={() => user ? navigate('/profile') : (setActiveTab('login'), toggleLogin(true))}>
+              <img src={user?.avatar_url || "/logo.png"} alt="Logo" className="logo-img profile-preview" />
               <div className="logo-info">
-                <span className="logo-text">{t('faculty_name')}</span>
+                <span className="logo-text">{user ? (lang === 'ar' ? user.name?.ar || user.username : user.name?.en || user.username) : t('faculty_name')}</span>
                 {user && (
                   <motion.div 
                     initial={{ opacity: 0, x: -10 }} 
@@ -207,7 +208,7 @@ const Navbar = () => {
                     className="user-badge"
                   >
                     <User size={12} />
-                    <span>{lang === 'ar' ? user.name?.ar || user.username : user.name?.en || user.username}</span>
+                    <span>{user.role}</span>
                   </motion.div>
                 )}
               </div>
