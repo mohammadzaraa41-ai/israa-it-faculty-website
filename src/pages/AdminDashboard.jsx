@@ -862,9 +862,18 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
           {(announcements || []).map((ann) => (
             <div key={ann.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: ann.type === 'warning' ? '#e74c3c' : '#3498db' }}>
-                  {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
-                  <h4 style={{ margin: 0 }}>{lang === 'ar' ? `إعلان` : `Announcement`}</h4>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: ann.type === 'warning' ? '#e74c3c' : '#3498db' }}>
+                    {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
+                  </div>
+                  <select 
+                    value={ann.type} 
+                    onChange={(e) => updateAnnouncement(ann.id, { text: ann.text, type: e.target.value })}
+                    style={{ padding: '0.3rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
+                  >
+                    <option value="info">Info</option>
+                    <option value="warning">Warning</option>
+                  </select>
                 </div>
                 <button onClick={() => deleteAnnouncement(ann.id)} style={{ color: '#e74c3c', background: 'none', border: 'none', cursor: 'pointer' }}>
                   <Trash2 size={18} />
@@ -873,12 +882,12 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <input 
                   type="text" value={ann.text?.ar || ''} 
-                  onChange={(e) => updateAnnouncement(ann.id, e.target.value, 'ar')}
+                  onChange={(e) => updateAnnouncement(ann.id, { text: { ...ann.text, ar: e.target.value }, type: ann.type })}
                   style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
                 />
                 <input 
                   type="text" value={ann.text?.en || ''} 
-                  onChange={(e) => updateAnnouncement(ann.id, e.target.value, 'en')}
+                  onChange={(e) => updateAnnouncement(ann.id, { text: { ...ann.text, en: e.target.value }, type: ann.type })}
                   style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
                 />
               </div>

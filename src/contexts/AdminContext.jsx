@@ -399,12 +399,15 @@ export const AdminProvider = ({ children }) => {
     const { error } = await supabase.from('announcements').delete().eq('id', id);
     if (!error) setAnnouncements(prev => prev.filter(a => a.id !== id));
   };
-  const updateAnnouncement = async (id, text, lang) => {
-    const ann = announcements.find(a => a.id === id);
-    if (!ann) return;
-    const newText = { ...ann.text, [lang]: text };
-    const { error } = await supabase.from('announcements').update({ text: newText }).eq('id', id);
-    if (!error) setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, text: newText } : a));
+  const updateAnnouncement = async (id, updatedData) => {
+    const { error } = await supabase.from('announcements').update({
+      text: updatedData.text,
+      type: updatedData.type
+    }).eq('id', id);
+
+    if (!error) {
+      setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+    }
   };
 
   const addEvent = async (event) => {
