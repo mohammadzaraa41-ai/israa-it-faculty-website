@@ -4,8 +4,12 @@ export const DB_SCHEMA = {
   departments: [
     { id: "cs", name: { ar: "علم الحاسوب", en: "Computer Science" } },
     { id: "se", name: { ar: "هندسة البرمجيات", en: "Software Engineering" } },
+    { id: "cis", name: { ar: "نظم المعلومات الحاسوبية", en: "Computer Info Systems" } },
     { id: "cyber", name: { ar: "الأمن السيبراني", en: "Cyber Security" } },
-    { id: "dsai", name: { ar: "علم البيانات والذكاء الاصطناعي", en: "Data Science & AI" } }
+    { id: "sec", name: { ar: "أمن المعلومات والفضاء الإلكتروني", en: "Info Security & Cyberspace" } },
+    { id: "dsai", name: { ar: "علم البيانات والذكاء الاصطناعي", en: "Data Science & AI" } },
+    { id: "multi", name: { ar: "الوسائط المتعددة", en: "Multimedia" } },
+    { id: "net", name: { ar: "أنظمة الشبكات الحاسوبية", en: "Computer Networks" } }
   ],
 
   users: [
