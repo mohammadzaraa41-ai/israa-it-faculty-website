@@ -136,20 +136,50 @@ const Navbar = () => {
 
   return (
     <>
-
-      <div className="top-bar">
-        <button 
-          className="mobile-toggle" 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle Menu"
-        >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-        <div className="top-bar-brand" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="Logo" className="top-logo" />
-          <span className="top-title">{t('faculty_name')}</span>
+      <header className="institutional-header">
+        <div className="utility-bar">
+          <div className="utility-container">
+            <div className="utility-links">
+              <a href="mailto:it@israa.edu.ps" className="utility-link">
+                <Phone size={12} />
+                <span>it@israa.edu.ps</span>
+              </a>
+              <a href="#" className="utility-link">
+                <BookOpen size={12} />
+                <span>{lang === 'ar' ? 'المكتبة الرقمية' : 'Digital Library'}</span>
+              </a>
+              <a href="#" className="utility-link">
+                <GraduationCap size={12} />
+                <span>{lang === 'ar' ? 'بوابة الطالب' : 'Student Portal'}</span>
+              </a>
+            </div>
+            <div className="utility-actions">
+              <button className="utility-btn" onClick={toggleLang}>
+                <Globe size={12} />
+                <span>{lang === 'ar' ? 'English' : 'عربي'}</span>
+              </button>
+              <button className="utility-btn" onClick={toggleTheme}>
+                {isDark ? <Sun size={12} /> : <Moon size={12} />}
+                <span>{isDark ? (lang === 'ar' ? 'نهاري' : 'Light') : (lang === 'ar' ? 'ليلي' : 'Dark')}</span>
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <div className="top-bar">
+          <button 
+            className="mobile-toggle" 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+          <div className="top-bar-brand" onClick={() => navigate('/')}>
+            <img src="/logo.png" alt="Logo" className="top-logo" />
+            <span className="top-title">{t('faculty_name')}</span>
+          </div>
+        </div>
+      </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (

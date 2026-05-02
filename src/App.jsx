@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
 import AnimatedRoutes from './components/AnimatedRoutes';
 import { AdminProvider } from './contexts/AdminContext';
@@ -43,6 +44,7 @@ const App = () => {
               <main className="main-content">
                 <AnimatedRoutes />
               </main>
+              <Footer />
               <Chatbot />
             </Router>
           </AdminProvider>
