@@ -53,49 +53,69 @@ export const AdminProvider = ({ children }) => {
       };
 
       try {
-        // Fetch Posts with Author details
+        // Step 1: Fetch all users to get avatars
+        const { data: usersData } = await supabase.from('users').select('username, name_ar, name_en, role, avatar_url');
+        const usersMap = {};
+        if (usersData) {
+          usersData.forEach(u => { usersMap[u.username] = u; });
+        }
+
+        // Step 2: Fetch Posts
         const { data: postsData } = await supabase
           .from('posts')
-          .select('*, author:users(username, name_ar, name_en, role, avatar_url)')
+          .select('*')
           .eq('status', 'APPROVED')
           .order('created_at', { ascending: false });
 
+        // Step 3: Fetch Comments
+        const { data: commentsData } = await supabase
+          .from('comments')
+          .select('*');
+
         if (postsData) {
           const formattedPosts = postsData.map(p => {
-            const authorData = p.author;
+            const authorUsername = p.author_id;
+            const authorUser = usersMap[authorUsername] || {};
             return {
               ...p,
+              likes: p.likes || [],
               author: {
-                username: authorData?.username || p.author_id,
-                name: lang === 'ar' ? (authorData?.name_ar || p.author_name) : (authorData?.name_en || p.author_name),
-                role: authorData?.role || p.author_role,
-                avatar_url: authorData?.avatar_url || null
+                username: authorUsername,
+                name: lang === 'ar' ? (authorUser.name_ar || p.author_name || authorUsername) : (authorUser.name_en || p.author_name || authorUsername),
+                role: authorUser.role || p.author_role,
+                avatar_url: authorUser.avatar_url || null
               },
               date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
-              comments: []
+              comments: (commentsData || [])
+                .filter(c => c.post_id === p.id)
+                .map(c => {
+                  const commentAuthor = usersMap[c.user_id] || usersMap[c.author_id] || {};
+                  return {
+                    id: c.id,
+                    author: lang === 'ar' ? (commentAuthor.name_ar || c.author_name || c.user_id) : (commentAuthor.name_en || c.author_name || c.user_id),
+                    username: c.user_id || c.author_id,
+                    avatar_url: commentAuthor.avatar_url || null,
+                    text: c.content || c.text
+                  };
+                })
             };
           });
-
-          // Fetch Comments for these posts
-          const { data: commentsData } = await supabase
-            .from('comments')
-            .select('*, author:users(username, name_ar, name_en, avatar_url)');
-          
-          if (commentsData) {
-            formattedPosts.forEach(post => {
-              post.comments = commentsData
-                .filter(c => c.post_id === post.id)
-                .map(c => ({
-                  id: c.id,
-                  author: lang === 'ar' ? c.author.name_ar : c.author.name_en,
-                  username: c.author.username,
-                  avatar_url: c.author.avatar_url,
-                  text: c.content
-                }));
-            });
-          }
-
           setPosts(formattedPosts);
+        }
+
+        // Fetch pending posts
+        const { data: pendingData } = await supabase
+          .from('posts')
+          .select('*')
+          .eq('status', 'PENDING')
+          .order('created_at', { ascending: false });
+        if (pendingData) {
+          setPendingPosts(pendingData.map(p => ({
+            ...p,
+            author: { name: p.author_name || p.author_id, role: p.author_role },
+            date: new Date(p.created_at).toLocaleDateString('en-GB'),
+            comments: []
+          })));
         }
 
         // Fetch other tables individually to avoid one failure breaking all
