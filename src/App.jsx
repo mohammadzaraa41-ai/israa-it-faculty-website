@@ -51,7 +51,9 @@ const App = () => {
               <GlobalBackground />
               <Navbar />
               <main className="main-content">
-                <AnimatedRoutes />
+                <div className="page-center-wrapper">
+                  <AnimatedRoutes />
+                </div>
               </main>
               <Footer />
               <Chatbot />
