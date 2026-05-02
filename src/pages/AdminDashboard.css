@@ -10,13 +10,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  marginBottom: 3rem;
+  margin-bottom: 3rem;
 }
 
 .admin-tabs {
   display: flex;
   gap: 1rem;
-  marginBottom: 2rem;
+  margin-bottom: 2rem;
   flex-wrap: wrap;
 }
 
