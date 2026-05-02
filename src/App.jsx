@@ -31,6 +31,14 @@ const GlobalBackground = () => {
 
   return <div className={`global-page-bg ${bgClass}`} />;
 };
+ 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+};
 
 const App = () => {
   return (
@@ -39,6 +47,7 @@ const App = () => {
         <DataProvider>
           <AdminProvider>
             <Router>
+              <ScrollToTop />
               <GlobalBackground />
               <Navbar />
               <main className="main-content">
