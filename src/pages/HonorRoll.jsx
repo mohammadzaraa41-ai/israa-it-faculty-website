@@ -44,12 +44,17 @@ const HonorRoll = () => {
     return dept ? (lang === 'ar' ? dept.name.ar : dept.name.en) : id;
   };
 
-  // Group students by major
+  // Group students by major and sort by year descending
   const groupedStudents = honorRoll.reduce((acc, student) => {
     if (!acc[student.major]) acc[student.major] = [];
     acc[student.major].push(student);
     return acc;
   }, {});
+
+  // Sort each major group by year descending
+  Object.keys(groupedStudents).forEach(major => {
+    groupedStudents[major].sort((a, b) => b.year.localeCompare(a.year));
+  });
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh' }}>

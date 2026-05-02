@@ -11,6 +11,9 @@ const Achievements = () => {
   const { achievements, addAchievement, deleteAchievement, editAchievement } = useAdmin();
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
+  // Sort achievements by date descending
+  const sortedAchievements = [...achievements].sort((a, b) => new Date(b.date) - new Date(a.date));
+
   const [selectedAch, setSelectedAch] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingAch, setEditingAch] = useState(null);
@@ -65,7 +68,7 @@ const Achievements = () => {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2.5rem' }}>
-        {achievements.map((ach) => (
+        {sortedAchievements.map((ach) => (
           <motion.div 
             key={ach.id} 
             layoutId={`ach-${ach.id}`}
