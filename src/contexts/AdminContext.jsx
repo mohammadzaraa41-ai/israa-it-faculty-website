@@ -294,6 +294,20 @@ export const AdminProvider = ({ children }) => {
     if (!error) setPosts(posts.filter(p => p.id !== postId));
   };
 
+  const editPost = async (postId, updatedData) => {
+    const { error } = await supabase.from('posts').update({
+      content: updatedData.content,
+      image: updatedData.image
+    }).eq('id', postId);
+
+    if (!error) {
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...updatedData } : p));
+      addToast('تم التحديث', 'تم تحديث المنشور بنجاح', 'success');
+    } else {
+      addToast('خطأ', 'فشل تحديث المنشور', 'error');
+    }
+  };
+
   const toggleLike = async (postId, username) => {
     const post = posts.find(p => p.id === postId);
     if (!post) return;
@@ -603,7 +617,7 @@ export const AdminProvider = ({ children }) => {
       interviewResources, addInterviewResource, deleteInterviewResource,
       linkedinTips, addLinkedinTip, deleteLinkedinTip,
       departments, addDepartment, deleteDepartment, updateDepartment,
-      posts, addPost, approvePost, rejectPost, deletePost, toggleLike,
+      posts, addPost, approvePost, rejectPost, deletePost, editPost, toggleLike,
       addComment, deleteComment, editComment, likeComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,

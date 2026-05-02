@@ -19,6 +19,13 @@ const AdminDashboard = () => {
     alumniRequests, approveAlumniRequest, rejectAlumniRequest,
     deleteUser, registerUserDirectly, updateUserRole, updateUser
   } = useAuth();
+
+  const { 
+    posts, deletePost, editPost, 
+    pendingPosts, approvePost, rejectPost,
+    announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
+    events, addEvent, deleteEvent, updateEvent 
+  } = useAdmin();
   
   useEffect(() => {
     if (users) localStorage.setItem('site_users', JSON.stringify(users));
@@ -784,6 +791,11 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
   const [newEvent, setNewEvent] = useState({ date: '', ar: '', en: '' });
   const [editingEvent, setEditingEvent] = useState(null);
 
+  const [isEditPostOpen, setIsEditPostOpen] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
+  const [editPostContent, setEditPostContent] = useState('');
+  const [editPostImage, setEditPostImage] = useState('');
+
   const handleAddAnn = (e) => {
     e.preventDefault();
     addAnnouncement({ text: { ar: newAnn.ar, en: newAnn.en }, type: newAnn.type });
@@ -799,6 +811,23 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
       addEvent({ date: newEvent.date, text: { ar: newEvent.ar, en: newEvent.en } });
     }
     setNewEvent({ date: '', ar: '', en: '' });
+  };
+
+  const handleEditPost = (post) => {
+    setEditingPost(post);
+    setEditPostContent(post.content);
+    setEditPostImage(post.image || '');
+    setIsEditPostOpen(true);
+  };
+
+  const saveEditedPost = async () => {
+    if (!editingPost) return;
+    await editPost(editingPost.id, {
+      content: editPostContent,
+      image: editPostImage
+    });
+    setIsEditPostOpen(false);
+    setEditingPost(null);
   };
 
   return (
@@ -929,6 +958,12 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
                     <h4 style={{ margin: 0, color: 'var(--text-primary)' }}>{post.author?.name || 'Unknown'}</h4>
                     <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{post.date}</span>
                   </div>
+                  <button 
+                    onClick={() => handleEditPost(post)}
+                    style={{ background: 'transparent', border: 'none', color: '#f1c40f', cursor: 'pointer' }}
+                  >
+                    <Edit size={18} />
+                  </button>
                 </div>
                 <p style={{ color: 'var(--text-primary)', marginBottom: '1.5rem' }}>{post.content}</p>
                 {post.image && <img src={post.image} alt="Post Attachment" style={{ width: '100%', borderRadius: '8px', marginBottom: '1rem' }} />}
@@ -964,16 +999,81 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
                 <h4 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1rem' }}>{post.author?.name || 'Unknown'} <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>({post.author?.role})</span></h4>
                 <p style={{ margin: '0.25rem 0 0 0', color: 'var(--text-secondary)', fontSize: '0.9rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '600px' }}>{post.content}</p>
               </div>
-              <button 
-                onClick={() => deletePost(post.id)}
-                style={{ background: 'transparent', border: '1px solid #e74c3c', color: '#e74c3c', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
-              >
-                <Trash2 size={16} />
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button 
+                  onClick={() => handleEditPost(post)}
+                  style={{ background: 'transparent', border: '1px solid #f1c40f', color: '#f1c40f', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                >
+                  <Edit size={16} />
+                </button>
+                <button 
+                  onClick={() => deletePost(post.id)}
+                  style={{ background: 'transparent', border: '1px solid #e74c3c', color: '#e74c3c', padding: '0.5rem', borderRadius: '8px', cursor: 'pointer' }}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
             </div>
           ))}
         </div>
       </section>
+
+      {/* Edit Post Modal */}
+      {isEditPostOpen && (
+        <div className="login-modal-overlay" style={{ zIndex: 10000 }}>
+          <div className="glass-panel" style={{ width: '90%', maxWidth: '600px', padding: '2rem', position: 'relative' }}>
+            <button 
+              onClick={() => setIsEditPostOpen(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+            
+            <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
+              {lang === 'ar' ? 'تعديل المنشور' : 'Edit Post'}
+            </h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="input-group">
+                <label>{lang === 'ar' ? 'المحتوى' : 'Content'}</label>
+                <textarea 
+                  rows="6"
+                  value={editPostContent}
+                  onChange={(e) => setEditPostContent(e.target.value)}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)', resize: 'vertical' }}
+                />
+              </div>
+              
+              <div className="input-group">
+                <label>{lang === 'ar' ? 'رابط الصورة' : 'Image URL'}</label>
+                <input 
+                  type="text"
+                  value={editPostImage}
+                  onChange={(e) => setEditPostImage(e.target.value)}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button 
+                  onClick={saveEditedPost}
+                  className="btn-primary"
+                  style={{ flex: 1, padding: '1rem' }}
+                >
+                  <Check size={20} /> {lang === 'ar' ? 'حفظ التغييرات' : 'Save Changes'}
+                </button>
+                <button 
+                  onClick={() => setIsEditPostOpen(false)}
+                  className="btn-outline"
+                  style={{ flex: 1, padding: '1rem' }}
+                >
+                  {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
