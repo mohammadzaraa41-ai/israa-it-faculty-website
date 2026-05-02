@@ -791,6 +791,11 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
   const [editPostContent, setEditPostContent] = useState('');
   const [editPostImage, setEditPostImage] = useState('');
 
+  const [isEditAnnOpen, setIsEditAnnOpen] = useState(false);
+  const [editingAnn, setEditingAnn] = useState(null);
+  const [editAnnText, setEditAnnText] = useState({ ar: '', en: '' });
+  const [editAnnType, setEditAnnType] = useState('info');
+
   const handleAddAnn = (e) => {
     e.preventDefault();
     addAnnouncement({ text: { ar: newAnn.ar, en: newAnn.en }, type: newAnn.type });
@@ -823,6 +828,24 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
     });
     setIsEditPostOpen(false);
     setEditingPost(null);
+  };
+
+  const handleEditAnn = (ann) => {
+    setEditingAnn(ann);
+    setEditAnnText({ ar: ann.text?.ar || '', en: ann.text?.en || '' });
+    setEditAnnType(ann.type || 'info');
+    setIsEditAnnOpen(true);
+  };
+
+  const saveEditedAnn = async () => {
+    if (!editingAnn) return;
+    await updateAnnouncement(editingAnn.id, {
+      text: editAnnText,
+      type: editAnnType
+    });
+    setIsEditAnnOpen(false);
+    setEditingAnn(null);
+    addToast(lang === 'ar' ? 'تم التحديث' : 'Updated', lang === 'ar' ? 'تم تحديث الإعلان بنجاح' : 'Announcement updated successfully', 'success');
   };
 
   return (
@@ -860,36 +883,23 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
           {(announcements || []).map((ann) => (
-            <div key={ann.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: ann.type === 'warning' ? '#e74c3c' : '#3498db' }}>
-                    {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
-                  </div>
-                  <select 
-                    value={ann.type} 
-                    onChange={(e) => updateAnnouncement(ann.id, { text: ann.text, type: e.target.value })}
-                    style={{ padding: '0.3rem', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
-                  >
-                    <option value="info">Info</option>
-                    <option value="warning">Warning</option>
-                  </select>
+            <div key={ann.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: ann.type === 'warning' ? '#e74c3c' : '#3498db' }}>
+                  {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
                 </div>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 'bold', color: 'var(--text-primary)' }}>{ann.text?.[lang] || ann.text?.ar}</p>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>{ann.type.toUpperCase()}</span>
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => handleEditAnn(ann)} style={{ color: '#f1c40f', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  <Edit size={18} />
+                </button>
                 <button onClick={() => deleteAnnouncement(ann.id)} style={{ color: '#e74c3c', background: 'none', border: 'none', cursor: 'pointer' }}>
                   <Trash2 size={18} />
                 </button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <input 
-                  type="text" value={ann.text?.ar || ''} 
-                  onChange={(e) => updateAnnouncement(ann.id, { text: { ...ann.text, ar: e.target.value }, type: ann.type })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
-                />
-                <input 
-                  type="text" value={ann.text?.en || ''} 
-                  onChange={(e) => updateAnnouncement(ann.id, { text: { ...ann.text, en: e.target.value }, type: ann.type })}
-                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
-                />
               </div>
             </div>
           ))}
@@ -1071,6 +1081,59 @@ const SocialManagement = ({ posts, pendingPosts, approvePost, rejectPost, delete
                   className="btn-outline"
                   style={{ flex: 1, padding: '1rem' }}
                 >
+                  {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditAnnOpen && (
+        <div className="login-modal-overlay" style={{ zIndex: 10000 }}>
+          <div className="glass-panel" style={{ width: '90%', maxWidth: '600px', padding: '2rem', position: 'relative' }}>
+            <button 
+              onClick={() => setIsEditAnnOpen(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+            <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)' }}>
+              {lang === 'ar' ? 'تعديل الإعلان العلوي' : 'Edit Top Announcement'}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div className="input-group">
+                <label>{lang === 'ar' ? 'النص بالعربي' : 'Arabic Text'}</label>
+                <input 
+                  type="text" value={editAnnText.ar}
+                  onChange={(e) => setEditAnnText({ ...editAnnText, ar: e.target.value })}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div className="input-group">
+                <label>{lang === 'ar' ? 'النص بالإنجليزي' : 'English Text'}</label>
+                <input 
+                  type="text" value={editAnnText.en}
+                  onChange={(e) => setEditAnnText({ ...editAnnText, en: e.target.value })}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                />
+              </div>
+              <div className="input-group">
+                <label>{lang === 'ar' ? 'نوع الإعلان' : 'Announcement Type'}</label>
+                <select 
+                  value={editAnnType}
+                  onChange={(e) => setEditAnnType(e.target.value)}
+                  style={{ width: '100%', padding: '1rem', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'var(--text-primary)' }}
+                >
+                  <option value="info">Info</option>
+                  <option value="warning">Warning</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+                <button onClick={saveEditedAnn} className="btn-primary" style={{ flex: 1, padding: '1rem' }}>
+                  <Check size={20} /> {lang === 'ar' ? 'حفظ' : 'Save'}
+                </button>
+                <button onClick={() => setIsEditAnnOpen(false)} className="btn-outline" style={{ flex: 1, padding: '1rem' }}>
                   {lang === 'ar' ? 'إلغاء' : 'Cancel'}
                 </button>
               </div>
