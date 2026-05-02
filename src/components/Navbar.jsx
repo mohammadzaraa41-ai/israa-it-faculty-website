@@ -5,7 +5,7 @@ import { useLocale } from '../contexts/LocalizationContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { useNavigate } from 'react-router-dom';
-import { Moon, Sun, Menu, X, Globe, ChevronDown, ChevronUp, PlayCircle, ArrowRight, ArrowLeft, User, Lock, Eye, EyeOff, Phone, Calendar, GraduationCap, Clock, BookOpen, UserCheck, LogOut } from 'lucide-react';
+import { Moon, Sun, Menu, X, Globe, ChevronDown, ChevronUp, PlayCircle, ArrowRight, ArrowLeft, User, Lock, Eye, EyeOff, Phone, Calendar, GraduationCap, Clock, BookOpen, UserCheck, LogOut, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './Navbar.css';
 import MajorsShowcase from './MajorsShowcase';
