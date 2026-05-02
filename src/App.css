@@ -240,12 +240,10 @@
 }
 
 .global-page-bg.bg-home {
-  background: 
-    linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.85)),
-    url('/main-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+[data-theme='dark'] .global-page-bg.bg-home {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 
 .global-page-bg.bg-prospective {
