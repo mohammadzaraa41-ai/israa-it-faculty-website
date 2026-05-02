@@ -24,34 +24,14 @@ body {
   }
 }
 
-/* Animated Mesh Overlay for Premium Look */
+/* Clean Academic Background */
 body::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: radial-gradient(circle at 20% 30%, rgba(161, 23, 44, 0.15) 0%, transparent 40%),
-              radial-gradient(circle at 80% 70%, rgba(10, 68, 137, 0.2) 0%, transparent 40%);
+  background: linear-gradient(135deg, rgba(12, 35, 64, 0.02) 0%, rgba(128, 0, 0, 0.02) 100%);
   z-index: -1;
-  animation: meshFlow 15s ease-in-out infinite alternate;
   pointer-events: none;
-}
-
-@media (max-width: 768px) {
-  body {
-    background-attachment: scroll; 
-    background-position: center center; /* Centered for mobile */
-    background-size: cover; 
-  }
-  
-  body::before {
-    display: none !important; /* Remove the animated mesh entirely from mobile */
-  }
-}
-
-@keyframes meshFlow {
-  0% { transform: scale(1) translate(0, 0); }
-  50% { transform: scale(1.1) translate(2%, 2%); }
-  100% { transform: scale(1.05) translate(-1%, 1%); }
 }
 
 a {
@@ -104,35 +84,34 @@ ul {
 
 /* Button Utilities */
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
-  color: #0c2340;
-  padding: 0.875rem 2rem;
-  border-radius: 12px;
-  font-weight: 800;
+  background: var(--accent-color);
+  color: #ffffff;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  box-shadow: var(--shadow-glow);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 0 40px rgba(244, 180, 26, 0.6);
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .btn-outline {
-  padding: 0.875rem 2rem;
-  border-radius: 12px;
-  font-weight: 700;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
   transition: var(--transition);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border: 2px solid var(--primary-color);
+  border: 1.5px solid var(--primary-color);
   color: var(--primary-color);
 }
 [data-theme='dark'] .btn-outline {
@@ -141,12 +120,12 @@ ul {
 }
 .btn-outline:hover {
   background-color: var(--primary-color);
-  color: #fff;
-  transform: translateY(-4px) scale(1.02);
+  color: #ffffff;
+  transform: translateY(-2px);
 }
 [data-theme='dark'] .btn-outline:hover {
   background-color: var(--accent-color);
-  color: #0f172a;
+  color: #ffffff;
 }
 
 .main-content {

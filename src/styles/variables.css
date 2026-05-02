@@ -1,44 +1,44 @@
 :root {
-  /* Colors - Light Theme */
-  --bg-color: #f1f5f9;
+  /* Colors - Light Theme (Academic & Professional) */
+  --bg-color: #f8fafc;
   --bg-color-secondary: #ffffff;
-  --text-primary: #0f172a;
-  --text-secondary: #334155;
-  --primary-color: #051738; /* New Deep Circuit Blue */
-  --primary-light: #0A4489; /* Circuit Vibrant Blue */
-  --accent-color: #A1172C; /* New Logo Deep Red */
-  --accent-hover: #DD1C30; /* Bright Circuit Red */
-  --border-color: rgba(5, 23, 56, 0.1);
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --primary-color: #0c2340; /* Official Navy Blue */
+  --primary-light: #1a365d;
+  --accent-color: #800000; /* Classic University Maroon */
+  --accent-hover: #a1172c;
+  --border-color: #e2e8f0;
   
-  --glass-bg: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(255, 255, 255, 0.4);
-  --glass-highlight: rgba(255, 255, 255, 0.8);
-  --shadow-sm: 0 4px 6px -1px rgba(5, 23, 56, 0.1);
-  --shadow-md: 0 10px 25px -5px rgba(5, 23, 56, 0.15);
-  --shadow-lg: 0 25px 50px -12px rgba(5, 23, 56, 0.25);
-  --shadow-glow: 0 0 20px rgba(161, 23, 44, 0.4);
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(203, 213, 225, 0.5);
+  --glass-highlight: rgba(255, 255, 255, 1);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-glow: none; /* Removed gaming glow */
 
-  --font-family: 'Cairo', 'Inter', system-ui, sans-serif;
-  --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --border-radius: 16px;
+  --font-family: 'Inter', 'Cairo', system-ui, sans-serif;
+  --transition: all 0.3s ease;
+  --border-radius: 12px;
 }
 
 [data-theme='dark'] {
-  /* Colors - Dark Theme */
-  --bg-color: #070b14;
-  --bg-color-secondary: #0b1121;
-  --text-primary: #f8fafc;
+  /* Colors - Dark Theme (Refined & Professional) */
+  --bg-color: #0f172a;
+  --bg-color-secondary: #1e293b;
+  --text-primary: #f1f5f9;
   --text-secondary: #94a3b8;
-  --primary-color: #06193E; /* Dark Mode Blue */
-  --primary-light: #0D4FA3;
-  --accent-color: #DD1C30; /* Circuit Bright Red in Dark Mode */
-  --accent-hover: #FC3246;
-  --border-color: rgba(255, 255, 255, 0.05);
+  --primary-color: #1e3a8a;
+  --primary-light: #2563eb;
+  --accent-color: #b91c1c;
+  --accent-hover: #dc2626;
+  --border-color: rgba(255, 255, 255, 0.1);
   
-  --glass-bg: rgba(11, 17, 33, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-highlight: rgba(255, 255, 255, 0.1);
-  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 0 30px rgba(221, 28, 48, 0.4);
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(255, 255, 255, 0.05);
+  --glass-highlight: rgba(255, 255, 255, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-glow: none;
 }

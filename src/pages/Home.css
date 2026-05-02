@@ -25,15 +25,27 @@
 }
 
 .announcement-bar.warning {
-  background: linear-gradient(90deg, rgba(231, 76, 60, 0.2), rgba(231, 76, 60, 0.1));
-  border-left: 5px solid #e74c3c;
-  color: #ff7675;
+  background: #fff5f5;
+  border-left: 5px solid #c53030;
+  color: #c53030;
+}
+
+[data-theme='dark'] .announcement-bar.warning {
+  background: rgba(197, 48, 48, 0.1);
+  border-left-color: #f56565;
+  color: #feb2b2;
 }
 
 .announcement-bar.info {
-  background: linear-gradient(90deg, rgba(52, 152, 219, 0.2), rgba(52, 152, 219, 0.1));
-  border-left: 5px solid #3498db;
-  color: #74b9ff;
+  background: #ebf8ff;
+  border-left: 5px solid #2b6cb0;
+  color: #2b6cb0;
+}
+
+[data-theme='dark'] .announcement-bar.info {
+  background: rgba(43, 108, 176, 0.1);
+  border-left-color: #63b3ed;
+  color: #bee3f8;
 }
 
 /* Feed Layout */

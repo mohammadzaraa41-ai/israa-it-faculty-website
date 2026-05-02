@@ -53,10 +53,10 @@ const Faculty = () => {
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
-        color: 'var(--accent-color)', 
+        color: '#ffffff', 
         fontSize: size === 'large' ? '3rem' : '2rem', 
         fontWeight: 'bold',
-        boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+        boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
       }}>
         {resolveName(member.name).charAt(0)}
       </div>
@@ -90,11 +90,12 @@ const Faculty = () => {
             <strong>{lang === 'ar' ? 'المواد:' : 'Courses:'}</strong>
             {member.courses ? member.courses.split('،').join(',').split(',').map((course, idx) => (
               <span key={idx} style={{ 
-                backgroundColor: 'rgba(255,255,255,0.05)', 
-                padding: '2px 8px', 
-                borderRadius: '4px', 
-                fontSize: '0.85rem',
-                border: '1px solid rgba(255,255,255,0.1)'
+                backgroundColor: 'var(--bg-color)', 
+                padding: '2px 10px', 
+                borderRadius: '6px', 
+                fontSize: '0.8rem',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-secondary)'
               }}>
                 {course.trim()}
               </span>

@@ -49,7 +49,7 @@
   flex-wrap: wrap;
   margin-bottom: 3rem;
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--bg-color-secondary);
   border-radius: 12px;
   border: 1px solid var(--border-color);
 }
@@ -71,7 +71,7 @@
 
 .faculty-card {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-color-secondary);
   border-radius: 12px;
   border: 1px solid var(--border-color);
   display: flex;
@@ -101,7 +101,7 @@
 
 .user-role-filter {
   display: flex;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-color-secondary);
   padding: 4px;
   border-radius: 8px;
   border: 1px solid var(--border-color);
