@@ -74,28 +74,28 @@ export const AdminProvider = ({ children }) => {
 
         if (postsData) {
           const formattedPosts = postsData.map(p => {
-            const authorUsername = p.author_id;
-            const authorUser = usersMap[authorUsername] || {};
+            // Use author_username to find avatar, fallback to author_name
+            const authorUser = usersMap[p.author_username] || {};
             return {
               ...p,
               likes: p.likes || [],
               author: {
-                username: authorUsername,
-                name: lang === 'ar' ? (authorUser.name_ar || p.author_name || authorUsername) : (authorUser.name_en || p.author_name || authorUsername),
-                role: authorUser.role || p.author_role,
+                username: p.author_username || p.author_name,
+                name: p.author_name || p.author_username,
+                role: p.author_role,
                 avatar_url: authorUser.avatar_url || null
               },
               date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
               comments: (commentsData || [])
                 .filter(c => c.post_id === p.id)
                 .map(c => {
-                  const commentAuthor = usersMap[c.user_id] || usersMap[c.author_id] || {};
+                  const commentAuthor = usersMap[c.author_username] || {};
                   return {
                     id: c.id,
-                    author: lang === 'ar' ? (commentAuthor.name_ar || c.author_name || c.user_id) : (commentAuthor.name_en || c.author_name || c.user_id),
-                    username: c.user_id || c.author_id,
+                    author: c.author_name,
+                    username: c.author_username,
                     avatar_url: commentAuthor.avatar_url || null,
-                    text: c.content || c.text
+                    text: c.content
                   };
                 })
             };
@@ -227,19 +227,21 @@ export const AdminProvider = ({ children }) => {
     const { data, error } = await supabase.from('posts').insert([{
       content: postData.content,
       image: postData.image,
-      author_id: user.username,
+      author_username: user.username,
+      author_name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+      author_role: user.role,
       status: isAdmin ? 'APPROVED' : 'PENDING'
-    }]).select('*, author:users(username, name_ar, name_en, role, avatar_url)');
+    }]).select();
 
     if (error) return { status: 'ERROR', message: error.message };
 
     const newP = {
       ...data[0],
       author: {
-        username: data[0].author.username,
-        name: lang === 'ar' ? data[0].author.name_ar : data[0].author.name_en,
-        role: data[0].author.role,
-        avatar_url: data[0].author.avatar_url
+        username: user.username,
+        name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+        role: user.role,
+        avatar_url: user.avatar_url || null
       },
       date: lang === 'ar' ? 'الآن' : 'Just now',
       comments: []
@@ -292,15 +294,17 @@ export const AdminProvider = ({ children }) => {
     const { data, error } = await supabase.from('comments').insert([{
       post_id: postId,
       content: commentData.text,
-      author_id: user.username
-    }]).select('*, author:users(avatar_url)');
+      author_username: user.username,
+      author_name: lang === 'ar' ? (user.name?.ar || user.name_ar || user.username) : (user.name?.en || user.name_en || user.username),
+      author_role: user.role
+    }]).select();
 
-    if (!error && data) {
+    if (!error) {
       const newComment = {
-        id: data[0].id,
+        id: data?.[0]?.id || Date.now(),
         author: commentData.author,
-        username: commentData.username,
-        avatar_url: user.avatar_url,
+        username: user.username,
+        avatar_url: user.avatar_url || null,
         text: commentData.text
       };
       setPosts(posts.map(p => {
