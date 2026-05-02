@@ -48,19 +48,15 @@ const Footer = () => {
             <ul className="contact-list">
               <li>
                 <MapPin size={18} />
-                <span>{lang === 'ar' ? 'غزة - شارع الرشيد' : 'Gaza - Al-Rasheed St.'}</span>
-              </li>
-              <li>
-                <MapPin size={18} />
-                <span>{lang === 'ar' ? 'الأردن - عمان' : 'Jordan - Amman'}</span>
+                <span>{lang === 'ar' ? 'الأردن - عمان - طريق المطار' : 'Jordan - Amman - Airport Road'}</span>
               </li>
               <li>
                 <Phone size={18} />
-                <span>+970 8 2843433</span>
+                <span>+962 6 4711710</span>
               </li>
               <li>
                 <Mail size={18} />
-                <span>it@israa.edu.ps</span>
+                <span>info@iu.edu.jo</span>
               </li>
             </ul>
             <div className="social-links">

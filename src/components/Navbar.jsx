@@ -140,9 +140,9 @@ const Navbar = () => {
         <div className="utility-bar">
           <div className="utility-container">
             <div className="utility-links">
-              <a href="mailto:it@israa.edu.ps" className="utility-link">
-                <Phone size={12} />
-                <span>it@israa.edu.ps</span>
+              <a href="mailto:info@iu.edu.jo" className="utility-link">
+                <Mail size={12} />
+                <span>info@iu.edu.jo</span>
               </a>
               <a href="#" className="utility-link">
                 <BookOpen size={12} />
