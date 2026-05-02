@@ -11,13 +11,13 @@ export const AdminProvider = ({ children }) => {
   const { user } = useAuth();
   const isAuthenticated = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
 
-  const [facultyMembers, setFacultyMembers] = useState(DB_SCHEMA.facultyMembers);
+  const [facultyMembers, setFacultyMembers] = useState([]);
   const [departments, setDepartments] = useState(DB_SCHEMA.departments);
   const [students, setStudents] = useState([]);
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
   const [offeredCourses, setOfferedCourses] = useState([]);
-  const [studentTips, setStudentTips] = useState(DB_SCHEMA.studentTips);
-  const [quests, setQuests] = useState(DB_SCHEMA.quests);
+  const [studentTips, setStudentTips] = useState([]);
+  const [quests, setQuests] = useState([]);
   const [gradTemplates, setGradTemplates] = useState(DB_SCHEMA.gradTemplates);
   const [projectBank, setProjectBank] = useState([]);
   const [cvTemplates, setCvTemplates] = useState([]);
@@ -26,25 +26,37 @@ export const AdminProvider = ({ children }) => {
 
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
-  const [announcements, setAnnouncements] = useState(DB_SCHEMA.announcements);
-  const [events, setEvents] = useState([
-    { id: 1, date: '28 APR', text: { ar: "يوم مفتوح لمشاريع التخرج", en: "Graduation Projects Open Day" } },
-    { id: 2, date: '30 APR', text: { ar: "ورشة عمل الأمن السيبراني", en: "Cyber Security Workshop" } }
-  ]);
+  const [announcements, setAnnouncements] = useState([]);
+  const [events, setEvents] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSocialData = async () => {
+    const fetchAllData = async () => {
+      setLoading(true);
       try {
         const [
           { data: postsData },
           { data: commentsData },
-          { data: pendingData }
+          { data: pendingPostsData },
+          { data: facultyRes },
+          { data: coursesRes },
+          { data: tipsRes },
+          { data: questsRes },
+          { data: annRes },
+          { data: eventsRes },
+          { data: deptsRes }
         ] = await Promise.all([
           supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
           supabase.from('comments').select('*').order('created_at', { ascending: true }),
-          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
+          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false }),
+          supabase.from('faculty_members').select('*'),
+          supabase.from('offered_courses').select('*'),
+          supabase.from('student_tips').select('*'),
+          supabase.from('quests').select('*'),
+          supabase.from('announcements').select('*'),
+          supabase.from('events').select('*'),
+          supabase.from('departments').select('*')
         ]);
 
         if (postsData) {
@@ -57,49 +69,83 @@ export const AdminProvider = ({ children }) => {
           setPosts(processedPosts);
         }
 
-        if (pendingData) {
-          setPendingPosts(pendingData.map(p => ({
+        if (pendingPostsData) {
+          setPendingPosts(pendingPostsData.map(p => ({
             ...p,
             author: { name: p.author_name, role: p.author_role },
             date: new Date(p.created_at).toLocaleDateString('en-GB'),
             comments: []
           })));
         }
+
+        if (facultyRes) setFacultyMembers(facultyRes);
+        if (coursesRes) setOfferedCourses(coursesRes);
+        if (tipsRes) setStudentTips(tipsRes);
+        if (questsRes) setQuests(questsRes);
+        if (annRes) setAnnouncements(annRes);
+        if (eventsRes) setEvents(eventsRes);
+        if (deptsRes && deptsRes.length > 0) setDepartments(deptsRes);
+
       } catch (err) {
-        console.error("Error fetching social feed:", err);
+        console.error("Error fetching admin data:", err);
       }
       setLoading(false);
     };
-    fetchSocialData();
+    fetchAllData();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('facultyMembers', JSON.stringify(facultyMembers || []));
-    localStorage.setItem('site_departments', JSON.stringify(departments || []));
-    localStorage.setItem('site_announcements', JSON.stringify(announcements || []));
-    localStorage.setItem('site_events', JSON.stringify(events || []));
-  }, [facultyMembers, departments, announcements, events]);
-
-  const addFaculty = (member) => {
-    setFacultyMembers([...facultyMembers, { ...member, id: Date.now() }]);
-  };
-  const editFaculty = (updatedMember) => {
-    setFacultyMembers(facultyMembers.map(m => m.id === updatedMember.id ? updatedMember : m));
-  };
-  const deleteFaculty = (id) => {
-    setFacultyMembers(prev => prev.filter(m => m.id !== id));
+  // Faculty CRUD
+  const addFaculty = async (member) => {
+    const newMember = {
+      name: member.name,
+      department_id: member.departmentId || member.department_id,
+      role: member.role,
+      specialization: member.specialization,
+      office: member.office,
+      office_hours: member.officeHours || member.office_hours,
+      courses: member.courses
+    };
+    const { data, error } = await supabase.from('faculty_members').insert([newMember]).select();
+    if (!error && data) setFacultyMembers(prev => [...prev, data[0]]);
   };
 
-  const addDepartment = (dept) => {
-    setDepartments(prev => [...prev, { ...dept, id: dept.id || `dept_${Date.now()}` }]);
-  };
-  const deleteDepartment = (id) => {
-    setDepartments(prev => prev.filter(d => d.id !== id));
-  };
-  const updateDepartment = (updatedDept) => {
-    setDepartments(prev => prev.map(d => d.id === updatedDept.id ? updatedDept : d));
+  const editFaculty = async (updatedMember) => {
+    const dbData = {
+      name: updatedMember.name,
+      department_id: updatedMember.departmentId || updatedMember.department_id,
+      role: updatedMember.role,
+      specialization: updatedMember.specialization,
+      office: updatedMember.office,
+      office_hours: updatedMember.officeHours || updatedMember.office_hours,
+      courses: updatedMember.courses
+    };
+    const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updatedMember.id);
+    if (!error) setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { ...updatedMember } : m));
   };
 
+  const deleteFaculty = async (id) => {
+    const { error } = await supabase.from('faculty_members').delete().eq('id', id);
+    if (!error) setFacultyMembers(prev => prev.filter(m => m.id !== id));
+  };
+
+  // Departments CRUD
+  const addDepartment = async (dept) => {
+    const newDept = { id: dept.id, name: dept.name };
+    const { data, error } = await supabase.from('departments').insert([newDept]).select();
+    if (!error && data) setDepartments(prev => [...prev, data[0]]);
+  };
+
+  const deleteDepartment = async (id) => {
+    const { error } = await supabase.from('departments').delete().eq('id', id);
+    if (!error) setDepartments(prev => prev.filter(d => d.id !== id));
+  };
+
+  const updateDepartment = async (updatedDept) => {
+    const { error } = await supabase.from('departments').update({ name: updatedDept.name }).eq('id', updatedDept.id);
+    if (!error) setDepartments(prev => prev.map(d => d.id === updatedDept.id ? updatedDept : d));
+  };
+
+  // Social & Feed
   const addPost = async (post, user) => {
     if (!user) return { status: 'ERROR' };
     
@@ -188,30 +234,82 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  const addAnnouncement = (ann) => setAnnouncements([...announcements, { ...ann, id: Date.now() }]);
-  const deleteAnnouncement = (id) => setAnnouncements(announcements.filter(a => a.id !== id));
-  const updateAnnouncement = (id, text, lang) => {
-    setAnnouncements(announcements.map(a => 
-      a.id === id ? { ...a, text: { ...a.text, [lang]: text } } : a
-    ));
+  // Announcements & Events
+  const addAnnouncement = async (ann) => {
+    const { data, error } = await supabase.from('announcements').insert([{ text: ann.text, type: ann.type }]).select();
+    if (!error && data) setAnnouncements(prev => [...prev, data[0]]);
+  };
+  const deleteAnnouncement = async (id) => {
+    const { error } = await supabase.from('announcements').delete().eq('id', id);
+    if (!error) setAnnouncements(prev => prev.filter(a => a.id !== id));
+  };
+  const updateAnnouncement = async (id, text, lang) => {
+    const ann = announcements.find(a => a.id === id);
+    if (!ann) return;
+    const newText = { ...ann.text, [lang]: text };
+    const { error } = await supabase.from('announcements').update({ text: newText }).eq('id', id);
+    if (!error) setAnnouncements(prev => prev.map(a => a.id === id ? { ...a, text: newText } : a));
   };
 
-  const addEvent = (event) => setEvents([...events, { ...event, id: Date.now() }]);
-  const deleteEvent = (id) => setEvents(events.filter(e => e.id !== id));
-  const updateEvent = (updatedEvent) => {
-    setEvents(events.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  const addEvent = async (event) => {
+    const { data, error } = await supabase.from('events').insert([{ date: event.date, text: event.text }]).select();
+    if (!error && data) setEvents(prev => [...prev, data[0]]);
+  };
+  const deleteEvent = async (id) => {
+    const { error } = await supabase.from('events').delete().eq('id', id);
+    if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+  };
+  const updateEvent = async (updatedEvent) => {
+    const { error } = await supabase.from('events').update({ date: updatedEvent.date, text: updatedEvent.text }).eq('id', updatedEvent.id);
+    if (!error) setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
   };
 
+  // Courses, Tips, Quests
+  const addCourse = async (course) => {
+    const { data, error } = await supabase.from('offered_courses').insert([course]).select();
+    if (!error && data) setOfferedCourses(prev => [...prev, data[0]]);
+  };
+  const deleteCourse = async (id) => {
+    const { error } = await supabase.from('offered_courses').delete().eq('id', id);
+    if (!error) setOfferedCourses(prev => prev.filter(c => c.id !== id));
+  };
+  const editCourse = async (updatedCourse) => {
+    const { error } = await supabase.from('offered_courses').update(updatedCourse).eq('id', updatedCourse.id);
+    if (!error) setOfferedCourses(prev => prev.map(c => c.id === updatedCourse.id ? updatedCourse : c));
+  };
+  const reorderCourses = (newOrder) => setOfferedCourses(newOrder);
+  
+  const addTip = async (text) => {
+    const { data, error } = await supabase.from('student_tips').insert([{ text }]).select();
+    if (!error && data) setStudentTips(prev => [...prev, data[0]]);
+  };
+  const deleteTip = async (id) => {
+    const { error } = await supabase.from('student_tips').delete().eq('id', id);
+    if (!error) setStudentTips(prev => prev.filter(t => t.id !== id));
+  };
+  const editTip = async (id, text) => {
+    const { error } = await supabase.from('student_tips').update({ text }).eq('id', id);
+    if (!error) setStudentTips(prev => prev.map(t => t.id === id ? { ...t, text } : t));
+  };
+  const reorderTips = (newOrder) => setStudentTips(newOrder);
+  
+  const addQuest = async (quest) => {
+    const { data, error } = await supabase.from('quests').insert([quest]).select();
+    if (!error && data) setQuests(prev => [...prev, data[0]]);
+  };
+  const deleteQuest = async (id) => {
+    const { error } = await supabase.from('quests').delete().eq('id', id);
+    if (!error) setQuests(prev => prev.filter(q => q.id !== id));
+  };
+  const editQuest = async (updatedQuest) => {
+    const { error } = await supabase.from('quests').update(updatedQuest).eq('id', updatedQuest.id);
+    if (!error) setQuests(prev => prev.map(q => q.id === updatedQuest.id ? updatedQuest : q));
+  };
+  const reorderQuests = (newOrder) => setQuests(newOrder);
+
+  // Remaining placeholders
   const approveRegistration = (reg) => {
-    if (reg.type === 'Student') {
-      setStudents(prev => [...prev, { id: Date.now(), name: reg.name, major: reg.major, year: '1st Year' }]);
-    } else {
-      addFaculty({ 
-        name: reg.name, 
-        departmentId: reg.departmentId || (departments[0]?.id), 
-        role: 'New Faculty' 
-      });
-    }
+    // This part should also be updated to sync with AuthContext or Supabase users
     setPendingRegistrations(prev => prev.filter(p => p.id !== reg.id));
   };
 
@@ -220,40 +318,12 @@ export const AdminProvider = ({ children }) => {
   };
 
   const registerUserDirectly = (user) => {
-    if (user.type === 'Student') {
-      setStudents([...students, { id: Date.now(), name: user.name, major: user.major, year: user.year || '1st Year' }]);
-    } else {
-      addFaculty({ name: user.name, department: user.department, role: user.role || 'Faculty' });
-    }
+    // Handled in AuthContext
   };
 
   const submitRegistrationApplication = (application) => {
-    setPendingRegistrations([
-      ...pendingRegistrations, 
-      { 
-        id: Date.now(), 
-        name: application.name, 
-        type: application.type || 'Student', 
-        major: application.major, 
-        date: new Date().toISOString().split('T')[0] 
-      }
-    ]);
+    // Handled in AuthContext
   };
-
-  const addCourse = (course) => setOfferedCourses([...offeredCourses, { ...course, id: Date.now() }]);
-  const deleteCourse = (id) => setOfferedCourses(offeredCourses.filter(c => c.id !== id));
-  const editCourse = (updatedCourse) => setOfferedCourses(offeredCourses.map(c => c.id === updatedCourse.id ? updatedCourse : c));
-  const reorderCourses = (newOrder) => setOfferedCourses(newOrder);
-  
-  const addTip = (text) => setStudentTips([...studentTips, { text, id: Date.now() }]);
-  const deleteTip = (id) => setStudentTips(studentTips.filter(t => t.id !== id));
-  const editTip = (id, text) => setStudentTips(studentTips.map(t => t.id === id ? { ...t, text } : t));
-  const reorderTips = (newOrder) => setStudentTips(newOrder);
-  
-  const addQuest = (quest) => setQuests([...quests, { ...quest, id: Date.now() }]);
-  const deleteQuest = (id) => setQuests(quests.filter(q => q.id !== id));
-  const editQuest = (updatedQuest) => setQuests(quests.map(q => q.id === updatedQuest.id ? updatedQuest : q));
-  const reorderQuests = (newOrder) => setQuests(newOrder);
 
   const addGradTemplate = (t) => setGradTemplates([...gradTemplates, { ...t, id: Date.now() }]);
   const deleteGradTemplate = (id) => setGradTemplates(gradTemplates.filter(t => t.id !== id));
@@ -304,4 +374,3 @@ export const AdminProvider = ({ children }) => {
     </AdminContext.Provider>
   );
 };
-
