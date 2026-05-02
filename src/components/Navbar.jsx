@@ -124,7 +124,6 @@ const Navbar = () => {
         ...(user?.role === 'SUPER_ADMIN' ? [{ to: '/admin-dashboard', label: lang === 'ar' ? 'لوحة التحكم (أدمن)' : 'Admin Dashboard' }] : [])
       ]
     },
-    }]),
     ...(user ? [{
       id: 'account',
       title: lang === 'ar' ? 'حسابي' : 'My Account',
@@ -132,7 +131,16 @@ const Navbar = () => {
         { to: '/profile', label: lang === 'ar' ? 'الملف الشخصي' : 'Profile Settings' },
         { to: '#', label: lang === 'ar' ? 'تسجيل الخروج' : 'Logout', onClick: () => { logout(); navigate('/'); } }
       ]
-    }] : [])
+    }] : [
+      {
+        id: 'auth',
+        title: lang === 'ar' ? 'نظام التسجيل' : 'Registration System',
+        links: [
+          { to: '#', label: lang === 'ar' ? 'إنشاء حساب جديد' : 'Create Account', onClick: () => { setActiveTab('register'); toggleLogin(true); } },
+          { to: '#', label: lang === 'ar' ? 'تسجيل الدخول' : 'Sign In', onClick: () => { setActiveTab('login'); toggleLogin(true); } }
+        ]
+      }
+    ])
   ], [t, lang, toggleLogin, user, logout, navigate]);
 
   return (
