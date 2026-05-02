@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import './Footer.css';
 
 const Footer = () => {
@@ -34,11 +35,11 @@ const Footer = () => {
           <div className="footer-col">
             <h4>{lang === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
             <ul className="footer-links">
-              <li><a href="#">{lang === 'ar' ? 'بوابة القبول' : 'Admissions Portal'}</a></li>
-              <li><a href="#">{lang === 'ar' ? 'البحث العلمي' : 'Scientific Research'}</a></li>
-              <li><a href="#">{lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans'}</a></li>
-              <li><a href="#">{lang === 'ar' ? 'التقويم الأكاديمي' : 'Academic Calendar'}</a></li>
-              <li><a href="#">{lang === 'ar' ? 'المكتبة المركزية' : 'Central Library'}</a></li>
+              <li><Link to="/prospective">{lang === 'ar' ? 'بوابة القبول' : 'Admissions Portal'}</Link></li>
+              <li><Link to="/faculty">{lang === 'ar' ? 'البحث العلمي' : 'Scientific Research'}</Link></li>
+              <li><Link to="/roadmap">{lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans'}</Link></li>
+              <li><Link to="/events">{lang === 'ar' ? 'التقويم الأكاديمي' : 'Academic Calendar'}</Link></li>
+              <li><a href="https://www.iu.edu.jo/index.php/ar/israa-library-ar" target="_blank" rel="noopener noreferrer">{lang === 'ar' ? 'المكتبة المركزية' : 'Central Library'}</a></li>
             </ul>
           </div>
 

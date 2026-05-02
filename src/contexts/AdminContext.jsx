@@ -119,7 +119,7 @@ export const AdminProvider = ({ children }) => {
 
   // Faculty CRUD
   const addFaculty = async (member) => {
-    const newMember = {
+    const cleanMember = {
       name: member.name,
       department_id: member.departmentId || member.department_id,
       role: member.role,
@@ -128,8 +128,8 @@ export const AdminProvider = ({ children }) => {
       office_hours: member.officeHours || member.office_hours,
       courses: member.courses
     };
-    const { data, error } = await supabase.from('faculty_members').insert([newMember]).select();
-    if (!error && data) {
+    const { data, error } = await supabase.from('faculty_members').insert([cleanMember]).select();
+    if (!error && data && data.length > 0) {
       setFacultyMembers(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة عضو هيئة التدريس بنجاح', 'success');
     } else {
@@ -301,13 +301,18 @@ export const AdminProvider = ({ children }) => {
 
   // Courses, Tips, Quests
   const addCourse = async (course) => {
-    const { data, error } = await supabase.from('offered_courses').insert([course]).select();
+    const cleanCourse = {
+      title: course.title,
+      hours: course.hours,
+      instructor: course.instructor,
+      state: course.state
+    };
+    const { data, error } = await supabase.from('offered_courses').insert([cleanCourse]).select();
     
     if (!error && data && data.length > 0) {
       setOfferedCourses(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة الدورة بنجاح', 'success');
     } else if (!error) {
-      // Case where it succeeded but RLS blocked the return of data
       const { data: refreshed } = await supabase.from('offered_courses').select('*');
       if (refreshed) setOfferedCourses(refreshed);
       addToast('تمت الإضافة', 'تمت الإضافة بنجاح (تحديث تلقائي)', 'success');
@@ -351,7 +356,11 @@ export const AdminProvider = ({ children }) => {
   const reorderTips = (newOrder) => setStudentTips(newOrder);
   
   const addQuest = async (quest) => {
-    const { data, error } = await supabase.from('quests').insert([quest]).select();
+    const cleanQuest = {
+      title: quest.title,
+      xp: quest.xp
+    };
+    const { data, error } = await supabase.from('quests').insert([cleanQuest]).select();
     if (!error && data && data.length > 0) {
       setQuests(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة التحدي بنجاح', 'success');
