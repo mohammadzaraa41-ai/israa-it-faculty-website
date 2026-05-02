@@ -206,14 +206,14 @@ const Prospective = () => {
 
       <AnimatePresence>
         {selectedMajor && (
-          <div className="login-modal-overlay" onClick={() => setSelectedMajor(null)} style={{zIndex: 5000}}>
+          <div className="login-modal-overlay major-details-overlay" onClick={() => setSelectedMajor(null)} style={{zIndex: 5000}}>
             <motion.div 
-              className="glass-panel"
-              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              className="glass-panel major-modal-panel"
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 50, scale: 0.9 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
               onClick={e => e.stopPropagation()}
-              style={{ width: '95%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', padding: '2.5rem', position: 'relative', textAlign: isRtl ? 'right' : 'left' }}
+              style={{ textAlign: isRtl ? 'right' : 'left' }}
             >
               <button onClick={() => setSelectedMajor(null)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
                 <X size={28} />
@@ -228,7 +228,7 @@ const Prospective = () => {
                 {selectedMajor.details}
               </p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+              <div className="modal-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
                 <div style={{ background: 'rgba(255,255,255,0.05)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                   <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-color)', marginBottom: '1rem' }}><Briefcase size={20}/> {lang === 'ar' ? 'المسميات الوظيفية' : 'Job Titles'}</h4>
                   <ul style={{ paddingInlineStart: '1.5rem', lineHeight: '1.8', color: 'var(--text-secondary)' }}>
