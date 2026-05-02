@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock } from 'lucide-react';
+import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock, Edit2, CornerDownRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
@@ -13,7 +13,7 @@ const Home = () => {
   const { addToast } = useToast();
   const { user, toggleLogin } = useAuth();
   const { users } = useAuth(); 
-  const { posts, addPost, deletePost, toggleLike, addComment, announcements, events, loading } = useAdmin();
+  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading } = useAdmin();
   
   const [newPost, setNewPost] = useState({ content: '', image: '' });
   const [showCommentForm, setShowCommentForm] = useState(null);
@@ -262,50 +262,25 @@ const Home = () => {
 
                   <AnimatePresence>
                     {showCommentForm === post.id && (
-                      <motion.div 
+                      <motion.div
                         className="comments-section"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                         style={{ overflow: 'hidden' }}
                       >
-                        {showCommentForm === post.id && (
-                          <div className="comment-input-area">
-                            <input 
-                              type="text" 
-                              placeholder={lang === 'ar' ? "اكتب تعليقاً..." : "Write a comment..."}
-                              value={newComment}
-                              onChange={(e) => setNewComment(e.target.value)}
-                              onKeyPress={(e) => e.key === 'Enter' && handleAddComment(post.id)}
-                            />
-                            <button onClick={() => handleAddComment(post.id)}>
-                              <Send size={18} />
-                            </button>
-                          </div>
-                        )}
-                        
-                        <div className="comments-list">
-                          {post.comments.map((comment) => (
-                            <div key={comment.id} className="comment-item">
-                              <div className="comment-avatar-tiny">
-                                {comment.avatar_url ? (
-                                  <img src={comment.avatar_url} alt="C" />
-                                ) : (
-                                  <User size={12} />
-                                )}
-                              </div>
-                              <div className="comment-content-wrapper">
-                                <h5 
-                                  className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-                                  onClick={() => isAdmin && showUserInfo(comment.username)}
-                                >
-                                  {comment.author}
-                                </h5>
-                                <p className="comment-text">{comment.text}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <CommentsPanel
+                          post={post}
+                          user={user}
+                          lang={lang}
+                          isAdmin={isAdmin}
+                          toggleLogin={toggleLogin}
+                          addComment={addComment}
+                          deleteComment={deleteComment}
+                          editComment={editComment}
+                          likeComment={likeComment}
+                          showUserInfo={showUserInfo}
+                        />
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -369,6 +344,140 @@ const Home = () => {
           </div>
         )}
       </AnimatePresence>
+    </div>
+  );
+};
+
+
+const COMMENTS_PER_PAGE = 3;
+
+const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, deleteComment, editComment, likeComment, showUserInfo }) => {
+  const [text, setText] = useState('');
+  const [replyTo, setReplyTo] = useState(null); // { id, author }
+  const [editingId, setEditingId] = useState(null);
+  const [editText, setEditText] = useState('');
+  const [showAll, setShowAll] = useState(false);
+
+  const comments = post.comments || [];
+  const visibleComments = showAll ? comments : comments.slice(0, COMMENTS_PER_PAGE);
+  const hiddenCount = comments.length - COMMENTS_PER_PAGE;
+
+  const handleSend = () => {
+    if (!user) { toggleLogin(true); return; }
+    const finalText = replyTo ? `@${replyTo.author}: ${text}` : text;
+    if (!finalText.trim()) return;
+    addComment(post.id, { text: finalText, parent_id: null });
+    setText('');
+    setReplyTo(null);
+  };
+
+  return (
+    <div className="comments-panel">
+      {/* Input */}
+      <div className="comment-input-area">
+        {replyTo && (
+          <span className="reply-badge">
+            ↩ {lang === 'ar' ? `رد على ${replyTo.author}` : `Replying to ${replyTo.author}`}
+            <button onClick={() => setReplyTo(null)}>✕</button>
+          </span>
+        )}
+        <input
+          type="text"
+          placeholder={replyTo
+            ? (lang === 'ar' ? 'اكتب رداً...' : 'Write a reply...')
+            : (lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...')}
+          value={text}
+          onChange={e => setText(e.target.value)}
+          onKeyPress={e => e.key === 'Enter' && handleSend()}
+          onClick={() => !user && toggleLogin(true)}
+        />
+        <button onClick={handleSend}><Send size={18} /></button>
+      </div>
+
+      {/* Comments List */}
+      <div className="comments-list">
+        {visibleComments.map(comment => {
+          const isOwn = user?.username === comment.username;
+          const hasLiked = (comment.likes || []).includes(user?.username);
+          const isReply = comment.text?.startsWith('@');
+
+          return (
+            <div key={comment.id} className={`comment-item ${isReply ? 'comment-is-reply' : ''}`}>
+              <div className="comment-avatar-tiny">
+                {comment.avatar_url ? <img src={comment.avatar_url} alt="" /> : <User size={12} />}
+              </div>
+              <div className="comment-content-wrapper">
+                <div className="comment-header-row">
+                  <h5
+                    className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
+                    onClick={() => isAdmin && showUserInfo(comment.username)}
+                  >
+                    {comment.author}
+                  </h5>
+                  <div className="comment-actions-row">
+                    {/* Like */}
+                    <button
+                      className={`comment-action-btn ${hasLiked ? 'liked' : ''}`}
+                      onClick={() => user ? likeComment(comment.id, post.id, user.username) : toggleLogin(true)}
+                    >
+                      <Heart size={12} fill={hasLiked ? 'currentColor' : 'none'} />
+                      {(comment.likes || []).length > 0 && <span>{comment.likes.length}</span>}
+                    </button>
+                    {/* Reply */}
+                    <button
+                      className="comment-action-btn"
+                      onClick={() => { setReplyTo({ id: comment.id, author: comment.author }); setText(''); }}
+                    >
+                      <CornerDownRight size={12} />
+                      <span>{lang === 'ar' ? 'رد' : 'Reply'}</span>
+                    </button>
+                    {/* Edit own */}
+                    {isOwn && editingId !== comment.id && (
+                      <button className="comment-action-btn" onClick={() => { setEditingId(comment.id); setEditText(comment.text); }}>
+                        <Edit2 size={12} />
+                      </button>
+                    )}
+                    {/* Delete own or admin */}
+                    {(isOwn || isAdmin) && (
+                      <button className="comment-action-btn danger" onClick={() => deleteComment(comment.id, post.id)}>
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {editingId === comment.id ? (
+                  <div className="comment-edit-row">
+                    <input value={editText} onChange={e => setEditText(e.target.value)} className="comment-edit-input" />
+                    <button className="comment-save-btn" onClick={() => { editComment(comment.id, post.id, editText); setEditingId(null); }}>
+                      {lang === 'ar' ? 'حفظ' : 'Save'}
+                    </button>
+                    <button className="comment-cancel-btn" onClick={() => setEditingId(null)}>
+                      {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="comment-text">{comment.text}</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Show More / Less */}
+      {hiddenCount > 0 && !showAll && (
+        <button className="show-more-comments-btn" onClick={() => setShowAll(true)}>
+          <ChevronDown size={16} />
+          {lang === 'ar' ? `عرض ${hiddenCount} تعليق آخر` : `Show ${hiddenCount} more comments`}
+        </button>
+      )}
+      {showAll && comments.length > COMMENTS_PER_PAGE && (
+        <button className="show-more-comments-btn" onClick={() => setShowAll(false)}>
+          <ChevronUp size={16} />
+          {lang === 'ar' ? 'إخفاء التعليقات' : 'Hide comments'}
+        </button>
+      )}
     </div>
   );
 };

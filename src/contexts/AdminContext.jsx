@@ -294,29 +294,65 @@ export const AdminProvider = ({ children }) => {
     const { data, error } = await supabase.from('comments').insert([{
       post_id: postId,
       content: commentData.text,
-      author_username: user.username,
       author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
       author_role: user.role
     }]).select();
 
-    if (!error) {
+    if (!error && data?.length > 0) {
       const newComment = {
-        id: data?.[0]?.id || Date.now(),
-        author: commentData.author,
+        id: data[0].id,
+        author: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
         username: user.username,
         avatar_url: user.avatar_url || null,
-        text: commentData.text
+        text: data[0].content,
+        likes: [],
+        parent_id: commentData.parent_id || null
       };
-      setPosts(posts.map(p => {
-        if (p.id === postId) {
-          return {
-            ...p,
-            comments: [...(p.comments || []), newComment]
-          };
-        }
-        return p;
-      }));
+      setPosts(posts.map(p => p.id === postId
+        ? { ...p, comments: [...(p.comments || []), newComment] }
+        : p
+      ));
     }
+  };
+
+  const deleteComment = async (commentId, postId) => {
+    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    if (!error) {
+      setPosts(posts.map(p => p.id === postId
+        ? { ...p, comments: p.comments.filter(c => c.id !== commentId) }
+        : p
+      ));
+    }
+  };
+
+  const editComment = async (commentId, postId, newText) => {
+    const { error } = await supabase.from('comments').update({ content: newText }).eq('id', commentId);
+    if (!error) {
+      setPosts(posts.map(p => p.id === postId
+        ? { ...p, comments: p.comments.map(c => c.id === commentId ? { ...c, text: newText } : c) }
+        : p
+      ));
+    }
+  };
+
+  // likeComment works on local state only (no SQL changes required)
+  const likeComment = (commentId, postId, username) => {
+    setPosts(prev => prev.map(p => p.id === postId
+      ? {
+          ...p,
+          comments: p.comments.map(c => {
+            if (c.id !== commentId) return c;
+            const hasLiked = (c.likes || []).includes(username);
+            return {
+              ...c,
+              likes: hasLiked
+                ? (c.likes || []).filter(u => u !== username)
+                : [...(c.likes || []), username]
+            };
+          })
+        }
+      : p
+    ));
   };
 
   // Announcements & Events
@@ -491,7 +527,8 @@ export const AdminProvider = ({ children }) => {
       interviewResources, addInterviewResource, deleteInterviewResource,
       linkedinTips, addLinkedinTip, deleteLinkedinTip,
       departments, addDepartment, deleteDepartment, updateDepartment,
-      posts, addPost, approvePost, rejectPost, deletePost, toggleLike, addComment, pendingPosts,
+      posts, addPost, approvePost, rejectPost, deletePost, toggleLike,
+      addComment, deleteComment, editComment, likeComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
       loading
