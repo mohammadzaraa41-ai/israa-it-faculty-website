@@ -22,7 +22,7 @@ const Home = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const fileInputRef = React.useRef(null);
 
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();

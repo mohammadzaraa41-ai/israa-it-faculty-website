@@ -31,11 +31,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Alumni = () => {
   const { lang } = useLocale();
   const { user, submitAlumniRequest, alumniRequests, toggleLogin } = useAuth();
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
   const isAuthenticated = !!user;
   
   const myAlumniRequest = alumniRequests?.find(r => r.userId === user?.id);
-  const isApprovedAlumni = user?.is_alumni || user?.isAlumni || user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isApprovedAlumni = user?.is_alumni || user?.isAlumni || isAdmin;
   const hasPendingRequest = myAlumniRequest && !isApprovedAlumni;
 
   const { 
