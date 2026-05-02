@@ -148,3 +148,66 @@ ul {
   position: relative;
   z-index: 1;
 }
+
+/* ====================================================
+   UNIVERSAL PAGE CENTERING SYSTEM
+   Applies to all page containers automatically
+   ==================================================== */
+
+/* Common page wrapper classes used across all pages */
+.page-container,
+.home-container,
+.prospective-container,
+.current-students-container,
+.faculty-container,
+.ai-advisor-container,
+.roadmap-container,
+.campus-container,
+.alumni-container,
+.contact-container,
+.profile-container,
+.developers-container,
+.portal-container,
+.events-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* For pages that use full-width sections with inner containers */
+.section-inner,
+.section-container,
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .page-container,
+  .home-container,
+  .prospective-container,
+  .current-students-container,
+  .faculty-container,
+  .ai-advisor-container,
+  .roadmap-container,
+  .campus-container,
+  .alumni-container,
+  .contact-container,
+  .profile-container,
+  .developers-container,
+  .portal-container,
+  .events-container,
+  .section-inner,
+  .section-container,
+  .content-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}

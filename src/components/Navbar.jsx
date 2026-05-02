@@ -153,11 +153,15 @@ const Navbar = () => {
                 <Mail size={12} />
                 <span>info@iu.edu.jo</span>
               </a>
-              <a href="#" className="utility-link">
+              <a href="https://library.iu.edu.jo" target="_blank" rel="noopener noreferrer" className="utility-link">
                 <BookOpen size={12} />
                 <span>{lang === 'ar' ? 'المكتبة الرقمية' : 'Digital Library'}</span>
               </a>
-              <a href="#" className="utility-link">
+              <a
+                href="/prospective"
+                className="utility-link"
+                onClick={e => { e.preventDefault(); navigate('/prospective'); window.scrollTo(0,0); }}
+              >
                 <GraduationCap size={12} />
                 <span>{lang === 'ar' ? 'بوابة الطالب' : 'Student Portal'}</span>
               </a>

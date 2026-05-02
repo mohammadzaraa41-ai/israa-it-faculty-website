@@ -73,8 +73,9 @@
 .main-content {
   margin-right: 320px; /* Leave space for the 280px sidebar + padding */
   position: relative;
-  overflow-x: hidden; /* prevent scrollbar flash during slide transitions */
+  overflow-x: hidden;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  padding-top: 115px; /* Clear fixed header: utility-bar (~35px) + top-bar (80px) */
 }
 
 @media (max-width: 992px) {
@@ -224,6 +225,26 @@
   position: relative;
   overflow: hidden;
   background-attachment: fixed;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ensure every direct child of page-wrapper-motion is centered */
+.page-wrapper-motion > div,
+.page-wrapper-motion > section,
+.page-wrapper-motion > main {
+  width: 100%;
+  max-width: 1280px;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  box-sizing: border-box;
+}
+
+/* Exception: full-width sections that should span entire screen */
+.page-wrapper-motion > .full-width-section {
+  max-width: 100%;
+  padding: 0;
 }
 
 /* Global Background System - Modern Fun Refinement */
