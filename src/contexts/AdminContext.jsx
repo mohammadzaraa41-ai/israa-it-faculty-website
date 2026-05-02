@@ -61,17 +61,20 @@ export const AdminProvider = ({ children }) => {
           .order('created_at', { ascending: false });
 
         if (postsData) {
-          const formattedPosts = postsData.map(p => ({
-            ...p,
-            author: {
-              username: p.author.username,
-              name: lang === 'ar' ? p.author.name_ar : p.author.name_en,
-              role: p.author.role,
-              avatar_url: p.author.avatar_url
-            },
-            date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
-            comments: []
-          }));
+          const formattedPosts = postsData.map(p => {
+            const authorData = p.author;
+            return {
+              ...p,
+              author: {
+                username: authorData?.username || p.author_id,
+                name: lang === 'ar' ? (authorData?.name_ar || p.author_name) : (authorData?.name_en || p.author_name),
+                role: authorData?.role || p.author_role,
+                avatar_url: authorData?.avatar_url || null
+              },
+              date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
+              comments: []
+            };
+          });
 
           // Fetch Comments for these posts
           const { data: commentsData } = await supabase
