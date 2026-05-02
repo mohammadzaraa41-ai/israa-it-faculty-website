@@ -226,7 +226,7 @@
   background-attachment: fixed;
 }
 
-/* Global Background System - Academic Refinement */
+/* Global Background System - Modern Fun Refinement */
 .global-page-bg {
   position: fixed;
   top: 0;
@@ -239,11 +239,41 @@
   overflow: hidden;
 }
 
-.global-page-bg.bg-home {
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+.global-page-bg::before,
+.global-page-bg::after {
+  content: '';
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+  z-index: -1;
+  animation: blobFloat 20s infinite alternate;
 }
-[data-theme='dark'] .global-page-bg.bg-home {
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+
+.global-page-bg::before {
+  background: var(--primary-light);
+  top: -10%;
+  left: -10%;
+}
+
+.global-page-bg::after {
+  background: var(--accent-color);
+  bottom: -10%;
+  right: -10%;
+  animation-delay: -10s;
+}
+
+@keyframes blobFloat {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10%, 10%) scale(1.1); }
+  66% { transform: translate(-5%, 15%) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+.global-page-bg.bg-home {
+  background: var(--bg-color);
 }
 
 .global-page-bg.bg-prospective {

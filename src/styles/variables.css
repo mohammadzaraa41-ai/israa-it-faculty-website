@@ -1,44 +1,43 @@
 :root {
-  /* Colors - Light Theme (Academic & Professional) */
+  /* Colors - Modern Fun Educational Theme */
   --bg-color: #f8fafc;
   --bg-color-secondary: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --primary-color: #0c2340; /* Official Navy Blue */
-  --primary-light: #1a365d;
-  --accent-color: #800000; /* Classic University Maroon */
-  --accent-hover: #a1172c;
+  --text-primary: #1a202c;
+  --text-secondary: #4a5568;
+  --primary-color: #2b6cb0; /* Friendly Royal Blue */
+  --primary-light: #4299e1;
+  --accent-color: #c53030; /* Soft Professional Red */
+  --accent-hover: #e53e3e;
   --border-color: #e2e8f0;
   
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(203, 213, 225, 0.5);
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.5);
   --glass-highlight: rgba(255, 255, 255, 1);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-glow: none; /* Removed gaming glow */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-glow: none;
 
-  --font-family: 'Inter', 'Cairo', system-ui, sans-serif;
-  --transition: all 0.3s ease;
-  --border-radius: 12px;
+  --font-family: 'Outfit', 'Cairo', sans-serif;
+  --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  --border-radius: 24px;
 }
 
 [data-theme='dark'] {
-  /* Colors - Dark Theme (Refined & Professional) */
   --bg-color: #0f172a;
   --bg-color-secondary: #1e293b;
-  --text-primary: #f1f5f9;
+  --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --primary-color: #1e3a8a;
-  --primary-light: #2563eb;
-  --accent-color: #b91c1c;
-  --accent-hover: #dc2626;
-  --border-color: rgba(255, 255, 255, 0.1);
+  --primary-color: #3b82f6;
+  --primary-light: #60a5fa;
+  --accent-color: #ef4444;
+  --accent-hover: #f87171;
+  --border-color: rgba(255, 255, 255, 0.08);
   
-  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-bg: rgba(30, 41, 59, 0.75);
   --glass-border: rgba(255, 255, 255, 0.05);
   --glass-highlight: rgba(255, 255, 255, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
   --shadow-glow: none;
 }

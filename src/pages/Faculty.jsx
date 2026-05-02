@@ -37,26 +37,29 @@ const Faculty = () => {
       viewport={{ once: true }}
       className="glass-panel" 
       style={{ 
-        padding: size === 'large' ? '3rem' : '2rem', 
+        padding: size === 'large' ? '3rem' : '2.5rem', 
         textAlign: 'center',
-        borderTop: size === 'large' ? '4px solid var(--accent-color)' : '1px solid var(--border-color)',
-        maxWidth: size === 'large' ? '600px' : 'none',
-        margin: size === 'large' ? '0 auto' : '0'
+        borderRadius: 'var(--border-radius)',
+        border: '1px solid var(--border-color)',
+        maxWidth: size === 'large' ? '700px' : 'none',
+        margin: size === 'large' ? '0 auto' : '0',
+        boxShadow: 'var(--shadow-md)',
+        background: 'var(--bg-color-secondary)'
       }}
     >
       <div style={{ 
-        width: size === 'large' ? '140px' : '100px', 
-        height: size === 'large' ? '140px' : '100px', 
+        width: size === 'large' ? '160px' : '120px', 
+        height: size === 'large' ? '160px' : '120px', 
         backgroundColor: 'var(--primary-color)', 
         borderRadius: '50%', 
-        margin: '0 auto 1.5rem', 
+        margin: '0 auto 2rem', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: 'center', 
         color: '#ffffff', 
-        fontSize: size === 'large' ? '3rem' : '2rem', 
+        fontSize: size === 'large' ? '3.5rem' : '2.5rem', 
         fontWeight: 'bold',
-        boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+        boxShadow: 'var(--shadow-md)'
       }}>
         {resolveName(member.name).charAt(0)}
       </div>
