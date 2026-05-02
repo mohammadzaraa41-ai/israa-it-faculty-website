@@ -11,7 +11,8 @@ export const useAdmin = () => useContext(AdminContext);
 export const AdminProvider = ({ children }) => {
   const { user } = useAuth();
   const { addToast } = useToast();
-  const isAuthenticated = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+  const isAuthenticated = isAdminRole;
 
   const [facultyMembers, setFacultyMembers] = useState([]);
   const [departments, setDepartments] = useState(DB_SCHEMA.departments);

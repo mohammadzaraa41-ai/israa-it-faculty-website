@@ -38,7 +38,8 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('approvals');
 
   useEffect(() => {
-    if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'DEAN')) {
+    const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+    if (!user || !isAdminRole) {
       navigate('/');
     }
   }, [user, navigate]);

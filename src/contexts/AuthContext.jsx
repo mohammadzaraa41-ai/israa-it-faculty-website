@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }) => {
       const loggedUser = { 
         ...data, 
         name: { ar: data.name_ar, en: data.name_en },
-        permissions: (data.role === 'SUPER_ADMIN' || data.role === 'DEAN')
+        permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(data.role)
           ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
           : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
       };

@@ -162,7 +162,7 @@ const OfferedCourses = ({ lang, user }) => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState({ id: null, title: '', hours: '', instructor: '', state: '' });
   
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
   
   const startEdit = (course) => {
     setEditingId(course.id);
@@ -267,7 +267,7 @@ const StudentTips = ({ lang }) => {
   const [editingId, setEditingId] = useState(null);
   const [editForm, setEditForm] = useState('');
   
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const startEdit = (tip) => {
     setEditingId(tip.id);
@@ -345,7 +345,7 @@ const StudentTips = ({ lang }) => {
 const CodingQuests = ({ lang }) => {
   const { user } = useAuth();
   const { quests, addQuest, deleteQuest, editQuest, reorderQuests } = useAdmin();
-  const isAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
   const [xp, setXp] = useState(150);
   const maxXp = 1000;
   
