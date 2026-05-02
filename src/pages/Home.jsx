@@ -357,23 +357,130 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [showAll, setShowAll] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState({}); // { commentId: bool }
 
-  const comments = post.comments || [];
-  const visibleComments = showAll ? comments : comments.slice(0, COMMENTS_PER_PAGE);
-  const hiddenCount = comments.length - COMMENTS_PER_PAGE;
+  // Separate top-level and replies by parent_id in local state
+  const allComments = post.comments || [];
+  const topLevel = allComments.filter(c => !c.parent_id);
+  const getReplies = (commentId) => allComments.filter(c => c.parent_id === commentId);
+  const visibleTop = showAll ? topLevel : topLevel.slice(0, COMMENTS_PER_PAGE);
+  const hiddenCount = topLevel.length - COMMENTS_PER_PAGE;
 
   const handleSend = () => {
     if (!user) { toggleLogin(true); return; }
-    const finalText = replyTo ? `@${replyTo.author}: ${text}` : text;
-    if (!finalText.trim()) return;
-    addComment(post.id, { text: finalText, parent_id: null });
+    if (!text.trim()) return;
+    addComment(post.id, { text, parent_id: replyTo ? replyTo.id : null });
+    if (replyTo) setExpandedReplies(p => ({ ...p, [replyTo.id]: true }));
     setText('');
     setReplyTo(null);
   };
 
+  const CommentBubble = ({ comment, isReply = false }) => {
+    const isOwn = user?.username === comment.username;
+    const hasLiked = (comment.likes || []).includes(user?.username);
+    const replies = getReplies(comment.id);
+    const repliesExpanded = expandedReplies[comment.id];
+
+    return (
+      <div className={`comment-item ${isReply ? 'comment-nested-reply' : ''}`}>
+        <div className="comment-avatar-tiny">
+          {comment.avatar_url ? <img src={comment.avatar_url} alt="" /> : <User size={12} />}
+        </div>
+        <div className="comment-content-wrapper">
+          <div className="comment-header-row">
+            <h5
+              className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
+              onClick={() => isAdmin && showUserInfo(comment.username)}
+            >
+              {comment.author}
+              {isReply && <span className="reply-mention-tag"> ↩ رد</span>}
+            </h5>
+            <div className="comment-actions-row">
+              <button
+                className={`comment-action-btn ${hasLiked ? 'liked' : ''}`}
+                onClick={() => user ? likeComment(comment.id, post.id, user.username) : toggleLogin(true)}
+              >
+                <Heart size={12} fill={hasLiked ? 'currentColor' : 'none'} />
+                {(comment.likes || []).length > 0 && <span>{comment.likes.length}</span>}
+              </button>
+              {!isReply && (
+                <button
+                  className="comment-action-btn"
+                  onClick={() => { setReplyTo({ id: comment.id, author: comment.author }); setText(''); }}
+                >
+                  <CornerDownRight size={12} />
+                  <span>{lang === 'ar' ? 'رد' : 'Reply'}</span>
+                </button>
+              )}
+              {isOwn && editingId !== comment.id && (
+                <button className="comment-action-btn" onClick={() => { setEditingId(comment.id); setEditText(comment.text); }}>
+                  <Edit2 size={12} />
+                </button>
+              )}
+              {(isOwn || isAdmin) && (
+                <button className="comment-action-btn danger" onClick={() => deleteComment(comment.id, post.id)}>
+                  <Trash2 size={12} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {editingId === comment.id ? (
+            <div className="comment-edit-row">
+              <input value={editText} onChange={e => setEditText(e.target.value)} className="comment-edit-input" />
+              <button className="comment-save-btn" onClick={() => { editComment(comment.id, post.id, editText); setEditingId(null); }}>
+                {lang === 'ar' ? 'حفظ' : 'Save'}
+              </button>
+              <button className="comment-cancel-btn" onClick={() => setEditingId(null)}>
+                {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+              </button>
+            </div>
+          ) : (
+            <p className="comment-text">{comment.text}</p>
+          )}
+
+          {/* Replies toggle */}
+          {!isReply && replies.length > 0 && (
+            <button
+              className="toggle-replies-btn"
+              onClick={() => setExpandedReplies(p => ({ ...p, [comment.id]: !p[comment.id] }))}
+            >
+              {repliesExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+              {repliesExpanded
+                ? (lang === 'ar' ? 'إخفاء الردود' : 'Hide replies')
+                : (lang === 'ar' ? `عرض ${replies.length} رد` : `View ${replies.length} ${replies.length === 1 ? 'reply' : 'replies'}`)}
+            </button>
+          )}
+
+          {/* Nested replies */}
+          {!isReply && repliesExpanded && (
+            <div className="replies-container">
+              {replies.map(r => <CommentBubble key={r.id} comment={r} isReply />)}
+            </div>
+          )}
+
+          {/* Inline reply input */}
+          {replyTo?.id === comment.id && (
+            <div className="comment-reply-input">
+              <input
+                autoFocus
+                placeholder={lang === 'ar' ? `رد على ${replyTo.author}...` : `Reply to ${replyTo.author}...`}
+                value={text}
+                onChange={e => setText(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && handleSend()}
+              />
+              <button onClick={handleSend}><Send size={14} /></button>
+              <button onClick={() => setReplyTo(null)} className="cancel-reply-btn">✕</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="comments-panel">
-      {/* Input */}
+      {/* Main input */}
       <div className="comment-input-area">
         {replyTo && (
           <span className="reply-badge">
@@ -383,96 +490,29 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
         )}
         <input
           type="text"
-          placeholder={replyTo
-            ? (lang === 'ar' ? 'اكتب رداً...' : 'Write a reply...')
-            : (lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...')}
-          value={text}
+          placeholder={lang === 'ar' ? 'اكتب تعليقاً...' : 'Write a comment...'}
+          value={!replyTo ? text : ''}
           onChange={e => setText(e.target.value)}
-          onKeyPress={e => e.key === 'Enter' && handleSend()}
+          onKeyPress={e => e.key === 'Enter' && !replyTo && handleSend()}
           onClick={() => !user && toggleLogin(true)}
         />
-        <button onClick={handleSend}><Send size={18} /></button>
+        <button onClick={() => !replyTo && handleSend()}><Send size={18} /></button>
       </div>
 
-      {/* Comments List */}
+      {/* Top-level comments */}
       <div className="comments-list">
-        {visibleComments.map(comment => {
-          const isOwn = user?.username === comment.username;
-          const hasLiked = (comment.likes || []).includes(user?.username);
-          const isReply = comment.text?.startsWith('@');
-
-          return (
-            <div key={comment.id} className={`comment-item ${isReply ? 'comment-is-reply' : ''}`}>
-              <div className="comment-avatar-tiny">
-                {comment.avatar_url ? <img src={comment.avatar_url} alt="" /> : <User size={12} />}
-              </div>
-              <div className="comment-content-wrapper">
-                <div className="comment-header-row">
-                  <h5
-                    className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-                    onClick={() => isAdmin && showUserInfo(comment.username)}
-                  >
-                    {comment.author}
-                  </h5>
-                  <div className="comment-actions-row">
-                    {/* Like */}
-                    <button
-                      className={`comment-action-btn ${hasLiked ? 'liked' : ''}`}
-                      onClick={() => user ? likeComment(comment.id, post.id, user.username) : toggleLogin(true)}
-                    >
-                      <Heart size={12} fill={hasLiked ? 'currentColor' : 'none'} />
-                      {(comment.likes || []).length > 0 && <span>{comment.likes.length}</span>}
-                    </button>
-                    {/* Reply */}
-                    <button
-                      className="comment-action-btn"
-                      onClick={() => { setReplyTo({ id: comment.id, author: comment.author }); setText(''); }}
-                    >
-                      <CornerDownRight size={12} />
-                      <span>{lang === 'ar' ? 'رد' : 'Reply'}</span>
-                    </button>
-                    {/* Edit own */}
-                    {isOwn && editingId !== comment.id && (
-                      <button className="comment-action-btn" onClick={() => { setEditingId(comment.id); setEditText(comment.text); }}>
-                        <Edit2 size={12} />
-                      </button>
-                    )}
-                    {/* Delete own or admin */}
-                    {(isOwn || isAdmin) && (
-                      <button className="comment-action-btn danger" onClick={() => deleteComment(comment.id, post.id)}>
-                        <Trash2 size={12} />
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {editingId === comment.id ? (
-                  <div className="comment-edit-row">
-                    <input value={editText} onChange={e => setEditText(e.target.value)} className="comment-edit-input" />
-                    <button className="comment-save-btn" onClick={() => { editComment(comment.id, post.id, editText); setEditingId(null); }}>
-                      {lang === 'ar' ? 'حفظ' : 'Save'}
-                    </button>
-                    <button className="comment-cancel-btn" onClick={() => setEditingId(null)}>
-                      {lang === 'ar' ? 'إلغاء' : 'Cancel'}
-                    </button>
-                  </div>
-                ) : (
-                  <p className="comment-text">{comment.text}</p>
-                )}
-              </div>
-            </div>
-          );
-        })}
+        {visibleTop.map(comment => (
+          <CommentBubble key={comment.id} comment={comment} />
+        ))}
       </div>
 
-      {/* Show More / Less */}
       {hiddenCount > 0 && !showAll && (
         <button className="show-more-comments-btn" onClick={() => setShowAll(true)}>
           <ChevronDown size={16} />
           {lang === 'ar' ? `عرض ${hiddenCount} تعليق آخر` : `Show ${hiddenCount} more comments`}
         </button>
       )}
-      {showAll && comments.length > COMMENTS_PER_PAGE && (
+      {showAll && topLevel.length > COMMENTS_PER_PAGE && (
         <button className="show-more-comments-btn" onClick={() => setShowAll(false)}>
           <ChevronUp size={16} />
           {lang === 'ar' ? 'إخفاء التعليقات' : 'Hide comments'}
