@@ -26,6 +26,7 @@ export const AdminProvider = ({ children }) => {
   const [cvTemplates, setCvTemplates] = useState([]);
   const [interviewResources, setInterviewResources] = useState([]);
   const [linkedinTips, setLinkedinTips] = useState([]);
+  const [liveLabs, setLiveLabs] = useState([]);
 
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
@@ -128,6 +129,7 @@ export const AdminProvider = ({ children }) => {
         const annRes = await safeFetch('announcements');
         const eventsRes = await safeFetch('events');
         const deptsRes = await safeFetch('departments');
+        const labsRes = await safeFetch('live_labs');
 
         if (facultyRes) setFacultyMembers(facultyRes);
         else setFacultyMembers(DB_SCHEMA.facultyMembers);
@@ -149,6 +151,9 @@ export const AdminProvider = ({ children }) => {
 
         if (deptsRes && deptsRes.length > 0) setDepartments(deptsRes);
         else setDepartments(DB_SCHEMA.departments);
+
+        if (labsRes) setLiveLabs(labsRes);
+        else setLiveLabs(DB_SCHEMA.liveLabs);
 
       } catch (err) {
         console.error("Critical error in AdminContext fetch:", err);
@@ -511,6 +516,31 @@ export const AdminProvider = ({ children }) => {
   const addLinkedinTip = (t) => setLinkedinTips([...linkedinTips, { ...t, id: Date.now() }]);
   const deleteLinkedinTip = (id) => setLinkedinTips(linkedinTips.filter(t => t.id !== id));
 
+  // Live Labs CRUD
+  const addLab = async (lab) => {
+    const { data, error } = await supabase.from('live_labs').insert([lab]).select();
+    if (!error && data) {
+      setLiveLabs(prev => [...prev, data[0]]);
+      addToast('تمت الإضافة', 'تم إضافة المختبر بنجاح', 'success');
+    } else {
+      // Local fallback if table doesn't exist
+      setLiveLabs(prev => [...prev, { ...lab, id: Date.now() }]);
+      addToast('تم الحفظ محلياً', 'تم الحفظ في المتصفح فقط', 'info');
+    }
+  };
+
+  const deleteLab = async (id) => {
+    const { error } = await supabase.from('live_labs').delete().eq('id', id);
+    if (!error) setLiveLabs(prev => prev.filter(l => l.id !== id));
+    else setLiveLabs(prev => prev.filter(l => l.id !== id)); // Local fallback
+  };
+
+  const editLab = async (updatedLab) => {
+    const { error } = await supabase.from('live_labs').update(updatedLab).eq('id', updatedLab.id);
+    if (!error) setLiveLabs(prev => prev.map(l => l.id === updatedLab.id ? updatedLab : l));
+    else setLiveLabs(prev => prev.map(l => l.id === updatedLab.id ? updatedLab : l)); // Local fallback
+  };
+
   return (
     <AdminContext.Provider value={{
       isAuthenticated,
@@ -537,6 +567,7 @@ export const AdminProvider = ({ children }) => {
       addComment, deleteComment, editComment, likeComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
+      liveLabs, addLab, editLab, deleteLab,
       loading
     }}>
       {children}

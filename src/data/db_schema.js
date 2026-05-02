@@ -143,6 +143,10 @@ export const DB_SCHEMA = {
   events: [
     { id: 1, date: "28 APR", text: { ar: "ورشة عمل تطوير الويب", en: "Web Development Workshop" } },
     { id: 2, date: "05 MAY", text: { ar: "يوم الخريجين المفتوح", en: "Alumni Open Day" } }
+  ],
+  liveLabs: [
+    { id: 1, name: { ar: 'مختبر سيسكو 1', en: 'Cisco Lab 1' }, status: 'available', time: '08:00 - 16:00', info: { ar: 'مخصص لمواد الشبكات والاتصالات', en: 'Dedicated to networking and communications courses' } },
+    { id: 2, name: { ar: 'مختبر البرمجة 1', en: 'Programming Lab 1' }, status: 'busy', time: '09:00 - 17:00', info: { ar: 'يحتوي على أجهزة حديثة وبيئات تطوير متكاملة', en: 'Features modern machines and full development environments' } }
   ]
 };
 

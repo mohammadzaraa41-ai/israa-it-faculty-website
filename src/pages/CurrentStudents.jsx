@@ -6,6 +6,7 @@ import CourseRoadmap from '../components/CourseRoadmap';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { useAdmin } from '../contexts/AdminContext';
+import './CurrentStudents.css';
 
 const CurrentStudents = () => {
   const { user } = useAuth();
@@ -21,7 +22,7 @@ const CurrentStudents = () => {
   ];
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1280px', margin: '0 auto', minHeight: '80vh' }}>
+    <div className="current-students-container">
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,13 +34,12 @@ const CurrentStudents = () => {
         </p>
       </motion.div>
 
-      <div style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="tabs-container">
         {tabs.map(tab => (
           <button 
             key={tab.id}
-            className={activeTab === tab.id ? 'btn-primary' : 'btn-outline'}
+            className={activeTab === tab.id ? 'btn-primary tab-btn' : 'btn-outline tab-btn'}
             onClick={() => setActiveTab(tab.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: '1 1 180px', justifyContent: 'center' }}
           >
             {tab.icon}
             {tab.label}
@@ -110,7 +110,7 @@ const GPACalculator = ({ lang }) => {
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
         {courses.map((course, idx) => (
-          <div key={course.id} style={{ display: 'flex', gap: '1rem', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '1rem', borderRadius: '12px' }}>
+          <div key={course.id} className="gpa-course-row">
             <span style={{ fontWeight: 'bold', color: 'var(--text-secondary)' }}>{idx + 1}</span>
             <input 
               type="text" placeholder={lang === 'ar' ? 'اسم المادة (اختياري)' : 'Course Name'} 
@@ -199,7 +199,7 @@ const OfferedCourses = ({ lang, user }) => {
       </h3>
       
       {isAdmin && (
-        <form onSubmit={e => { e.preventDefault(); addCourse(newCourse); setNewCourse({ title: '', hours: '', instructor: '', state: 'متاح للتسجيل' }); }} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '2rem', padding: '1rem', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
+        <form onSubmit={e => { e.preventDefault(); addCourse(newCourse); setNewCourse({ title: '', hours: '', instructor: '', state: 'متاح للتسجيل' }); }} className="admin-form">
           <input required type="text" placeholder={lang === 'ar' ? 'عنوان الدورة' : 'Title'} value={newCourse.title} onChange={e => setNewCourse({...newCourse, title: e.target.value})} style={{ flex: 2, padding: '0.5rem', borderRadius: '4px' }} />
           <input required type="text" placeholder="الساعات" value={newCourse.hours} onChange={e => setNewCourse({...newCourse, hours: e.target.value})} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px' }} />
           <input required type="text" placeholder="المدرب" value={newCourse.instructor} onChange={e => setNewCourse({...newCourse, instructor: e.target.value})} style={{ flex: 1, padding: '0.5rem', borderRadius: '4px' }} />
@@ -397,7 +397,7 @@ const CodingQuests = ({ lang }) => {
           {lang === 'ar' ? 'أنجز المهام التالية لزيادة نقاط خبرتك (XP) ورفع مستواك البرمجي!' : 'Complete tasks to earn XP and level up your programming skills!'}
         </p>
 
-        <div style={{ background: 'rgba(0,0,0,0.3)', padding: '2rem', borderRadius: '15px', border: '1px solid var(--primary-color)', position: 'relative', overflow: 'hidden' }}>
+        <div className="quests-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem' }}>
             <div style={{ textAlign: 'right' }}>
               <span style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>{lang === 'ar' ? 'المستوى' : 'Level'}</span>
@@ -418,7 +418,7 @@ const CodingQuests = ({ lang }) => {
       </div>
 
       {isAdmin && (
-        <form onSubmit={e => { e.preventDefault(); addQuest({ title: newQuest.title, xp: parseInt(newQuest.xp) }); setNewQuest({ title: '', xp: '' }); }} style={{ display: 'flex', gap: '0.5rem', marginBottom: '2rem' }}>
+        <form onSubmit={e => { e.preventDefault(); addQuest({ title: newQuest.title, xp: parseInt(newQuest.xp) }); setNewQuest({ title: '', xp: '' }); }} className="admin-form">
           <input required type="text" placeholder="عنوان التحدي..." value={newQuest.title} onChange={e => setNewQuest({...newQuest, title: e.target.value})} style={{ flex: 3, padding: '0.75rem', borderRadius: '8px' }} />
           <input required type="number" placeholder="XP" value={newQuest.xp} onChange={e => setNewQuest({...newQuest, xp: e.target.value})} style={{ flex: 1, padding: '0.75rem', borderRadius: '8px' }} />
           <button type="submit" className="btn-primary" style={{ padding: '0.5rem 1.5rem' }}><Plus size={18} /></button>
@@ -433,6 +433,7 @@ const CodingQuests = ({ lang }) => {
             onDragStart={(e) => handleDragStart(e, i)}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => handleDrop(e, i)}
+            className="quest-item"
             style={{ 
               display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
               background: quest.done ? 'rgba(46, 204, 113, 0.1)' : 'rgba(255,255,255,0.05)', 
@@ -461,7 +462,7 @@ const CodingQuests = ({ lang }) => {
                     {quest.title}
                   </span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div className="quest-actions" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <span style={{ fontWeight: '900', color: '#f1c40f' }}>+{quest.xp} XP</span>
                   {!quest.done && !isAdmin && (
                     <button 
