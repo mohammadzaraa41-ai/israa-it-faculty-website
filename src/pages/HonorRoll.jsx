@@ -3,7 +3,7 @@ import { useLocale } from '../contexts/LocalizationContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Trophy, Plus, Trash2, Edit2, X, Check, User, Calendar } from 'lucide-react';
+import { Star, Trophy, Plus, Trash2, Edit2, X, Check, User, Calendar, GraduationCap } from 'lucide-react';
 
 const HonorRoll = () => {
   const { lang } = useLocale();
@@ -44,20 +44,22 @@ const HonorRoll = () => {
     return dept ? (lang === 'ar' ? dept.name.ar : dept.name.en) : id;
   };
 
-  // Group and sort students
-  const groupedStudents = honorRoll.reduce((acc, s) => {
-    const m = s.major || 'other';
-    if (!acc[m]) acc[m] = [];
-    acc[m].push(s);
+  // Group students by major and sort by year descending
+  const groupedStudents = honorRoll.reduce((acc, student) => {
+    if (!acc[student.major]) acc[student.major] = [];
+    acc[student.major].push(student);
     return acc;
   }, {});
 
-  Object.values(groupedStudents).forEach(g => g.sort((a, b) => (b.year || '').localeCompare(a.year || '')));
+  // Sort each major group by year descending
+  Object.keys(groupedStudents).forEach(major => {
+    groupedStudents[major].sort((a, b) => b.year.localeCompare(a.year));
+  });
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh' }}>
       <div style={{ textAlign: 'center', marginBottom: '4rem' }}>
-        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+        <motion.div initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5 }}>
           <Trophy size={64} color="var(--accent-color)" style={{ marginBottom: '1rem' }} />
         </motion.div>
         <h1 className="title" style={{ fontSize: '3rem', marginBottom: '1rem' }}>
@@ -68,6 +70,7 @@ const HonorRoll = () => {
             ? 'نحتفي بنخبة طلابنا الذين تميزوا بأدائهم الأكاديمي الاستثنائي وتصدروا قوائم الشرف في تخصصاتهم.' 
             : 'Celebrating our elite students who excelled with exceptional academic performance and topped the honor lists.'}
         </p>
+        
         {isAdmin && (
           <button onClick={handleOpenAdd} className="btn-primary" style={{ marginTop: '2rem', gap: '0.5rem' }}>
             <Plus size={20} /> {lang === 'ar' ? 'إضافة طالب متميز' : 'Add Top Student'}
@@ -99,15 +102,22 @@ const HonorRoll = () => {
                       <button onClick={() => deleteHonorStudent(student.id)} style={{ color: '#e74c3c' }}><Trash2 size={18} /></button>
                     </div>
                   )}
+                  
                   <div style={{ width: '100px', height: '100px', background: 'var(--primary-color)', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem', color: 'var(--accent-color)', border: '4px solid var(--accent-color)' }}>
                     <User size={50} />
                   </div>
+                  
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                     {student.studentName[lang] || student.studentName}
                   </h3>
+                  
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}><Calendar size={16} /> {student.year}</div>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', color: 'var(--accent-color)' }}><Check size={16} /> GPA: {student.gpa}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                      <Calendar size={16} /> {student.year}
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                      <Check size={16} /> GPA: {student.gpa}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -123,8 +133,14 @@ const HonorRoll = () => {
               <button onClick={() => setShowAddModal(false)} style={{ position: 'absolute', top: '1.5rem', right: '1.5rem', color: 'var(--text-secondary)' }}><X size={24} /></button>
               <h2 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>{editingStudent ? 'تعديل بيانات الطالب' : 'إضافة طالب متفوق'}</h2>
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                <div className="input-group"><label>اسم الطالب (عربي)</label><input required type="text" value={formData.studentName.ar} onChange={e => setFormData({ ...formData, studentName: { ...formData.studentName, ar: e.target.value } })} /></div>
-                <div className="input-group"><label>Student Name (EN)</label><input required type="text" value={formData.studentName.en} onChange={e => setFormData({ ...formData, studentName: { ...formData.studentName, en: e.target.value } })} /></div>
+                <div className="input-group">
+                  <label>اسم الطالب (عربي)</label>
+                  <input required type="text" value={formData.studentName.ar} onChange={e => setFormData({ ...formData, studentName: { ...formData.studentName, ar: e.target.value } })} />
+                </div>
+                <div className="input-group">
+                  <label>Student Name (EN)</label>
+                  <input required type="text" value={formData.studentName.en} onChange={e => setFormData({ ...formData, studentName: { ...formData.studentName, en: e.target.value } })} />
+                </div>
                 <div className="input-group">
                   <label>التخصص</label>
                   <select className="custom-select" value={formData.major} onChange={e => setFormData({ ...formData, major: e.target.value })}>
@@ -132,8 +148,14 @@ const HonorRoll = () => {
                   </select>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="input-group"><label>السنة</label><input required type="text" placeholder="2023/2024" value={formData.year} onChange={e => setFormData({ ...formData, year: e.target.value })} /></div>
-                  <div className="input-group"><label>المعدل (GPA)</label><input required type="text" placeholder="3.95" value={formData.gpa} onChange={e => setFormData({ ...formData, gpa: e.target.value })} /></div>
+                  <div className="input-group">
+                    <label>السنة</label>
+                    <input required type="text" placeholder="2023/2024" value={formData.year} onChange={e => setFormData({ ...formData, year: e.target.value })} />
+                  </div>
+                  <div className="input-group">
+                    <label>المعدل (GPA)</label>
+                    <input required type="text" placeholder="3.95" value={formData.gpa} onChange={e => setFormData({ ...formData, gpa: e.target.value })} />
+                  </div>
                 </div>
                 <button type="submit" className="btn-primary" style={{ marginTop: '1rem', padding: '1rem' }}><Check size={20} /> حفظ </button>
               </form>
