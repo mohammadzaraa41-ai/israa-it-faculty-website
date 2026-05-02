@@ -102,7 +102,8 @@ const Navbar = () => {
         { to: '/current', label: t('nav.current') },
         { to: '/faculty', label: t('nav.faculty') },
         { to: '/ai-advisor', label: t('nav.ai_advisor') },
-        { to: '/roadmap', label: t('nav.roadmap') }
+        { to: '/roadmap', label: t('nav.roadmap') },
+        { to: '/honor-roll', label: lang === 'ar' ? 'لوحة الشرف' : 'Honor Roll' }
       ]
     },
     {
@@ -112,6 +113,7 @@ const Navbar = () => {
         { to: '/virtual-tour', label: t('nav.virtual_tour') },
         { to: '/live-labs', label: t('nav.live_labs') },
         { to: '/events', label: t('nav.events') },
+        { to: '/achievements', label: lang === 'ar' ? 'إنجازات الكلية' : 'Faculty Achievements' },
         { to: '/contact', label: t('nav.contact') }
       ]
     },

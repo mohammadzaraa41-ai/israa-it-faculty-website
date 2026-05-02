@@ -147,6 +147,22 @@ export const DB_SCHEMA = {
   liveLabs: [
     { id: 1, name: { ar: 'مختبر سيسكو 1', en: 'Cisco Lab 1' }, status: 'available', time: '08:00 - 16:00', info: { ar: 'مخصص لمواد الشبكات والاتصالات', en: 'Dedicated to networking and communications courses' } },
     { id: 2, name: { ar: 'مختبر البرمجة 1', en: 'Programming Lab 1' }, status: 'busy', time: '09:00 - 17:00', info: { ar: 'يحتوي على أجهزة حديثة وبيئات تطوير متكاملة', en: 'Features modern machines and full development environments' } }
+  ],
+  honorRoll: [
+    { id: 1, studentName: { ar: 'محمد أحمد', en: 'Mohammad Ahmed' }, major: 'cs', year: '2023/2024', gpa: '3.98' },
+    { id: 2, studentName: { ar: 'سارة خالد', en: 'Sara Khalid' }, major: 'se', year: '2023/2024', gpa: '3.95' }
+  ],
+  achievements: [
+    { 
+      id: 1, 
+      title: { ar: 'الفوز بالمركز الأول في مسابقة البرمجة الوطنية', en: 'First Place in National Programming Contest' }, 
+      summary: { ar: 'حقق فريق الكلية المركز الأول في المسابقة التي أقيمت على مستوى الجامعات الأردنية.', en: 'The faculty team won first place in the competition held among Jordanian universities.' },
+      report: { ar: 'تم تحقيق هذا الإنجاز بعد تدريبات مكثفة استمرت لمدة 3 أشهر...', en: 'This achievement was reached after 3 months of intensive training...' },
+      year: '2024',
+      participants: { ar: 'د. سارة عيسى، الطالب محمد أحمد، الطالبة ربا علي', en: 'Dr. Sara Issa, Mohammad Ahmed, Ruba Ali' },
+      images: ['https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=800'],
+      date: '2024-03-15'
+    }
   ]
 };
 

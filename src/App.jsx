@@ -22,8 +22,8 @@ const GlobalBackground = () => {
     else if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
     else if (path === '/current' || path === '/roadmap' || path === '/events') currentClass = 'bg-current';
     else if (path === '/faculty' || path === '/live-labs') currentClass = 'bg-faculty';
-    else if (path === '/alumni') currentClass = 'bg-alumni';
-    else if (path === '/contact') currentClass = 'bg-contact';
+    else if (path === '/alumni' || path === '/honor-roll') currentClass = 'bg-alumni';
+    else if (path === '/contact' || path === '/achievements') currentClass = 'bg-contact';
     else if (path === '/ai-advisor' || path === '/dev-network') currentClass = 'bg-ai-advisor';
     
     setBgClass(currentClass);

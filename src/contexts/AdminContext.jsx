@@ -32,6 +32,8 @@ export const AdminProvider = ({ children }) => {
   const [pendingPosts, setPendingPosts] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
+  const [honorRoll, setHonorRoll] = useState([]);
+  const [achievements, setAchievements] = useState([]);
 
   const [loading, setLoading] = useState(true);
 
@@ -130,6 +132,8 @@ export const AdminProvider = ({ children }) => {
         const eventsRes = await safeFetch('events');
         const deptsRes = await safeFetch('departments');
         const labsRes = await safeFetch('live_labs');
+        const honorRes = await safeFetch('honor_roll');
+        const achRes = await safeFetch('achievements');
 
         if (facultyRes) setFacultyMembers(facultyRes);
         else setFacultyMembers(DB_SCHEMA.facultyMembers);
@@ -154,6 +158,12 @@ export const AdminProvider = ({ children }) => {
 
         if (labsRes) setLiveLabs(labsRes);
         else setLiveLabs(DB_SCHEMA.liveLabs);
+
+        if (honorRes) setHonorRoll(honorRes);
+        else setHonorRoll(DB_SCHEMA.honorRoll);
+
+        if (achRes) setAchievements(achRes);
+        else setAchievements(DB_SCHEMA.achievements);
 
       } catch (err) {
         console.error("Critical error in AdminContext fetch:", err);
@@ -541,6 +551,36 @@ export const AdminProvider = ({ children }) => {
     else setLiveLabs(prev => prev.map(l => l.id === updatedLab.id ? updatedLab : l)); // Local fallback
   };
 
+  // Honor Roll CRUD
+  const addHonorStudent = async (student) => {
+    const { data, error } = await supabase.from('honor_roll').insert([student]).select();
+    if (!error && data) setHonorRoll(prev => [...prev, data[0]]);
+    else setHonorRoll(prev => [...prev, { ...student, id: Date.now() }]);
+  };
+  const deleteHonorStudent = async (id) => {
+    await supabase.from('honor_roll').delete().eq('id', id);
+    setHonorRoll(prev => prev.filter(s => s.id !== id));
+  };
+  const editHonorStudent = async (updated) => {
+    await supabase.from('honor_roll').update(updated).eq('id', updated.id);
+    setHonorRoll(prev => prev.map(s => s.id === updated.id ? updated : s));
+  };
+
+  // Achievements CRUD
+  const addAchievement = async (ach) => {
+    const { data, error } = await supabase.from('achievements').insert([ach]).select();
+    if (!error && data) setAchievements(prev => [...prev, data[0]]);
+    else setAchievements(prev => [...prev, { ...ach, id: Date.now() }]);
+  };
+  const deleteAchievement = async (id) => {
+    await supabase.from('achievements').delete().eq('id', id);
+    setAchievements(prev => prev.filter(a => a.id !== id));
+  };
+  const editAchievement = async (updated) => {
+    await supabase.from('achievements').update(updated).eq('id', updated.id);
+    setAchievements(prev => prev.map(a => a.id === updated.id ? updated : a));
+  };
+
   return (
     <AdminContext.Provider value={{
       isAuthenticated,
@@ -568,6 +608,8 @@ export const AdminProvider = ({ children }) => {
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
       liveLabs, addLab, editLab, deleteLab,
+      honorRoll, addHonorStudent, deleteHonorStudent, editHonorStudent,
+      achievements, addAchievement, deleteAchievement, editAchievement,
       loading
     }}>
       {children}

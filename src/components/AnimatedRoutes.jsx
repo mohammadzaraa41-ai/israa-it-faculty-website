@@ -19,6 +19,8 @@ const DevelopersNetwork = lazy(() => import('../pages/DevelopersNetwork'));
 const AdminDashboard = lazy(() => import('../pages/AdminDashboard'));
 const AdminLogin = lazy(() => import('../pages/AdminLogin'));
 const Profile = lazy(() => import('../pages/Profile'));
+const HonorRoll = lazy(() => import('../pages/HonorRoll'));
+const Achievements = lazy(() => import('../pages/Achievements'));
 
 const PageLoader = () => (
   <div className="page-loader">
@@ -64,8 +66,8 @@ const AnimatedRoutes = () => {
     if (path === '/prospective' || path === '/virtual-tour') currentClass = 'bg-prospective';
     else if (path === '/current' || path === '/roadmap' || path === '/events') currentClass = 'bg-current';
     else if (path === '/faculty' || path === '/live-labs') currentClass = 'bg-faculty';
-    else if (path === '/alumni') currentClass = 'bg-alumni';
-    else if (path === '/contact') currentClass = 'bg-contact';
+    else if (path === '/alumni' || path === '/honor-roll') currentClass = 'bg-alumni';
+    else if (path === '/contact' || path === '/achievements') currentClass = 'bg-contact';
     else if (path === '/ai-advisor' || path === '/dev-network') currentClass = 'bg-ai-advisor';
     
     document.body.classList.add(currentClass);
@@ -91,6 +93,8 @@ const AnimatedRoutes = () => {
         <Route path="/admin-dashboard" element={<PageWrapper><AdminDashboard /></PageWrapper>} />
         <Route path="/dev-network" element={<PageWrapper><DevelopersNetwork /></PageWrapper>} />
         <Route path="/profile" element={<PageWrapper><Profile /></PageWrapper>} />
+        <Route path="/honor-roll" element={<PageWrapper><HonorRoll /></PageWrapper>} />
+        <Route path="/achievements" element={<PageWrapper><Achievements /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
   );
