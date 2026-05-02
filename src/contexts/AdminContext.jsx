@@ -388,6 +388,32 @@ export const AdminProvider = ({ children }) => {
   const rejectRegistration = (id) => setPendingRegistrations(prev => prev.filter(p => p.id !== id));
   const submitRegistrationApplication = (app) => addToast('تم التقديم', 'طلبك قيد المراجعة', 'success');
 
+  // Announcements & Events
+  const addAnnouncement = async (ann) => {
+    const { data } = await handleAction(() => supabase.from('announcements').insert([{ text: ann.text, type: ann.type || 'info' }]).select(), 'تم إضافة الإعلان');
+    if (data) setAnnouncements(prev => [...prev, data[0]]);
+  };
+  const deleteAnnouncement = async (id) => {
+    await handleAction(() => supabase.from('announcements').delete().eq('id', id));
+    setAnnouncements(prev => prev.filter(a => a.id !== id));
+  };
+  const updateAnnouncement = async (updated) => {
+    await handleAction(() => supabase.from('announcements').update({ text: updated.text, type: updated.type }).eq('id', updated.id));
+    setAnnouncements(prev => prev.map(a => a.id === updated.id ? updated : a));
+  };
+  const addEvent = async (event) => {
+    const { data } = await handleAction(() => supabase.from('events').insert([{ date: event.date, text: event.text }]).select(), 'تم إضافة الفعالية');
+    if (data) setEvents(prev => [...prev, data[0]]);
+  };
+  const deleteEvent = async (id) => {
+    await handleAction(() => supabase.from('events').delete().eq('id', id));
+    setEvents(prev => prev.filter(e => e.id !== id));
+  };
+  const updateEvent = async (updated) => {
+    await handleAction(() => supabase.from('events').update({ date: updated.date, text: updated.text }).eq('id', updated.id));
+    setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+  };
+
   return (
     <AdminContext.Provider value={{
       isAuthenticated, loading,
@@ -400,8 +426,8 @@ export const AdminProvider = ({ children }) => {
       achievements, addAchievement, editAchievement, deleteAchievement,
       posts, addPost, approvePost, rejectPost, deletePost, toggleLike,
       pendingPosts, addComment, likeComment,
-      announcements, addAnnouncement, deleteAnnouncement,
-      events, addEvent, deleteEvent,
+      announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
+      events, addEvent, deleteEvent, updateEvent,
       departments, pendingRegistrations, approveRegistration, rejectRegistration, submitRegistrationApplication,
       gradTemplates, projectBank, cvTemplates, interviewResources, linkedinTips
     }}>
