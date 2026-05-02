@@ -513,11 +513,6 @@
   }
   
   .mobile-toggle {
-    display: flex; /* Ensure it shows on mobile */
-  }
-  
-  .main-content {
-    margin-right: 0 !important;
-    padding-top: 4.5rem;
+    display: flex;
   }
 }
