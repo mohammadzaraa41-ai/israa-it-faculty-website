@@ -301,12 +301,18 @@ export const AdminProvider = ({ children }) => {
   // Courses, Tips, Quests
   const addCourse = async (course) => {
     const { data, error } = await supabase.from('offered_courses').insert([course]).select();
-    if (!error && data) {
+    
+    if (!error && data && data.length > 0) {
       setOfferedCourses(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة الدورة بنجاح', 'success');
+    } else if (!error) {
+      // Case where it succeeded but RLS blocked the return of data
+      const { data: refreshed } = await supabase.from('offered_courses').select('*');
+      if (refreshed) setOfferedCourses(refreshed);
+      addToast('تمت الإضافة', 'تمت الإضافة بنجاح (تحديث تلقائي)', 'success');
     } else {
       console.error("Supabase Error (addCourse):", error);
-      addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول التدوينات في قاعدة البيانات', 'error');
+      addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول الدورات في قاعدة البيانات', 'error');
     }
   };
   const deleteCourse = async (id) => {
@@ -321,9 +327,13 @@ export const AdminProvider = ({ children }) => {
   
   const addTip = async (text) => {
     const { data, error } = await supabase.from('student_tips').insert([{ text }]).select();
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       setStudentTips(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة النصيحة بنجاح', 'success');
+    } else if (!error) {
+      const { data: refreshed } = await supabase.from('student_tips').select('*');
+      if (refreshed) setStudentTips(refreshed);
+      addToast('تمت الإضافة', 'تمت الإضافة بنجاح', 'success');
     } else {
       console.error("Supabase Error (addTip):", error);
       addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول النصائح في قاعدة البيانات', 'error');
@@ -341,9 +351,13 @@ export const AdminProvider = ({ children }) => {
   
   const addQuest = async (quest) => {
     const { data, error } = await supabase.from('quests').insert([quest]).select();
-    if (!error && data) {
+    if (!error && data && data.length > 0) {
       setQuests(prev => [...prev, data[0]]);
       addToast('تمت الإضافة', 'تم إضافة التحدي بنجاح', 'success');
+    } else if (!error) {
+      const { data: refreshed } = await supabase.from('quests').select('*');
+      if (refreshed) setQuests(refreshed);
+      addToast('تمت الإضافة', 'تمت الإضافة بنجاح', 'success');
     } else {
       console.error("Supabase Error (addQuest):", error);
       addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول التحديات في قاعدة البيانات', 'error');
