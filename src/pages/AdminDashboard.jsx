@@ -21,25 +21,20 @@ const AdminDashboard = () => {
   } = useAuth();
 
   const { 
+    facultyMembers, addFaculty, editFaculty, deleteFaculty,
+    departments, addDepartment, deleteDepartment, updateDepartment,
     posts, deletePost, editPost, 
     pendingPosts, approvePost, rejectPost,
     announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
     events, addEvent, deleteEvent, updateEvent 
   } = useAdmin();
-  
+
   useEffect(() => {
     if (users) localStorage.setItem('site_users', JSON.stringify(users));
     if (pendingUsers) localStorage.setItem('site_pending_users', JSON.stringify(pendingUsers));
     if (alumniRequests) localStorage.setItem('site_alumni_requests', JSON.stringify(alumniRequests));
   }, [users, pendingUsers, alumniRequests]);
-  
-  const { 
-    facultyMembers, addFaculty, editFaculty, deleteFaculty,
-    departments, addDepartment, deleteDepartment, updateDepartment,
-    posts, pendingPosts, approvePost, rejectPost, deletePost,
-    announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
-    events, addEvent, deleteEvent, updateEvent
-  } = useAdmin();
+
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('approvals');
