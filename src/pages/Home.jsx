@@ -204,7 +204,11 @@ const Home = () => {
                   <div className="post-header">
                     <div className="post-author-info">
                       <div className="author-avatar">
-                        <User size={24} />
+                        {post.author.avatar_url ? (
+                          <img src={post.author.avatar_url} alt="Avatar" className="author-img-small" />
+                        ) : (
+                          <User size={24} />
+                        )}
                       </div>
                       <div>
                         <h4 
@@ -283,13 +287,22 @@ const Home = () => {
                         <div className="comments-list">
                           {post.comments.map((comment) => (
                             <div key={comment.id} className="comment-item">
-                              <h5 
-                                className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-                                onClick={() => isAdmin && showUserInfo(comment.username)}
-                              >
-                                {comment.author}
-                              </h5>
-                              <p className="comment-text">{comment.text}</p>
+                              <div className="comment-avatar-tiny">
+                                {comment.avatar_url ? (
+                                  <img src={comment.avatar_url} alt="C" />
+                                ) : (
+                                  <User size={12} />
+                                )}
+                              </div>
+                              <div className="comment-content-wrapper">
+                                <h5 
+                                  className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
+                                  onClick={() => isAdmin && showUserInfo(comment.username)}
+                                >
+                                  {comment.author}
+                                </h5>
+                                <p className="comment-text">{comment.text}</p>
+                              </div>
                             </div>
                           ))}
                         </div>

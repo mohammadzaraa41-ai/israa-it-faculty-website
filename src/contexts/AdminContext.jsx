@@ -53,30 +53,46 @@ export const AdminProvider = ({ children }) => {
       };
 
       try {
-        // Social Feed (Existing tables)
-        const [postsRes, commentsRes, pendingRes] = await Promise.all([
-          supabase.from('posts').select('*').eq('status', 'published').order('created_at', { ascending: false }),
-          supabase.from('comments').select('*').order('created_at', { ascending: true }),
-          supabase.from('posts').select('*').eq('status', 'pending').order('created_at', { ascending: false })
-        ]);
+        // Fetch Posts with Author details
+        const { data: postsData } = await supabase
+          .from('posts')
+          .select('*, author:users(username, name_ar, name_en, role, avatar_url)')
+          .eq('status', 'APPROVED')
+          .order('created_at', { ascending: false });
 
-        if (postsRes.data) {
-          const processedPosts = postsRes.data.map(p => ({
+        if (postsData) {
+          const formattedPosts = postsData.map(p => ({
             ...p,
-            author: { name: p.author_name, role: p.author_role },
-            date: new Date(p.created_at).toLocaleDateString('en-GB'),
-            comments: commentsRes.data ? commentsRes.data.filter(c => c.post_id === p.id) : []
-          }));
-          setPosts(processedPosts);
-        }
-
-        if (pendingRes.data) {
-          setPendingPosts(pendingRes.data.map(p => ({
-            ...p,
-            author: { name: p.author_name, role: p.author_role },
-            date: new Date(p.created_at).toLocaleDateString('en-GB'),
+            author: {
+              username: p.author.username,
+              name: lang === 'ar' ? p.author.name_ar : p.author.name_en,
+              role: p.author.role,
+              avatar_url: p.author.avatar_url
+            },
+            date: new Date(p.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-US'),
             comments: []
-          })));
+          }));
+
+          // Fetch Comments for these posts
+          const { data: commentsData } = await supabase
+            .from('comments')
+            .select('*, author:users(username, name_ar, name_en, avatar_url)');
+          
+          if (commentsData) {
+            formattedPosts.forEach(post => {
+              post.comments = commentsData
+                .filter(c => c.post_id === post.id)
+                .map(c => ({
+                  id: c.id,
+                  author: lang === 'ar' ? c.author.name_ar : c.author.name_en,
+                  username: c.author.username,
+                  avatar_url: c.author.avatar_url,
+                  text: c.content
+                }));
+            });
+          }
+
+          setPosts(formattedPosts);
         }
 
         // Fetch other tables individually to avoid one failure breaking all
@@ -115,7 +131,7 @@ export const AdminProvider = ({ children }) => {
       setLoading(false);
     };
     fetchAllData();
-  }, []);
+  }, [lang]);
 
   // Faculty CRUD
   const addFaculty = async (member) => {
@@ -181,40 +197,42 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Social & Feed
-  const addPost = async (post, user) => {
+  const addPost = async (postData, user) => {
     if (!user) return { status: 'ERROR' };
-    
-    const newPost = {
-      content: post.content,
-      image: post.image,
-      author_id: user.id,
-      author_name: user.name?.ar || user.name || user.username,
-      author_role: user.role,
-      status: user.role === 'STUDENT' ? 'pending' : 'published',
-      likes: []
-    };
+    const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role);
 
-    const { data, error } = await supabase.from('posts').insert([newPost]).select();
+    const { data, error } = await supabase.from('posts').insert([{
+      content: postData.content,
+      image: postData.image,
+      author_id: user.username,
+      status: isAdmin ? 'APPROVED' : 'PENDING'
+    }]).select('*, author:users(username, name_ar, name_en, role, avatar_url)');
+
     if (error) return { status: 'ERROR', message: error.message };
 
-    const processed = {
+    const newP = {
       ...data[0],
-      author: { name: data[0].author_name, role: data[0].author_role },
-      date: new Date(data[0].created_at).toLocaleDateString('en-GB'),
+      author: {
+        username: data[0].author.username,
+        name: lang === 'ar' ? data[0].author.name_ar : data[0].author.name_en,
+        role: data[0].author.role,
+        avatar_url: data[0].author.avatar_url
+      },
+      date: lang === 'ar' ? 'الآن' : 'Just now',
       comments: []
     };
 
-    if (newPost.status === 'pending') {
-      setPendingPosts(prev => [processed, ...prev]);
+    if (!isAdmin) {
+      setPendingPosts(prev => [newP, ...prev]);
       return { status: 'PENDING' };
     } else {
-      setPosts(prev => [processed, ...prev]);
+      setPosts(prev => [newP, ...prev]);
       return { status: 'PUBLISHED' };
     }
   };
 
   const approvePost = async (postId) => {
-    const { error } = await supabase.from('posts').update({ status: 'published' }).eq('id', postId);
+    const { error } = await supabase.from('posts').update({ status: 'APPROVED' }).eq('id', postId);
     if (!error) {
       const post = pendingPosts.find(p => p.id === postId);
       if (post) {
@@ -247,21 +265,26 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  const addComment = async (postId, comment) => {
-    const newComment = {
+  const addComment = async (postId, commentData) => {
+    const { data, error } = await supabase.from('comments').insert([{
       post_id: postId,
-      author_name: comment.author?.name || 'User',
-      author_role: comment.author?.role || 'STUDENT',
-      content: comment.content
-    };
+      content: commentData.text,
+      author_id: user.username
+    }]).select('*, author:users(avatar_url)');
 
-    const { data, error } = await supabase.from('comments').insert([newComment]).select();
     if (!error && data) {
+      const newComment = {
+        id: data[0].id,
+        author: commentData.author,
+        username: commentData.username,
+        avatar_url: user.avatar_url,
+        text: commentData.text
+      };
       setPosts(posts.map(p => {
         if (p.id === postId) {
           return {
             ...p,
-            comments: [...(p.comments || []), data[0]]
+            comments: [...(p.comments || []), newComment]
           };
         }
         return p;
