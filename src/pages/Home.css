@@ -222,12 +222,22 @@
 .author-avatar {
   width: 48px;
   height: 48px;
+  min-width: 48px;
   border-radius: 50%;
   background: var(--primary-color);
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
+  overflow: hidden;
+}
+
+.author-img-small {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
 }
 
 .author-name {
@@ -366,6 +376,35 @@
   background: rgba(255,255,255,0.03);
   padding: 0.75rem 1rem;
   border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.comment-avatar-tiny {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  border-radius: 50%;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.comment-avatar-tiny img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.comment-content-wrapper {
+  flex: 1;
 }
 
 .comment-author {
