@@ -1,0 +1,261 @@
+/* =====================================================
+   GLOBAL RESPONSIVE SYSTEM — All Pages
+   Covers: mobile (≤768px), tablet (≤992px)
+   ===================================================== */
+
+/* ── TABLET (≤992px) ─────────────────────────────── */
+@media (max-width: 992px) {
+
+  /* Typography scale down */
+  .title          { font-size: 2rem !important; }
+  .section-title  { font-size: 1.5rem !important; }
+  h1              { font-size: 1.8rem !important; }
+  h2              { font-size: 1.4rem !important; }
+  h3              { font-size: 1.2rem !important; }
+
+  /* Page containers */
+  .home-container,
+  .prospective-container,
+  .current-students-container,
+  .faculty-container,
+  .ai-advisor-container,
+  .alumni-container,
+  .contact-container,
+  .profile-container {
+    padding: 1.5rem 1rem !important;
+  }
+
+  /* Feed layout: single column */
+  .feed-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .feed-sidebar { display: none !important; }
+
+  /* Pillars / cards grid */
+  .pillars-grid,
+  .cards-grid,
+  .faculty-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 1rem !important;
+  }
+
+  /* Form grid: single column */
+  .form-grid { grid-template-columns: 1fr !important; }
+  .full-width { grid-column: span 1 !important; }
+
+  /* CTA sections */
+  .prospective-cta { padding: 2.5rem 1.5rem !important; }
+  .cta-title { font-size: 1.8rem !important; }
+}
+
+/* ── MOBILE (≤768px) ─────────────────────────────── */
+@media (max-width: 768px) {
+
+  /* Global spacing */
+  .page-center-wrapper { padding: 0 0.75rem !important; }
+
+  /* Typography */
+  .title                { font-size: 1.6rem !important; }
+  .prospective-title    { font-size: 2rem !important; }
+  .section-title        { font-size: 1.3rem !important; }
+  h1                    { font-size: 1.5rem !important; }
+  h2                    { font-size: 1.25rem !important; }
+  h3                    { font-size: 1.1rem !important; }
+
+  /* ── HOME PAGE ── */
+  .home-container { padding: 1rem !important; }
+
+  .new-post-form { padding: 1rem !important; }
+  .post-actions  { flex-wrap: wrap; gap: 0.5rem !important; }
+
+  .post-card { padding: 1rem !important; }
+  .post-header { gap: 0.5rem !important; }
+  .author-img-small {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .post-footer {
+    flex-wrap: wrap;
+    gap: 0.5rem !important;
+  }
+
+  .comments-panel { padding: 0.5rem !important; }
+  .comment-input-area {
+    flex-wrap: nowrap;
+    gap: 0.5rem !important;
+  }
+  .comment-input-area input { font-size: 0.9rem !important; }
+
+  /* ── PROSPECTIVE PAGE ── */
+  .prospective-container { padding: 1.5rem 0.75rem !important; }
+  .prospective-hero { margin-bottom: 2.5rem !important; }
+  .prospective-title { font-size: 1.8rem !important; }
+  .prospective-subtitle { font-size: 1rem !important; }
+
+  .pillars-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    margin-bottom: 2.5rem !important;
+  }
+  .pillar-card { padding: 1.5rem !important; }
+  .pillar-icon-box {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .steps-section { margin-bottom: 2.5rem !important; }
+  .steps-timeline {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1.5rem !important;
+    padding-right: 1rem !important;
+  }
+  .steps-timeline::after { display: none !important; }
+  .step-item {
+    flex-direction: row !important;
+    gap: 1rem !important;
+    text-align: right !important;
+  }
+  .step-number {
+    width: 55px !important;
+    height: 55px !important;
+    font-size: 1.1rem !important;
+    flex-shrink: 0;
+    margin-bottom: 0 !important;
+  }
+
+  .prospective-cta { padding: 1.5rem 1rem !important; border-radius: 20px !important; }
+  .cta-title { font-size: 1.4rem !important; margin-bottom: 1rem !important; }
+  .cta-btn { padding: 0.9rem 1.5rem !important; font-size: 0.95rem !important; }
+
+  /* ── CURRENT STUDENTS PAGE ── */
+  .tabs-row {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+  .tabs-row button { font-size: 0.8rem !important; padding: 0.5rem 0.75rem !important; }
+
+  /* ── FACULTY PAGE ── */
+  .faculty-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* ── AI ADVISOR PAGE ── */
+  .chat-container { height: 65vh !important; }
+  .chat-input-area { padding: 0.75rem !important; gap: 0.5rem !important; }
+
+  /* ── ALUMNI PAGE ── */
+  .alumni-grid,
+  .alumni-cards {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── CONTACT PAGE ── */
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  /* ── PROFILE PAGE ── */
+  .profile-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+  .profile-avatar {
+    width: 90px !important;
+    height: 90px !important;
+  }
+
+  /* ── COMMON GLASS PANELS ── */
+  .glass-panel { padding: 1.25rem !important; }
+
+  /* ── FORMS ── */
+  .form-grid { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
+  .full-width { grid-column: span 1 !important; }
+  .input-group input,
+  .custom-select { font-size: 0.9rem !important; padding: 0.75rem !important; }
+
+  /* ── BUTTONS ── */
+  .btn-primary,
+  .btn-outline {
+    padding: 0.65rem 1.25rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* ── NAVBAR utility bar ── */
+  .utility-bar { display: none !important; }
+  .top-bar { height: 60px !important; padding: 0 1rem !important; }
+  .top-title { font-size: 1rem !important; }
+  .top-logo  { width: 32px !important; height: 32px !important; }
+
+  /* Fix main-content padding-top for shorter mobile header */
+  .main-content { padding-top: 65px !important; }
+
+  /* ── MODAL ── */
+  .login-modal { padding: 1.25rem !important; }
+
+  /* ── ANNOUNCEMENTS ── */
+  .announcement-bar {
+    padding: 0.75rem 1rem !important;
+    font-size: 0.85rem !important;
+  }
+
+  /* ── COMMENT ACTIONS: always visible on mobile (no hover) ── */
+  .comment-actions-row { opacity: 1 !important; }
+
+  /* ── ADMIN DASHBOARD ── */
+  .dashboard-grid,
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── DEVELOPERS NETWORK ── */
+  .dev-grid,
+  .network-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── TABLES: make them horizontally scrollable ── */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* ── WIDGET SIDEBAR ── */
+  .sidebar-widget { display: none !important; }
+
+  /* ── POST CREATION ── */
+  .post-type-tabs {
+    flex-wrap: wrap !important;
+    gap: 0.3rem !important;
+  }
+  .post-type-tab {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.7rem !important;
+  }
+
+  /* ── SHOW MORE COMMENTS ── */
+  .show-more-comments-btn { font-size: 0.8rem !important; }
+
+  /* ── FOOTER ── */
+  .footer-grid,
+  .footer-columns {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+}
+
+/* ── VERY SMALL SCREENS (≤400px) ──────────────────── */
+@media (max-width: 400px) {
+  .title             { font-size: 1.3rem !important; }
+  .prospective-title { font-size: 1.4rem !important; }
+  .page-center-wrapper { padding: 0 0.5rem !important; }
+  .post-card         { padding: 0.75rem !important; }
+  .glass-panel       { padding: 1rem !important; }
+  .announcement-bar  { padding: 0.6rem 0.75rem !important; font-size: 0.8rem !important; }
+}

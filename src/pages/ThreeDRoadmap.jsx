@@ -156,27 +156,38 @@ const RoadmapScene = ({ majorKey, lang }) => {
 const ThreeDRoadmap = () => {
   const { lang, t } = useLocale();
   const [selectedMajor, setSelectedMajor] = useState('se');
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto', height: 'calc(100vh - 100px)', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <h1 className="title" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>
+    <div style={{
+      padding: isMobile ? '1rem' : '2rem',
+      width: '100%',
+      boxSizing: 'border-box',
+      minHeight: 'calc(100vh - 120px)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem'
+    }}>
+      {/* Header */}
+      <header style={{ textAlign: 'center' }}>
+        <h1 className="title" style={{ fontSize: isMobile ? '1.6rem' : '2.5rem', marginBottom: '0.5rem' }}>
           {lang === 'ar' ? 'خريطة المواد التفاعلية 3D' : 'Interactive 3D Roadmap'}
         </h1>
-        
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
           {Object.entries(majorRoadmaps).map(([key, data]) => (
             <button
               key={key}
               onClick={() => setSelectedMajor(key)}
               style={{
-                padding: '0.6rem 1.2rem',
+                padding: isMobile ? '0.4rem 0.8rem' : '0.6rem 1.2rem',
                 borderRadius: '20px',
                 border: 'none',
                 background: selectedMajor === key ? data.color : 'rgba(255,255,255,0.05)',
                 color: 'white',
                 cursor: 'pointer',
                 fontWeight: 'bold',
+                fontSize: isMobile ? '0.8rem' : '0.95rem',
                 transition: 'all 0.3s',
                 boxShadow: selectedMajor === key ? `0 0 20px ${data.color}` : 'none',
                 transform: selectedMajor === key ? 'scale(1.05)' : 'scale(1)'
@@ -187,21 +198,55 @@ const ThreeDRoadmap = () => {
           ))}
         </div>
       </header>
-      
-      <div className="glass-panel" style={{ flex: 1, borderRadius: '24px', overflow: 'hidden', position: 'relative', background: '#02040a' }}>
-        <div style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', zIndex: 10, pointerEvents: 'none' }}>
-          <h2 style={{ color: majorRoadmaps[selectedMajor].color, margin: 0, textShadow: '0 0 15px rgba(0,0,0,0.8)', fontSize: '1.8rem' }}>
+
+      {/* Canvas Container */}
+      <div
+        className="glass-panel"
+        style={{
+          flex: 1,
+          minHeight: isMobile ? '55vh' : '65vh',
+          borderRadius: '24px',
+          overflow: 'hidden',
+          position: 'relative',
+          background: '#02040a'
+        }}
+      >
+        {/* Instructions overlay — adapted for touch on mobile */}
+        <div style={{
+          position: 'absolute',
+          top: '0.75rem',
+          left: '0.75rem',
+          zIndex: 10,
+          pointerEvents: 'none'
+        }}>
+          <h2 style={{
+            color: majorRoadmaps[selectedMajor].color,
+            margin: 0,
+            textShadow: '0 0 15px rgba(0,0,0,0.8)',
+            fontSize: isMobile ? '1rem' : '1.8rem'
+          }}>
             {majorRoadmaps[selectedMajor].title[lang]}
           </h2>
-          <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.9rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
-            <span>{lang === 'ar' ? '• سحب (يسار): تدوير الكاميرا' : '• Left Click: Rotate'}</span>
-            <span>{lang === 'ar' ? '• سحب (يمين): تحريك يمين/يسار' : '• Right Click: Pan (Move)'}</span>
-            <span>{lang === 'ar' ? '• عجلة الماوس: تكبير وتصغير' : '• Scroll: Zoom'}</span>
-          </div>
+          {!isMobile && (
+            <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', marginTop: '0.5rem', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span>{lang === 'ar' ? '• سحب يسار: تدوير' : '• Left Click: Rotate'}</span>
+              <span>{lang === 'ar' ? '• سحب يمين: تحريك' : '• Right Click: Pan'}</span>
+              <span>{lang === 'ar' ? '• عجلة: تكبير' : '• Scroll: Zoom'}</span>
+            </div>
+          )}
+          {isMobile && (
+            <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+              <span>{lang === 'ar' ? '• إصبع واحد: تدوير | إصبعين: تكبير' : '• 1 finger: rotate | 2 fingers: zoom'}</span>
+            </div>
+          )}
         </div>
 
         <Suspense fallback={<div style={{ color: 'white', textAlign: 'center', paddingTop: '20%', fontSize: '1.2rem' }}>Initializing Galaxy...</div>}>
-          <Canvas camera={{ position: [0, 5, 28], fov: 45 }} gl={{ antialias: true }}>
+          <Canvas
+            camera={{ position: [0, 5, isMobile ? 40 : 28], fov: isMobile ? 55 : 45 }}
+            gl={{ antialias: !isMobile }}
+            style={{ width: '100%', height: '100%' }}
+          >
             <RoadmapScene majorKey={selectedMajor} lang={lang} />
           </Canvas>
         </Suspense>
