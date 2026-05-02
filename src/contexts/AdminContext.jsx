@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
 import { useAuth } from './AuthContext';
 import { supabase } from '../lib/supabase';
+import { useToast } from './ToastContext';
 
 const AdminContext = createContext();
 
@@ -9,6 +10,7 @@ export const useAdmin = () => useContext(AdminContext);
 
 export const AdminProvider = ({ children }) => {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const isAuthenticated = user?.role === 'SUPER_ADMIN' || user?.role === 'DEAN';
 
   const [facultyMembers, setFacultyMembers] = useState([]);
@@ -126,7 +128,13 @@ export const AdminProvider = ({ children }) => {
       courses: member.courses
     };
     const { data, error } = await supabase.from('faculty_members').insert([newMember]).select();
-    if (!error && data) setFacultyMembers(prev => [...prev, data[0]]);
+    if (!error && data) {
+      setFacultyMembers(prev => [...prev, data[0]]);
+      addToast('تمت الإضافة', 'تم إضافة عضو هيئة التدريس بنجاح', 'success');
+    } else {
+      console.error("Supabase Error (addFaculty):", error);
+      addToast('خطأ في الإضافة', error?.message || 'فشل الاتصال بقاعدة البيانات', 'error');
+    }
   };
 
   const editFaculty = async (updatedMember) => {
@@ -140,7 +148,13 @@ export const AdminProvider = ({ children }) => {
       courses: updatedMember.courses
     };
     const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updatedMember.id);
-    if (!error) setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { ...updatedMember } : m));
+    if (!error) {
+      setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { ...updatedMember } : m));
+      addToast('تم التحديث', 'تم تحديث البيانات بنجاح', 'success');
+    } else {
+      console.error("Supabase Error (editFaculty):", error);
+      addToast('خطأ في التحديث', error?.message || 'فشل تحديث البيانات', 'error');
+    }
   };
 
   const deleteFaculty = async (id) => {
@@ -287,7 +301,13 @@ export const AdminProvider = ({ children }) => {
   // Courses, Tips, Quests
   const addCourse = async (course) => {
     const { data, error } = await supabase.from('offered_courses').insert([course]).select();
-    if (!error && data) setOfferedCourses(prev => [...prev, data[0]]);
+    if (!error && data) {
+      setOfferedCourses(prev => [...prev, data[0]]);
+      addToast('تمت الإضافة', 'تم إضافة الدورة بنجاح', 'success');
+    } else {
+      console.error("Supabase Error (addCourse):", error);
+      addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول التدوينات في قاعدة البيانات', 'error');
+    }
   };
   const deleteCourse = async (id) => {
     const { error } = await supabase.from('offered_courses').delete().eq('id', id);
@@ -301,7 +321,13 @@ export const AdminProvider = ({ children }) => {
   
   const addTip = async (text) => {
     const { data, error } = await supabase.from('student_tips').insert([{ text }]).select();
-    if (!error && data) setStudentTips(prev => [...prev, data[0]]);
+    if (!error && data) {
+      setStudentTips(prev => [...prev, data[0]]);
+      addToast('تمت الإضافة', 'تم إضافة النصيحة بنجاح', 'success');
+    } else {
+      console.error("Supabase Error (addTip):", error);
+      addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول النصائح في قاعدة البيانات', 'error');
+    }
   };
   const deleteTip = async (id) => {
     const { error } = await supabase.from('student_tips').delete().eq('id', id);
@@ -315,7 +341,13 @@ export const AdminProvider = ({ children }) => {
   
   const addQuest = async (quest) => {
     const { data, error } = await supabase.from('quests').insert([quest]).select();
-    if (!error && data) setQuests(prev => [...prev, data[0]]);
+    if (!error && data) {
+      setQuests(prev => [...prev, data[0]]);
+      addToast('تمت الإضافة', 'تم إضافة التحدي بنجاح', 'success');
+    } else {
+      console.error("Supabase Error (addQuest):", error);
+      addToast('خطأ في الإضافة', error?.message || 'تأكد من وجود جدول التحديات في قاعدة البيانات', 'error');
+    }
   };
   const deleteQuest = async (id) => {
     const { error } = await supabase.from('quests').delete().eq('id', id);
