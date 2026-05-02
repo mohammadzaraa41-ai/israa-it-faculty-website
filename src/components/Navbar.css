@@ -521,6 +521,11 @@
     top: 0;
     height: 100vh;
     border-radius: 0;
+    z-index: 5000; /* Above the institutional-header (4000) on mobile */
+  }
+
+  .sidebar-backdrop {
+    z-index: 4500; /* Above header (4000) but below sidebar (5000) */
   }
   
   .mobile-toggle {
