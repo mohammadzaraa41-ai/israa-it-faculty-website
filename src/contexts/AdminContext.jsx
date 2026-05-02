@@ -95,7 +95,9 @@ export const AdminProvider = ({ children }) => {
                     author: c.author_name,
                     username: c.author_username,
                     avatar_url: commentAuthor.avatar_url || null,
-                    text: c.content
+                    text: c.content,
+                    likes: c.likes || [],
+                    parent_id: c.parent_id || null
                   };
                 })
             };
@@ -295,7 +297,8 @@ export const AdminProvider = ({ children }) => {
       post_id: postId,
       content: commentData.text,
       author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
-      author_role: user.role
+      author_role: user.role,
+      parent_id: commentData.parent_id || null
     }]).select();
 
     if (!error && data?.length > 0) {
@@ -306,7 +309,7 @@ export const AdminProvider = ({ children }) => {
         avatar_url: user.avatar_url || null,
         text: data[0].content,
         likes: [],
-        parent_id: commentData.parent_id || null
+        parent_id: data[0].parent_id || null
       };
       setPosts(posts.map(p => p.id === postId
         ? { ...p, comments: [...(p.comments || []), newComment] }
@@ -335,24 +338,27 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  // likeComment works on local state only (no SQL changes required)
-  const likeComment = (commentId, postId, username) => {
+  // likeComment: saves to DB using the likes[] column
+  const likeComment = async (commentId, postId, username) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    const comment = post.comments.find(c => c.id === commentId);
+    if (!comment) return;
+    const hasLiked = (comment.likes || []).includes(username);
+    const newLikes = hasLiked
+      ? (comment.likes || []).filter(u => u !== username)
+      : [...(comment.likes || []), username];
+    
+    // Try to save to DB, fallback to local state if column doesn't exist yet
+    const { error } = await supabase.from('comments').update({ likes: newLikes }).eq('id', commentId);
+    
+    // Always update local state regardless of DB result
     setPosts(prev => prev.map(p => p.id === postId
-      ? {
-          ...p,
-          comments: p.comments.map(c => {
-            if (c.id !== commentId) return c;
-            const hasLiked = (c.likes || []).includes(username);
-            return {
-              ...c,
-              likes: hasLiked
-                ? (c.likes || []).filter(u => u !== username)
-                : [...(c.likes || []), username]
-            };
-          })
-        }
+      ? { ...p, comments: p.comments.map(c => c.id === commentId ? { ...c, likes: newLikes } : c) }
       : p
     ));
+
+    if (error) console.warn('likes column may not exist yet, saved locally only:', error.message);
   };
 
   // Announcements & Events
