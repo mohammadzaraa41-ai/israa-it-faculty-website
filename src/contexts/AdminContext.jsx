@@ -243,7 +243,7 @@ export const AdminProvider = ({ children }) => {
         role: user.role,
         avatar_url: user.avatar_url || null
       },
-      date: lang === 'ar' ? 'الآن' : 'Just now',
+      date: new Date().toLocaleDateString('en-GB'),
       comments: []
     };
 
