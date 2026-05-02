@@ -51,6 +51,10 @@ const Footer = () => {
                 <span>{lang === 'ar' ? 'غزة - شارع الرشيد' : 'Gaza - Al-Rasheed St.'}</span>
               </li>
               <li>
+                <MapPin size={18} />
+                <span>{lang === 'ar' ? 'الأردن - عمان' : 'Jordan - Amman'}</span>
+              </li>
+              <li>
                 <Phone size={18} />
                 <span>+970 8 2843433</span>
               </li>
