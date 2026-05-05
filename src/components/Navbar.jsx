@@ -159,18 +159,26 @@ const Navbar = () => {
     <>
       <div className="utility-bar">
         <div className="utility-container">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="utility-actions">
+            <button className="utility-btn" onClick={toggleLang}>
+              <Globe size={12} />
+              <span>{lang === 'ar' ? 'English' : 'عربي'}</span>
+            </button>
+            <button className="utility-btn" onClick={toggleTheme}>
+              {isDark ? <Sun size={12} /> : <Moon size={12} />}
+              <span>{isDark ? (lang === 'ar' ? 'نهاري' : 'Light') : (lang === 'ar' ? 'ليلي' : 'Dark')}</span>
+            </button>
+            <div className="utility-sep">|</div>
+            <NotificationDropdown />
+            
             <button 
               className="mobile-toggle-v2" 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label="Toggle Menu"
+              style={{ marginLeft: lang === 'ar' ? '0' : '0.5rem', marginRight: lang === 'ar' ? '0.5rem' : '0' }}
             >
               {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
-            <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
-              <img src="/logo.png" alt="Logo" className="top-logo-v2" />
-              <span className="top-title-v2">{t('faculty_name')}</span>
-            </div>
           </div>
 
           <div className="utility-links desktop-only">
@@ -189,19 +197,12 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="utility-actions">
-            <button className="utility-btn" onClick={toggleLang}>
-              <Globe size={12} />
-              <span>{lang === 'ar' ? 'English' : 'عربي'}</span>
-            </button>
-            <button className="utility-btn" onClick={toggleTheme}>
-              {isDark ? <Sun size={12} /> : <Moon size={12} />}
-              <span>{isDark ? (lang === 'ar' ? 'نهاري' : 'Light') : (lang === 'ar' ? 'ليلي' : 'Dark')}</span>
-            </button>
-            <div className="utility-sep">|</div>
-            <NotificationDropdown />
+          <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
+            <img src="/logo.png" alt="Logo" className="top-logo-v2" />
+            <span className="top-title-v2">{t('faculty_name')}</span>
           </div>
         </div>
+      </div>
       </div>
 
       <AnimatePresence>
