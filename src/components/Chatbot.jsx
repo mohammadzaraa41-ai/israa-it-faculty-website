@@ -70,35 +70,33 @@ const Chatbot = () => {
     };
 
     const endpoints = [
-      { name: 'v1beta-flash', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent` },
-      { name: 'v1-flash', url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent` },
-      { name: 'v1beta-pro', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent` },
-      { name: 'v1-pro', url: `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent` }
+      { name: 'v1beta-flash-header', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, useHeader: true },
+      { name: 'v1beta-flash-query', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, useHeader: false },
+      // Emergency Global Proxy (If direct Google access is blocked)
+      { name: 'global-proxy', url: `https://cors-anywhere.herokuapp.com/https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, useHeader: false }
     ];
 
     let lastError = null;
     for (const endpoint of endpoints) {
       try {
-        console.log(`Chatbot: Trying ${endpoint.name} via Headers...`);
-        const res = await fetch(endpoint.url, {
+        console.log(`Chatbot: Trying ${endpoint.name}...`);
+        const fetchOptions = {
           method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json',
-            'x-goog-api-key': apiKey.trim() // Moving key to headers
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
-        });
+        };
+        
+        if (endpoint.useHeader) {
+          fetchOptions.headers['x-goog-api-key'] = apiKey.trim();
+        }
 
+        const res = await fetch(endpoint.url, fetchOptions);
         if (res.ok) {
-          console.log(`Chatbot: Success with ${endpoint.name}!`);
           const data = await res.json();
           return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
         }
-        
-        const errData = await res.json().catch(() => ({}));
-        console.warn(`Chatbot: ${endpoint.name} failed (${res.status})`, errData);
+        console.warn(`${endpoint.name} status: ${res.status}`);
       } catch (err) {
-        console.error(`Chatbot: ${endpoint.name} network error`, err);
         lastError = err;
       }
     }
