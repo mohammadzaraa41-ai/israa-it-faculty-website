@@ -1,5 +1,7 @@
-export const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
-export const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+export const getGeminiUrl = () => {
+  const key = import.meta.env.VITE_GEMINI_API_KEY || '';
+  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key.trim()}`;
+};
 
 export const SYSTEM_PROMPT = `أنت "إسرا"، المساعد الذكي الرسمي والشخصي لكلية تكنولوجيا المعلومات في جامعة الإسراء - فلسطين.
 شخصيتك: أنت ودود للغاية، محترف، وتفخر بانتمائك لهذه الكلية العريقة. هدفك هو مساعدة الطلاب (الحاليين والجدد) والخريجين والزوار في العثور على المعلومات بسرعة ودقة.

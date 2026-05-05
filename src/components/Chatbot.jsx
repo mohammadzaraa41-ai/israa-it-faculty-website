@@ -55,7 +55,8 @@ const Chatbot = () => {
   }, [isOpen]);
 
   const callGeminiAPI = async (body) => {
-    const res = await fetch(GEMINI_API_URL, {
+    const url = getGeminiUrl();
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
@@ -63,10 +64,8 @@ const Chatbot = () => {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      console.error('Gemini API error:', res.status, errData);
-      const err = new Error(`API error: ${res.status}`);
-      err.status = res.status;
-      throw err;
+      console.error('Gemini API Details:', { status: res.status, data: errData });
+      throw new Error(`API error: ${res.status}`);
     }
     
     const data = await res.json();
@@ -100,7 +99,6 @@ const Chatbot = () => {
     try {
       return await callGeminiAPI(body);
     } catch (err) {
-
       if (err.status === 429) {
         await new Promise(r => setTimeout(r, 3000));
         return await callGeminiAPI(body);
@@ -118,20 +116,21 @@ const Chatbot = () => {
     setMessages(prev => [...prev, { text: msgText, isBot: false }]);
     setIsLoading(true);
 
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
     try {
-      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
-        console.warn('Chatbot: API Key is missing. Check your .env file or restart dev server.');
+      if (!apiKey || apiKey === 'your_gemini_api_key_here') {
+        console.warn('Chatbot: API Key is missing or invalid in this build.');
         const fallback = getLocalFallback(msgText, lang);
         setMessages(prev => [...prev, { text: fallback, isBot: true }]);
-        setIsLoading(false);
         return;
       }
 
-      console.log('Chatbot: Sending request to Gemini...');
+      console.log('Chatbot: Connection attempt...');
       const reply = await sendToGemini(msgText);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-      console.error('Chatbot API Error:', err);
+      console.error('Chatbot API Error Trace:', err);
       const fallback = getLocalFallback(msgText, lang);
       setMessages(prev => [...prev, { text: fallback, isBot: true }]);
     } finally {
