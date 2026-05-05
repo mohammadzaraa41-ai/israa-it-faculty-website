@@ -159,28 +159,13 @@ const Navbar = () => {
     <>
       <div className="utility-bar">
         <div className="utility-container">
-          <div className="utility-actions">
-            <button className="utility-btn" onClick={toggleLang}>
-              <Globe size={12} />
-              <span>{lang === 'ar' ? 'English' : 'عربي'}</span>
-            </button>
-            <button className="utility-btn" onClick={toggleTheme}>
-              {isDark ? <Sun size={12} /> : <Moon size={12} />}
-              <span>{isDark ? (lang === 'ar' ? 'نهاري' : 'Light') : (lang === 'ar' ? 'ليلي' : 'Dark')}</span>
-            </button>
-            <div className="utility-sep">|</div>
-            <NotificationDropdown />
-            
-            <button 
-              className="mobile-toggle-v2" 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label="Toggle Menu"
-              style={{ marginLeft: lang === 'ar' ? '0' : '0.5rem', marginRight: lang === 'ar' ? '0.5rem' : '0' }}
-            >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
+          {/* Section 1: Logo & Name (Now on the Right for RTL) */}
+          <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
+            <img src="/logo.png" alt="Logo" className="top-logo-v2" />
+            <span className="top-title-v2">{t('faculty_name')}</span>
           </div>
 
+          {/* Section 2: Desktop Links */}
           <div className="utility-links desktop-only">
             <a href="mailto:info@iu.edu.jo" className="utility-link">
               <Mail size={12} />
@@ -197,9 +182,28 @@ const Navbar = () => {
             </a>
           </div>
 
-          <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
-            <img src="/logo.png" alt="Logo" className="top-logo-v2" />
-            <span className="top-title-v2">{t('faculty_name')}</span>
+          {/* Section 3: Actions & Mobile Toggle (Now on the Left for RTL) */}
+          <div className="utility-actions">
+            <NotificationDropdown />
+            <div className="utility-sep">|</div>
+            <button className="utility-btn" onClick={toggleTheme}>
+              {isDark ? <Sun size={14} /> : <Moon size={14} />}
+            </button>
+            <button className="utility-btn" onClick={toggleLang}>
+              <Globe size={14} />
+              <span style={{ fontSize: '0.8rem' }}>{lang === 'ar' ? 'EN' : 'عربي'}</span>
+            </button>
+            
+            <button 
+              className="mobile-toggle-v3" 
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
         </div>
       </div>
