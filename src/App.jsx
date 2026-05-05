@@ -55,27 +55,27 @@ const App = () => {
 
   return (
     <ToastProvider>
-      <NotificationProvider>
-        <AuthProvider>
-        <DataProvider>
-          <AdminProvider>
-            <Router>
-              <ScrollToTop />
-              <GlobalBackground />
-              <Navbar />
-              <main className="main-content">
-                <div className="page-center-wrapper">
-                  <AnimatedRoutes />
-                </div>
-              </main>
-              <Footer />
-              <Chatbot />
-            </Router>
-          </AdminProvider>
-        </DataProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <DataProvider>
+            <AdminProvider>
+              <Router>
+                <ScrollToTop />
+                <GlobalBackground />
+                <Navbar />
+                <main className="main-content">
+                  <div className="page-center-wrapper">
+                    <AnimatedRoutes />
+                  </div>
+                </main>
+                <Footer />
+                <Chatbot />
+              </Router>
+            </AdminProvider>
+          </DataProvider>
+        </NotificationProvider>
       </AuthProvider>
-    </NotificationProvider>
-  </ToastProvider>
+    </ToastProvider>
   );
 };
 
