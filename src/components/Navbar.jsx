@@ -203,7 +203,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      </div>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
