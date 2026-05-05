@@ -70,19 +70,22 @@ const Chatbot = () => {
     };
 
     const endpoints = [
-      { name: 'v1beta-flash', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}` },
-      { name: 'v1-flash', url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}` },
-      { name: 'v1beta-pro', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey.trim()}` },
-      { name: 'v1-pro', url: `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey.trim()}` }
+      { name: 'v1beta-flash', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent` },
+      { name: 'v1-flash', url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent` },
+      { name: 'v1beta-pro', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent` },
+      { name: 'v1-pro', url: `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent` }
     ];
 
     let lastError = null;
     for (const endpoint of endpoints) {
       try {
-        console.log(`Chatbot: Trying ${endpoint.name}...`);
+        console.log(`Chatbot: Trying ${endpoint.name} via Headers...`);
         const res = await fetch(endpoint.url, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey.trim() // Moving key to headers
+          },
           body: JSON.stringify(body),
         });
 
