@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: transparent !important;
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-attachment: scroll; /* Fixes jitter on mobile */
+    background-position: center top; /* Focus on the building entrance for mobile */
+    background-size: cover; 
+  }
+}
+
+/* Clean Academic Background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(12, 35, 64, 0.02) 0%, rgba(128, 0, 0, 0.02) 100%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+/* Glassmorphism Utilities */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--glass-border);
+  border-top: 1px solid var(--glass-highlight);
+  border-left: 1px solid var(--glass-highlight);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* Typography Utilities */
+.title {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-color);
+}
+[data-theme='dark'] .title {
+  color: var(--text-primary);
+}
+
+/* Button Utilities */
+.btn-primary {
+  background: var(--accent-color);
+  color: #ffffff;
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-outline {
+  padding: 0.75rem 1.75rem;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: 1.5px solid var(--primary-color);
+  color: var(--primary-color);
+}
+[data-theme='dark'] .btn-outline {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+.btn-outline:hover {
+  background-color: var(--primary-color);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+[data-theme='dark'] .btn-outline:hover {
+  background-color: var(--accent-color);
+  color: #ffffff;
+}
+
+.main-content {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  padding-top: 0;
+}
+
+.main-content::after {
+  display: none; /* Removed front overlay */
+}
+
+.main-content::before {
+  /* Subtle glow animation or light leaks could go here */
+  display: none; 
+}
+
+.main-content > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ====================================================
+   UNIVERSAL PAGE CENTERING SYSTEM
+   Applies to all page containers automatically
+   ==================================================== */
+
+/* Common page wrapper classes used across all pages */
+.page-container,
+.home-container,
+.prospective-container,
+.current-students-container,
+.faculty-container,
+.ai-advisor-container,
+.roadmap-container,
+.campus-container,
+.alumni-container,
+.contact-container,
+.profile-container,
+.developers-container,
+.portal-container,
+.events-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* For pages that use full-width sections with inner containers */
+.section-inner,
+.section-container,
+.content-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .page-container,
+  .home-container,
+  .prospective-container,
+  .current-students-container,
+  .faculty-container,
+  .ai-advisor-container,
+  .roadmap-container,
+  .campus-container,
+  .alumni-container,
+  .contact-container,
+  .profile-container,
+  .developers-container,
+  .portal-container,
+  .events-container,
+  .section-inner,
+  .section-container,
+  .content-wrapper {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ====================================================
+   AGGRESSIVE MODAL CENTERING FIX
+   Ensures modals are always in the center of the VIEWPORT
+   ==================================================== */
+.login-modal-overlay,
+.modal-overlay,
+[class*="modal-overlay"] {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  margin: 0 !important;
+  padding: 1rem !important;
+}
+
+.login-modal,
+.user-info-modal,
+.glass-panel[class*="modal"] {
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+  position: relative !important;
+  z-index: 100000 !important;
+}
+
+/* Global Placeholder Visibility Fix */
+::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin-animation {
+  animation: spin 1s linear infinite;
+}
+
+/* Alumni & Resource Mobile Styles */
+@media (max-width: 768px) {
+  .resource-item-mobile {
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .resource-item-mobile .btn-outline,
+  .resource-item-mobile .btn-primary {
+    padding: 0.6rem !important;
+    border-radius: 10px !important;
+    font-size: 0.8rem !important;
+    font-weight: 700 !important;
+  }
+}
+
+/* Ensure custom selects look good in glass panels */
+.custom-select {
+  width: 100%;
+  padding: 0.8rem;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: white;
+  cursor: pointer;
+}
+
+.custom-select option {
+  background: #1a1a1a;
+  color: white;
+}
