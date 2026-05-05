@@ -74,6 +74,8 @@ const Chatbot = () => {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
+      cache: 'no-store',
+      referrerPolicy: 'no-referrer'
     });
 
     if (!res.ok) {
