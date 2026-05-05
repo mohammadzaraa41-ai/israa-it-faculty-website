@@ -157,15 +157,15 @@ const Navbar = () => {
 
   return (
     <>
-      <div className="utility-bar">
+      <header className="utility-bar">
         <div className="utility-container">
-          {/* Section 1: Logo & Name (Now on the Right for RTL) */}
-          <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
+          {/* Logo Section */}
+          <div className="top-bar-brand-v2" onClick={() => navigate('/')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
             <img src="/logo.png" alt="Logo" className="top-logo-v2" />
             <span className="top-title-v2">{t('faculty_name')}</span>
           </div>
 
-          {/* Section 2: Desktop Links */}
+          {/* Desktop Links (Hidden on Mobile) */}
           <div className="utility-links desktop-only">
             <a href="mailto:info@iu.edu.jo" className="utility-link">
               <Mail size={12} />
@@ -182,14 +182,14 @@ const Navbar = () => {
             </a>
           </div>
 
-          {/* Section 3: Actions & Mobile Toggle (Now on the Left for RTL) */}
+          {/* Actions & Mobile Menu Button */}
           <div className="utility-actions">
             <NotificationDropdown />
             <div className="utility-sep">|</div>
-            <button className="utility-btn" onClick={toggleTheme}>
+            <button className="utility-btn" onClick={(e) => { e.stopPropagation(); toggleTheme(); }}>
               {isDark ? <Sun size={14} /> : <Moon size={14} />}
             </button>
-            <button className="utility-btn" onClick={toggleLang}>
+            <button className="utility-btn" onClick={(e) => { e.stopPropagation(); toggleLang(); }}>
               <Globe size={14} />
               <span style={{ fontSize: '0.8rem' }}>{lang === 'ar' ? 'EN' : 'عربي'}</span>
             </button>
@@ -197,16 +197,21 @@ const Navbar = () => {
             <button 
               className="mobile-toggle-v3" 
               onClick={(e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 setIsMobileMenuOpen(!isMobileMenuOpen);
               }}
-              aria-label="Toggle Menu"
+              style={{ 
+                zIndex: 100000, 
+                position: 'relative',
+                display: 'flex'
+              }}
             >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}
             </button>
           </div>
         </div>
-      </div>
+      </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
