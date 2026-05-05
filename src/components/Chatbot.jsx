@@ -57,9 +57,9 @@ const Chatbot = () => {
   const callGeminiAPI = async (userText) => {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
     
-    // Explicitly construct URL to avoid any encoding issues
-    const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-    const finalUrl = `${baseUrl}?key=${apiKey.trim()}`;
+    // Final attempt with the most explicit model name and JSON flag
+    const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent";
+    const finalUrl = `${baseUrl}?key=${apiKey.trim()}&alt=json`;
 
     console.log('Target URL:', baseUrl); // Diagnostic
 
