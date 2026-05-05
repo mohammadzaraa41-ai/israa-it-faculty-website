@@ -69,12 +69,23 @@ const Chatbot = () => {
       generationConfig: { temperature: 0.8, maxOutputTokens: 1000 }
     };
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
-    const res = await fetch(url, {
+    let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+    
+    let res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
+
+    // Fallback to v1 if v1beta fails
+    if (res.status === 404) {
+      url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+    }
 
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
