@@ -29,9 +29,17 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Alumni = () => {
-  const { lang } = useLocale();
+  const { lang, t } = useLocale();
   const { user, submitAlumniRequest, alumniRequests, toggleLogin } = useAuth();
-    const getLoc = (item, prefix) => {
+  const { 
+    projectBank, addProject, deleteProject, editProject,
+    cvTemplates, addCvTemplate, deleteCvTemplate, editCvTemplate,
+    interviewResources, addInterviewResource, deleteInterviewResource, editInterviewResource,
+    linkedinTips, addLinkedinTip, deleteLinkedinTip, editLinkedinTip,
+    gradTemplates, addGradTemplate, deleteGradTemplate, editGradTemplate
+  } = useAdmin();
+
+  const getLoc = (item, prefix) => {
     if (!item) return '';
     if (item[`${prefix}_${lang}`]) return item[`${prefix}_${lang}`];
     if (item[`${prefix}_ar`]) return item[`${prefix}_ar`];
@@ -40,24 +48,23 @@ const Alumni = () => {
     if (item[prefix] && typeof item[prefix] === 'string') return item[prefix];
     return '';
   };
+  
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
   const isAuthenticated = !!user;
   
   const myAlumniRequest = alumniRequests?.find(r => r.userId === user?.id);
   const isApprovedAlumni = user?.is_alumni || user?.isAlumni || isAdmin;
+  const hasPendingRequest = !!myAlumniRequest;
   
-  // localStorage key for tracking pending request across page refreshes
   const localPendingKey = `alumni_pending_${user?.id}`;
   const [hasLocalPending, setHasLocalPending] = useState(user?.id ? !!localStorage.getItem(localPendingKey) : false);
 
-  // Sync localStorage with actual data: if request is no longer in DB, it's either approved or rejected
   useEffect(() => {
     if (user?.id && !myAlumniRequest && hasLocalPending) {
-      // If we thought it was pending but it's not in the list, clear local state
       localStorage.removeItem(localPendingKey);
       setHasLocalPending(false);
     }
-  }, []);
+  }, [user?.id, myAlumniRequest, hasLocalPending]);
   
   const [activeTab, setActiveTab] = useState('projects');
   const [activeModal, setActiveModal] = useState(null);
