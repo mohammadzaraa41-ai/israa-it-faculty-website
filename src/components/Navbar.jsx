@@ -159,7 +159,21 @@ const Navbar = () => {
     <>
       <div className="utility-bar">
         <div className="utility-container">
-          <div className="utility-links">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <button 
+              className="mobile-toggle-v2" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle Menu"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+            <div className="top-bar-brand-v2" onClick={() => navigate('/')}>
+              <img src="/logo.png" alt="Logo" className="top-logo-v2" />
+              <span className="top-title-v2">{t('faculty_name')}</span>
+            </div>
+          </div>
+
+          <div className="utility-links desktop-only">
             <a href="mailto:info@iu.edu.jo" className="utility-link">
               <Mail size={12} />
               <span>info@iu.edu.jo</span>
@@ -173,15 +187,8 @@ const Navbar = () => {
               <BookOpen size={12} />
               <span>{lang === 'ar' ? 'التعليم الإلكتروني' : 'E-Learning'}</span>
             </a>
-            <a
-              href="/prospective"
-              className="utility-link"
-              onClick={e => { e.preventDefault(); navigate('/prospective'); window.scrollTo(0,0); }}
-            >
-              <GraduationCap size={12} />
-              <span>{lang === 'ar' ? 'بوابة الطالب' : 'Student Portal'}</span>
-            </a>
           </div>
+
           <div className="utility-actions">
             <button className="utility-btn" onClick={toggleLang}>
               <Globe size={12} />
@@ -196,20 +203,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-
-      <header className="top-bar">
-        <button 
-          className="mobile-toggle" 
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          aria-label="Toggle Menu"
-        >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-        <div className="top-bar-brand" onClick={() => navigate('/')}>
-          <img src="/logo.png" alt="Logo" className="top-logo" />
-          <span className="top-title">{t('faculty_name')}</span>
-        </div>
-      </header>
 
       <AnimatePresence>
         {isMobileMenuOpen && (
