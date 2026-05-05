@@ -55,32 +55,29 @@ const Chatbot = () => {
   }, [isOpen]);
 
   const callGeminiAPI = async (userText) => {
-    const url = getGeminiUrl();
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
     
-    // Simple prompt construction to avoid validation errors
-    const fullPrompt = `${SYSTEM_PROMPT}\n\nالمستخدم يسأل: ${userText}`;
-    
+    // Explicitly construct URL to avoid any encoding issues
+    const baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+    const finalUrl = `${baseUrl}?key=${apiKey.trim()}`;
+
+    console.log('Target URL:', baseUrl); // Diagnostic
+
     const body = {
       contents: [{
-        parts: [{ text: fullPrompt }]
-      }],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 1000
-      }
+        parts: [{ text: `${SYSTEM_PROMPT}\n\nالمستخدم: ${userText}` }]
+      }]
     };
 
-    const res = await fetch(url, {
+    const res = await fetch(finalUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-      cache: 'no-store',
-      referrerPolicy: 'no-referrer'
     });
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      console.error('Gemini API Error:', res.status, errData);
+      console.error('Gemini API Details:', { status: res.status, data: errData });
       throw new Error(`API error: ${res.status}`);
     }
     
@@ -99,18 +96,13 @@ const Chatbot = () => {
 
     try {
       const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error('Missing API Key');
+      if (!apiKey) throw new Error('No API Key found in Environment');
 
-      console.log('Chatbot: Contacting Gemini...');
+      console.log('--- Chatbot: Connecting to Gemini ---');
       const reply = await callGeminiAPI(msgText);
-      
-      if (!reply) {
-        throw new Error('Empty response from AI');
-      }
-
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-      console.error('Detailed Chatbot Error:', err);
+      console.error('Final Error Catch:', err);
       const fallback = getLocalFallback(msgText, lang);
       setMessages(prev => [...prev, { text: fallback, isBot: true }]);
     } finally {
