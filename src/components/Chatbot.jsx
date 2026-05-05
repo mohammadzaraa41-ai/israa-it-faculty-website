@@ -54,8 +54,22 @@ const Chatbot = () => {
     }
   }, [isOpen]);
 
-  const callGeminiAPI = async (body) => {
+  const callGeminiAPI = async (userText) => {
     const url = getGeminiUrl();
+    
+    // Simple prompt construction to avoid validation errors
+    const fullPrompt = `${SYSTEM_PROMPT}\n\nالمستخدم يسأل: ${userText}`;
+    
+    const body = {
+      contents: [{
+        parts: [{ text: fullPrompt }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1000
+      }
+    };
+
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -64,57 +78,12 @@ const Chatbot = () => {
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      console.error('Gemini API Details:', { status: res.status, data: errData });
+      console.error('Gemini API Error:', res.status, errData);
       throw new Error(`API error: ${res.status}`);
     }
     
     const data = await res.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-  };
-
-  const sendToGemini = async (userText) => {
-    const userMessages = messages.filter(m => !m.isBot);
-    const botMessages = messages.filter(m => m.isBot);
-
-    const history = [];
-    userMessages.forEach((uMsg, i) => {
-      history.push({ role: 'user', parts: [{ text: uMsg.text }] });
-      if (botMessages[i + 1]) {
-        history.push({ role: 'model', parts: [{ text: botMessages[i + 1].text }] });
-      }
-    });
-
-    const contents = [
-      { role: 'user', parts: [{ text: SYSTEM_PROMPT + '\n\n[تعليمات النظام — ابدأ الحوار]' }] },
-      { role: 'model', parts: [{ text: 'مفهوم، سأتصرف وفق التعليمات.' }] },
-      ...history,
-      { role: 'user', parts: [{ text: userText }] },
-    ];
-
-    const body = {
-      contents,
-      generationConfig: { 
-        temperature: 0.8, 
-        maxOutputTokens: 1000,
-        topP: 0.95,
-      },
-      safetySettings: [
-        { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-        { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-      ]
-    };
-
-    try {
-      return await callGeminiAPI(body);
-    } catch (err) {
-      if (err.status === 429) {
-        await new Promise(r => setTimeout(r, 3000));
-        return await callGeminiAPI(body);
-      }
-      throw err;
-    }
   };
 
   const handleSend = async (text) => {
@@ -126,26 +95,20 @@ const Chatbot = () => {
     setMessages(prev => [...prev, { text: msgText, isBot: false }]);
     setIsLoading(true);
 
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    console.log('--- Chatbot Diagnostic ---');
-    console.log('API Key Found:', !!apiKey);
-    if (apiKey) console.log('Key Prefix:', apiKey.substring(0, 4));
-    console.log('Language:', lang);
-    console.log('--------------------------');
-
     try {
-      if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        console.error('Chatbot Error: API Key is MISSING or default placeholder used.');
-        const fallback = getLocalFallback(msgText, lang);
-        setMessages(prev => [...prev, { text: fallback, isBot: true }]);
-        return;
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error('Missing API Key');
+
+      console.log('Chatbot: Contacting Gemini...');
+      const reply = await callGeminiAPI(msgText);
+      
+      if (!reply) {
+        throw new Error('Empty response from AI');
       }
 
-      console.log('Chatbot: Connection attempt...');
-      const reply = await sendToGemini(msgText);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-      console.error('Chatbot API Error Trace:', err);
+      console.error('Detailed Chatbot Error:', err);
       const fallback = getLocalFallback(msgText, lang);
       setMessages(prev => [...prev, { text: fallback, isBot: true }]);
     } finally {
@@ -156,6 +119,7 @@ const Chatbot = () => {
   const quickReplies = isAr ? QUICK_REPLIES_AR : QUICK_REPLIES_EN;
 
   const renderText = (text) => {
+    if (!text) return null;
     const parts = text.split(/\*\*(.*?)\*\*/g);
     return parts.map((part, i) =>
       i % 2 === 1 ? <strong key={i}>{part}</strong> : part
@@ -211,7 +175,7 @@ const Chatbot = () => {
               {messages.map((msg, idx) => (
                 <motion.div
                   key={idx}
-                  className={`chat-bubble ${msg.isBot ? 'bot' : 'user'} ${msg.isError ? 'error' : ''}`}
+                  className={`chat-bubble ${msg.isBot ? 'bot' : 'user'}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
