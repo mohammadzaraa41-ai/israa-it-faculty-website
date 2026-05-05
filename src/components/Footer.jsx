@@ -86,7 +86,16 @@ const Footer = () => {
                   </span> 
                   {' & '}
                   <span className="dev-name">
+                <a 
+                  href="https://www.linkedin.com/in/mohammadalzaraa/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--accent-color)', fontWeight: 'bold', textDecoration: 'none', transition: 'opacity 0.3s' }}
+                  onMouseOver={(e) => e.target.style.opacity = '0.8'}
+                  onMouseOut={(e) => e.target.style.opacity = '1'}
+                >
                     {lang === 'ar' ? 'م. محمد الزراع' : 'Eng. Mohammad Zaraa'}
+                </a>
                   </span>
                 </span>
               </p>
