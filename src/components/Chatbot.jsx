@@ -127,10 +127,15 @@ const Chatbot = () => {
     setIsLoading(true);
 
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    console.log('--- Chatbot Diagnostic ---');
+    console.log('API Key Found:', !!apiKey);
+    if (apiKey) console.log('Key Prefix:', apiKey.substring(0, 4));
+    console.log('Language:', lang);
+    console.log('--------------------------');
 
     try {
       if (!apiKey || apiKey === 'your_gemini_api_key_here') {
-        console.warn('Chatbot: API Key is missing or invalid in this build.');
+        console.error('Chatbot Error: API Key is MISSING or default placeholder used.');
         const fallback = getLocalFallback(msgText, lang);
         setMessages(prev => [...prev, { text: fallback, isBot: true }]);
         return;
