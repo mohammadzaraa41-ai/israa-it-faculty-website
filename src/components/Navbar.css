@@ -498,28 +498,27 @@
     padding: 0 1rem;
   }
 
-  .top-title { font-size: 1rem; }
-  .top-logo  { width: 32px; height: 32px; }
+  .top-title-v2 { font-size: 0.9rem; }
+  .top-logo-v2  { width: 28px; height: 28px; }
 
-  /* Utility bar hidden on mobile — header height is just top-bar (60px) */
-  .utility-bar { display: none; }
+  .utility-bar { 
+    display: flex; 
+    height: 50px;
+    padding: 0 1rem;
+  }
 
   .sidebar {
     width: 280px;
     top: 0;
     height: 100vh;
     border-radius: 0;
-    z-index: 5000;
+    z-index: 9999;
   }
   
   .sidebar-rtl { right: 0; transform: translateX(100%); }
   .sidebar-ltr { left: 0; transform: translateX(-100%); }
 
   .sidebar-backdrop {
-    z-index: 4500; /* Above header (4000) but below sidebar (5000) */
-  }
-  
-  .mobile-toggle {
-    display: flex;
+    z-index: 9990;
   }
 }
