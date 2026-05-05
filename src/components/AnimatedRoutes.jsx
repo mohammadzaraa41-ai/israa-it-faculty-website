@@ -79,6 +79,7 @@ const PageWrapper = ({ children, bgClass }) => {
 };
 
 const AnimatedRoutes = () => {
+  const { lang } = useLocale();
   const location = useLocation();
 
   React.useEffect(() => {

@@ -6,6 +6,7 @@ import { majorRoadmaps } from '../data/roadmapData';
 import * as THREE from 'three';
 
 const CourseNode = ({ position, label, color, delay, isActive, onClick }) => {
+  const { lang } = useLocale();
   const mesh = useRef();
   const [hovered, setHover] = useState(false);
   
