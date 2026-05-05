@@ -119,22 +119,20 @@ const Chatbot = () => {
     setIsLoading(true);
 
     try {
+      if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
+        console.warn('Gemini API Key is missing. Using local fallback.');
+        const fallback = getLocalFallback(msgText, lang);
+        setMessages(prev => [...prev, { text: fallback, isBot: true }]);
+        setIsLoading(false);
+        return;
+      }
+
       const reply = await sendToGemini(msgText);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-
-      if (err.status === 429) {
-        const fallback = getLocalFallback(msgText, lang);
-        setMessages(prev => [...prev, { text: fallback, isBot: true }]);
-      } else {
-        setMessages(prev => [...prev, {
-          text: isAr
-            ? '⚠️ حدث خطأ في الاتصال. يرجى المحاولة مرة أخرى.'
-            : '⚠️ Connection error. Please try again.',
-          isBot: true,
-          isError: true,
-        }]);
-      }
+      console.error('Chatbot error:', err);
+      const fallback = getLocalFallback(msgText, lang);
+      setMessages(prev => [...prev, { text: fallback, isBot: true }]);
     } finally {
       setIsLoading(false);
     }
