@@ -120,17 +120,18 @@ const Chatbot = () => {
 
     try {
       if (!GEMINI_API_KEY || GEMINI_API_KEY === 'your_gemini_api_key_here') {
-        console.warn('Gemini API Key is missing. Using local fallback.');
+        console.warn('Chatbot: API Key is missing. Check your .env file or restart dev server.');
         const fallback = getLocalFallback(msgText, lang);
         setMessages(prev => [...prev, { text: fallback, isBot: true }]);
         setIsLoading(false);
         return;
       }
 
+      console.log('Chatbot: Sending request to Gemini...');
       const reply = await sendToGemini(msgText);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
     } catch (err) {
-      console.error('Chatbot error:', err);
+      console.error('Chatbot API Error:', err);
       const fallback = getLocalFallback(msgText, lang);
       setMessages(prev => [...prev, { text: fallback, isBot: true }]);
     } finally {
