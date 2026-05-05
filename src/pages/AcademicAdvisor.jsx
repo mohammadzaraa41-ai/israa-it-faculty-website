@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, User, Bot, RefreshCw } from 'lucide-react';
+import { Send, Sparkles, User, GraduationCap, RefreshCw, UserCheck, ShieldCheck } from 'lucide-react';
 import { curriculumData } from '../constants/curriculum';
 
 const AcademicAdvisor = () => {
@@ -18,8 +18,16 @@ const AcademicAdvisor = () => {
       setIsTyping(true);
       setTimeout(() => {
         setMessages([
-          { text: data.generalResponses.greeting, isBot: true },
-          { text: data.generalResponses.askInterest, isBot: true, showOptions: true }
+          { 
+            text: data.generalResponses.greeting, 
+            isBot: true,
+            title: lang === 'ar' ? 'ترحيب أكاديمي' : 'Academic Greeting'
+          },
+          { 
+            text: data.generalResponses.askInterest, 
+            isBot: true, 
+            showOptions: true 
+          }
         ]);
         setIsTyping(false);
       }, 1000);
@@ -52,16 +60,23 @@ const AcademicAdvisor = () => {
         const botMsg = { 
           text: responseText, 
           isBot: true, 
-          advice: foundSpec.advice 
+          advice: foundSpec.advice,
+          specName: foundSpec.name,
+          title: lang === 'ar' ? 'توصية المسار الدراسي' : 'Curriculum Recommendation'
         };
         setMessages(prev => [...prev, botMsg]);
       } else {
         responseText = data.generalResponses.notFound;
-        setMessages(prev => [...prev, { text: responseText, isBot: true, showOptions: true }]);
+        setMessages(prev => [...prev, { 
+          text: responseText, 
+          isBot: true, 
+          showOptions: true,
+          title: lang === 'ar' ? 'تنبيه' : 'Note'
+        }]);
       }
       
       setIsTyping(false);
-    }, 1500);
+    }, 1200);
   };
 
   const handleSend = () => {
@@ -77,9 +92,9 @@ const AcademicAdvisor = () => {
   return (
     <div style={{ 
       padding: '1rem', 
-      maxWidth: '900px', 
+      maxWidth: '1000px', 
       margin: '0 auto', 
-      height: 'calc(100vh - 150px)',
+      height: 'calc(100vh - 120px)',
       display: 'flex',
       flexDirection: 'column'
     }}>
@@ -88,12 +103,25 @@ const AcademicAdvisor = () => {
         animate={{ opacity: 1, y: 0 }}
         style={{ textAlign: 'center', marginBottom: '1.5rem' }}
       >
-        <h1 className="title" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-          <Sparkles className="accent-color" />
-          {lang === 'ar' ? 'المرشد الأكاديمي' : 'Academic Advisor'}
-        </h1>
-        <p style={{ color: 'var(--text-secondary)' }}>
-          {lang === 'ar' ? 'مساعدك الشخصي لاختيار التخصص والمواد الدراسية' : 'Your personal assistant for major and course selection'}
+        <div style={{ 
+          display: 'inline-flex', 
+          alignItems: 'center', 
+          gap: '0.75rem', 
+          background: 'rgba(161, 23, 44, 0.1)', 
+          padding: '0.5rem 1.5rem', 
+          borderRadius: '50px',
+          border: '1px solid rgba(161, 23, 44, 0.3)',
+          marginBottom: '1rem'
+        }}>
+          <GraduationCap className="accent-color" size={24} />
+          <h1 className="title" style={{ margin: 0, fontSize: '1.5rem' }}>
+            {lang === 'ar' ? 'مركز الإرشاد الأكاديمي' : 'Academic Counseling Center'}
+          </h1>
+        </div>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto' }}>
+          {lang === 'ar' 
+            ? 'جلسة استشارية متخصصة لمساعدتك في رسم مسارك المهني والأكاديمي بكل ثقة.' 
+            : 'A specialized counseling session to help you map your professional and academic path with confidence.'}
         </p>
       </motion.div>
 
@@ -104,7 +132,7 @@ const AcademicAdvisor = () => {
         overflow: 'hidden',
         borderRadius: '24px',
         border: '1px solid var(--border-color)',
-        position: 'relative'
+        boxShadow: '0 20px 40px rgba(0,0,0,0.3)'
       }}>
         <div 
           ref={scrollRef}
@@ -115,37 +143,36 @@ const AcademicAdvisor = () => {
             display: 'flex', 
             flexDirection: 'column', 
             gap: '1.5rem',
-            scrollBehavior: 'smooth'
+            background: 'radial-gradient(circle at top right, rgba(161, 23, 44, 0.05), transparent)'
           }}
         >
           <AnimatePresence>
             {messages.map((msg, idx) => (
               <motion.div
                 key={idx}
-                initial={{ opacity: 0, x: msg.isBot ? -20 : 20, y: 10 }}
-                animate={{ opacity: 1, x: 0, y: 0 }}
+                initial={{ opacity: 0, x: msg.isBot ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
                 style={{
                   alignSelf: msg.isBot ? 'flex-start' : 'flex-end',
                   maxWidth: '85%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: msg.isBot ? 'flex-start' : 'flex-end',
-                  gap: '0.5rem'
+                  width: msg.advice ? '100%' : 'auto'
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '2px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '6px', justifyContent: msg.isBot ? 'flex-start' : 'flex-end' }}>
                   {msg.isBot ? (
                     <>
-                      <div style={{ padding: '4px', borderRadius: '50%', background: 'var(--primary-color)' }}>
-                        <Bot size={14} color="var(--accent-color)" />
+                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--accent-color)' }}>
+                        <UserCheck size={18} color="var(--accent-color)" />
                       </div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>Academic Advisor</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--accent-color)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                        {lang === 'ar' ? 'المستشار الأكاديمي' : 'Academic Advisor'}
+                      </span>
                     </>
                   ) : (
                     <>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{lang === 'ar' ? 'أنت' : 'You'}</span>
-                      <div style={{ padding: '4px', borderRadius: '50%', background: 'var(--accent-color)' }}>
-                        <User size={14} color="#000" />
+                      <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'var(--text-secondary)' }}>{lang === 'ar' ? 'الطالب' : 'Student'}</span>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <User size={18} color="#000" />
                       </div>
                     </>
                   )}
@@ -154,39 +181,45 @@ const AcademicAdvisor = () => {
                 <div 
                   className={msg.isBot ? "glass-panel-light" : ""}
                   style={{
-                    padding: '1rem 1.25rem',
+                    padding: '1.25rem 1.5rem',
                     borderRadius: msg.isBot 
-                      ? (lang === 'ar' ? '0 18px 18px 18px' : '18px 18px 18px 0')
-                      : (lang === 'ar' ? '18px 0 18px 18px' : '18px 18px 0 18px'),
-                    backgroundColor: msg.isBot ? 'rgba(255,255,255,0.05)' : 'var(--primary-color)',
+                      ? (lang === 'ar' ? '0 20px 20px 20px' : '20px 20px 20px 0')
+                      : (lang === 'ar' ? '20px 0 20px 20px' : '20px 20px 0 20px'),
+                    backgroundColor: msg.isBot ? 'rgba(255,255,255,0.03)' : 'var(--primary-color)',
                     color: msg.isBot ? 'var(--text-primary)' : '#fff',
                     border: msg.isBot ? '1px solid var(--border-color)' : 'none',
-                    boxShadow: msg.isBot ? 'none' : '0 4px 15px rgba(0,0,0,0.2)',
-                    lineHeight: '1.6'
+                    boxShadow: msg.isBot ? 'inset 0 0 20px rgba(0,0,0,0.1)' : '0 10px 25px rgba(161, 23, 44, 0.3)',
+                    lineHeight: '1.7',
+                    fontSize: '1rem'
                   }}
                 >
                   {msg.text}
 
                   {msg.advice && (
                     <motion.div 
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
                       style={{ 
-                        marginTop: '1.25rem',
-                        padding: '1.25rem', 
-                        background: 'rgba(161, 23, 44, 0.15)', 
-                        borderLeft: lang === 'ar' ? 'none' : '4px solid var(--accent-color)',
-                        borderRight: lang === 'ar' ? '4px solid var(--accent-color)' : 'none',
-                        borderRadius: '12px',
-                        fontStyle: 'italic',
+                        marginTop: '1.5rem',
+                        padding: '1.5rem', 
+                        background: 'linear-gradient(145deg, rgba(161, 23, 44, 0.1), rgba(0,0,0,0.3))', 
+                        border: '1px solid rgba(161, 23, 44, 0.4)',
+                        borderLeft: lang === 'ar' ? '1px solid rgba(161, 23, 44, 0.4)' : '5px solid var(--accent-color)',
+                        borderRight: lang === 'ar' ? '5px solid var(--accent-color)' : '1px solid rgba(161, 23, 44, 0.4)',
+                        borderRadius: '15px',
                         color: '#fff',
-                        fontSize: '0.95rem',
-                        lineHeight: '1.7',
-                        boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
+                        fontSize: '1rem',
+                        lineHeight: '1.8',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
                       }}
                     >
-                      <Sparkles size={18} style={{ marginBottom: '0.5rem', color: 'var(--accent-color)' }} />
-                      <p>{msg.advice}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', color: 'var(--accent-color)' }}>
+                        <ShieldCheck size={20} />
+                        <span style={{ fontWeight: 'bold', fontSize: '0.9rem', textTransform: 'uppercase' }}>
+                          {lang === 'ar' ? 'توصية الخبير' : 'Expert Recommendation'}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0 }}>{msg.advice}</p>
                     </motion.div>
                   )}
                 </div>
