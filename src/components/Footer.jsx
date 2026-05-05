@@ -82,7 +82,16 @@ const Footer = () => {
                 <span>
                   {lang === 'ar' ? 'تطوير: ' : 'Developed by: '}
                   <span className="dev-name">
-                    {lang === 'ar' ? 'م. يوسف حردان' : 'Eng. Yousef Hardan'}
+                    <a 
+                      href="https://www.linkedin.com/in/yousef-alhardan-726597408/" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ color: 'var(--accent-color)', fontWeight: 'bold', textDecoration: 'none', transition: 'opacity 0.3s' }}
+                      onMouseOver={(e) => e.target.style.opacity = '0.8'}
+                      onMouseOut={(e) => e.target.style.opacity = '1'}
+                    >
+                      {lang === 'ar' ? 'م. يوسف حردان' : 'Eng. Yousef Hardan'}
+                    </a>
                   </span> 
                   {' & '}
                   <span className="dev-name">
