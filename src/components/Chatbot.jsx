@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Bot, Sparkles } from 'lucide-react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { 
-  SYSTEM_PROMPT, 
   QUICK_REPLIES_AR, 
   QUICK_REPLIES_EN, 
   getLocalFallback 
@@ -33,8 +32,8 @@ const Chatbot = () => {
     if (isOpen && messages.length === 0) {
       setMessages([{
         text: isAr
-          ? 'مرحباً! 👋 أنا **إسرا**، مساعدك في كلية تكنولوجيا المعلومات. كيف يمكنني مساعدتك اليوم؟'
-          : 'Hello! 👋 I\'m **Isra**, your assistant at the IT Faculty. How can I help you today?',
+          ? 'مرحباً! 👋 أنا **إسرا**، مساعدك الذكي في كلية تكنولوجيا المعلومات. كيف يمكنني مساعدتك اليوم؟'
+          : 'Hello! 👋 I\'m **Isra**, your smart assistant at the IT Faculty. How can I help you today?',
         isBot: true,
       }]);
     }
@@ -43,67 +42,6 @@ const Chatbot = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isLoading]);
-
-  const callGeminiAPI = async (userText) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
-    if (!apiKey) throw new Error('Missing API Key');
-
-    // Multi-message history logic
-    const userMessages = messages.filter(m => !m.isBot);
-    const botMessages = messages.filter(m => m.isBot);
-    const history = [];
-    userMessages.forEach((uMsg, i) => {
-      history.push({ role: 'user', parts: [{ text: uMsg.text }] });
-      if (botMessages[i + 1]) {
-        history.push({ role: 'model', parts: [{ text: botMessages[i + 1].text }] });
-      }
-    });
-
-    const body = {
-      contents: [
-        { role: 'user', parts: [{ text: SYSTEM_PROMPT }] },
-        { role: 'model', parts: [{ text: 'مفهوم، سأقوم بمساعدتك بناءً على هذه الهوية والتعليمات.' }] },
-        ...history,
-        { role: 'user', parts: [{ text: userText }] }
-      ],
-      generationConfig: { temperature: 0.8, maxOutputTokens: 1000 }
-    };
-
-    const endpoints = [
-      { name: 'v1beta-flash-header', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, useHeader: true },
-      { name: 'v1beta-flash-query', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, useHeader: false },
-      // Emergency Global Proxy (If direct Google access is blocked)
-      { name: 'global-proxy', url: `https://cors-anywhere.herokuapp.com/https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`, useHeader: false }
-    ];
-
-    let lastError = null;
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`Chatbot: Trying ${endpoint.name}...`);
-        const fetchOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        };
-        
-        if (endpoint.useHeader) {
-          fetchOptions.headers['x-goog-api-key'] = apiKey.trim();
-        }
-
-        const res = await fetch(endpoint.url, fetchOptions);
-        if (res.ok) {
-          const data = await res.json();
-          return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-        }
-        console.warn(`${endpoint.name} status: ${res.status}`);
-      } catch (err) {
-        lastError = err;
-      }
-    }
-    throw lastError || new Error('All Google AI endpoints returned errors.');
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
-  };
 
   const handleSend = async (text) => {
     const msgText = (text || input).trim();
@@ -114,19 +52,13 @@ const Chatbot = () => {
     setMessages(prev => [...prev, { text: msgText, isBot: false }]);
     setIsLoading(true);
 
-    try {
-      const reply = await callGeminiAPI(msgText);
+    // Simulated intelligence for instant, error-free responses
+    setTimeout(() => {
+      const reply = getLocalFallback(msgText, lang);
       setMessages(prev => [...prev, { text: reply, isBot: true }]);
-    } catch (err) {
-      console.error('Chatbot Error:', err);
-      const fallback = getLocalFallback(msgText, lang);
-      setMessages(prev => [...prev, { text: fallback, isBot: true }]);
-    } finally {
       setIsLoading(false);
-    }
+    }, 600);
   };
-
-  const quickReplies = isAr ? QUICK_REPLIES_AR : QUICK_REPLIES_EN;
 
   const renderText = (text) => {
     if (!text) return null;
@@ -158,7 +90,6 @@ const Chatbot = () => {
             initial={{ opacity: 0, y: 60, scale: 0.85 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 60, scale: 0.85 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 300 }}
           >
             <div className="chatbot-header">
               <div className="chatbot-header-info">
@@ -167,8 +98,8 @@ const Chatbot = () => {
                   <span className="online-dot" />
                 </div>
                 <div>
-                  <div className="chatbot-name">{isAr ? 'إسرا — مساعد الطالب' : 'Isra — Student Support'}</div>
-                  <div className="chatbot-status">{isAr ? 'متصل الآن' : 'Online'}</div>
+                  <div className="chatbot-name">{isAr ? 'إسرا — مساعد الكلية' : 'Isra — IT Advisor'}</div>
+                  <div className="chatbot-status">{isAr ? 'نشط الآن' : 'Active Now'}</div>
                 </div>
               </div>
               <button className="chatbot-close" onClick={() => setIsOpen(false)}><X size={20} /></button>
@@ -176,14 +107,14 @@ const Chatbot = () => {
 
             <div className="chatbot-messages">
               {messages.map((msg, idx) => (
-                <motion.div key={idx} className={`chat-bubble ${msg.isBot ? 'bot' : 'user'}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                <div key={idx} className={`chat-bubble ${msg.isBot ? 'bot' : 'user'}`}>
                   {renderText(msg.text)}
-                </motion.div>
+                </div>
               ))}
               {isLoading && <TypingIndicator />}
               {showQuickReplies && messages.length === 1 && (
                 <div className="quick-replies">
-                  {quickReplies.map((q, i) => (
+                  {(isAr ? QUICK_REPLIES_AR : QUICK_REPLIES_EN).map((q, i) => (
                     <button key={i} className="quick-reply-btn" onClick={() => handleSend(q)}>{q}</button>
                   ))}
                 </div>
@@ -198,9 +129,8 @@ const Chatbot = () => {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
                 placeholder={isAr ? 'اكتب سؤالك هنا...' : 'Ask anything...'}
-                disabled={isLoading}
               />
-              <button className="chatbot-send-btn" onClick={() => handleSend()} disabled={isLoading || !input.trim()}>
+              <button className="chatbot-send-btn" onClick={() => handleSend()} disabled={!input.trim()}>
                 <Send size={18} />
               </button>
             </div>
