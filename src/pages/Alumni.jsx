@@ -311,8 +311,15 @@ const Alumni = () => {
         <button style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', color: '#ff4444' }} onClick={() => setActiveModal(null)}>✕</button>
         <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center', color: 'var(--accent-color)' }}>{title}</h3>
         {children}
-        <button className="btn-primary" style={{ width: '100%', padding: '1rem', marginTop: '1.5rem' }} onClick={onSave}>
-          {lang === 'ar' ? 'حفظ البيانات' : 'Save Data'}
+        <button 
+          className="btn-primary" 
+          disabled={isSubmitting}
+          style={{ width: '100%', padding: '1rem', marginTop: '1.5rem', opacity: isSubmitting ? 0.7 : 1 }} 
+          onClick={onSave}
+        >
+          {isSubmitting 
+            ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+            : (lang === 'ar' ? 'حفظ البيانات' : 'Save Data')}
         </button>
       </motion.div>
     </motion.div>
@@ -848,36 +855,44 @@ const Alumni = () => {
               activeModal === 'interview' ? (lang === 'ar' ? 'إضافة مقابلة' : 'Add Interview') :
               (lang === 'ar' ? 'LinkedIn نصيحة' : 'LinkedIn Tip')
             }
-            onSave={() => {
-              if (activeModal === 'template') {
-                addGradTemplate({ 
-                  name: { ar: modalData.nameAr, en: modalData.nameEn }, 
-                  type: modalData.type,
-                  url: URL.createObjectURL(modalData.file),
-                  fileObject: modalData.file
-                });
-              } else if (activeModal === 'cv') {
-                addCvTemplate({ 
-                  name: { ar: modalData.nameAr, en: modalData.nameEn }, 
-                  file: modalData.file.name,
-                  url: URL.createObjectURL(modalData.file),
-                  fileObject: modalData.file
-                });
-              } else if (activeModal === 'interview') {
-                addInterviewResource({ 
-                  title: { ar: modalData.titleAr, en: modalData.titleEn }, 
-                  type: modalData.type, 
-                  url: modalData.url 
-                });
-              } else if (activeModal === 'linkedin') {
-                addLinkedinTip({ 
-                  title: { ar: modalData.titleAr, en: modalData.titleEn }, 
-                  type: modalData.type, 
-                  content: modalData.type === 'tip' ? modalData.content : '', 
-                  url: modalData.type !== 'tip' ? modalData.url : '' 
-                });
+            onSave={async () => {
+              setIsSubmitting(true);
+              try {
+                if (activeModal === 'template') {
+                  await addGradTemplate({ 
+                    name: { ar: modalData.nameAr, en: modalData.nameEn }, 
+                    type: modalData.type,
+                    url: URL.createObjectURL(modalData.file),
+                    fileObject: modalData.file
+                  });
+                } else if (activeModal === 'cv') {
+                  await addCvTemplate({ 
+                    name: { ar: modalData.nameAr, en: modalData.nameEn }, 
+                    file: modalData.file.name,
+                    url: URL.createObjectURL(modalData.file),
+                    fileObject: modalData.file
+                  });
+                } else if (activeModal === 'interview') {
+                  await addInterviewResource({ 
+                    title: { ar: modalData.titleAr, en: modalData.titleEn }, 
+                    type: modalData.type, 
+                    url: modalData.url 
+                  });
+                } else if (activeModal === 'linkedin') {
+                  await addLinkedinTip({ 
+                    title: { ar: modalData.titleAr, en: modalData.titleEn }, 
+                    type: modalData.type, 
+                    content: modalData.type === 'tip' ? modalData.content : '', 
+                    url: modalData.type !== 'tip' ? modalData.url : '' 
+                  });
+                }
+                setActiveModal(null);
+              } catch (err) {
+                console.error("Save error:", err);
+                alert(lang === 'ar' ? 'فشل الحفظ، يرجى المحاولة مرة أخرى' : 'Save failed, please try again');
+              } finally {
+                setIsSubmitting(false);
               }
-              setActiveModal(null);
             }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
