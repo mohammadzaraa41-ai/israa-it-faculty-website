@@ -190,7 +190,7 @@
   .sidebar { top: 60px !important; height: calc(100vh - 60px) !important; }
 
   /* Fix main-content padding-top for shorter mobile header */
-  .main-content { padding-top: 0 !important; }
+  .main-content { padding-top: 80px !important; }
 
   /* ── MODAL ── */
   .login-modal { padding: 1.25rem !important; }
