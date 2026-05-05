@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MessageSquare, X, Send, Bot, Sparkles } from 'lucide-react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { 
-  GEMINI_API_URL, 
+  getGeminiUrl, 
   SYSTEM_PROMPT, 
   QUICK_REPLIES_AR, 
   QUICK_REPLIES_EN, 
