@@ -515,6 +515,8 @@ const Alumni = () => {
                 </div>
               </div>
             )}
+          </div>
+        </motion.div>
       );
     }
 
