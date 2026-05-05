@@ -69,25 +69,37 @@ const Chatbot = () => {
       generationConfig: { temperature: 0.8, maxOutputTokens: 1000 }
     };
 
-    let url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
-    
-    let res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
+    const endpoints = [
+      { name: 'v1beta-flash', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}` },
+      { name: 'v1-flash', url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}` },
+      { name: 'v1beta-pro', url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey.trim()}` },
+      { name: 'v1-pro', url: `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey.trim()}` }
+    ];
 
-    // Fallback to v1 if v1beta fails
-    if (res.status === 404) {
-      url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey.trim()}`;
-      res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
+    let lastError = null;
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`Chatbot: Trying ${endpoint.name}...`);
+        const res = await fetch(endpoint.url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (res.ok) {
+          console.log(`Chatbot: Success with ${endpoint.name}!`);
+          const data = await res.json();
+          return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
+        }
+        
+        const errData = await res.json().catch(() => ({}));
+        console.warn(`Chatbot: ${endpoint.name} failed (${res.status})`, errData);
+      } catch (err) {
+        console.error(`Chatbot: ${endpoint.name} network error`, err);
+        lastError = err;
+      }
     }
-
-    if (!res.ok) throw new Error(`API error: ${res.status}`);
+    throw lastError || new Error('All Google AI endpoints returned errors.');
     const data = await res.json();
     return data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || '';
   };
