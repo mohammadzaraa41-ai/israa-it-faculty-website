@@ -478,48 +478,73 @@ const Alumni = () => {
           )}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', 
+          gap: '1.5rem' 
+        }}>
           {projectBank.map(project => (
             <motion.div 
               key={project.id} 
-              whileHover={{ x: 5 }}
+              whileHover={{ y: -10, boxShadow: '0 15px 30px rgba(161, 23, 44, 0.2)' }}
               onClick={() => setViewingProject(project)}
+              className="glass-panel"
               style={{ 
-                padding: '1.25rem', 
+                padding: '1.5rem', 
                 cursor: 'pointer', 
-                background: 'rgba(255,255,255,0.02)',
-                borderRadius: '12px',
-                border: '1px solid rgba(255,255,255,0.05)',
-                position: 'relative'
+                background: 'rgba(255,255,255,0.03)',
+                borderRadius: '16px',
+                border: '1px solid var(--border-color)',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.3s ease'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)' }}>{getLoc(project, 'name')}</h4>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                  <Star size={12} fill="var(--accent-color)" color="var(--accent-color)" />
-                  <span style={{ fontSize: '0.75rem' }}>{project.rating}</span>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                  <h4 style={{ fontWeight: 'bold', color: 'var(--accent-color)', fontSize: '1.1rem', lineHeight: '1.4' }}>
+                    {getLoc(project, 'name')}
+                  </h4>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: '20px' }}>
+                    <Star size={12} fill="var(--accent-color)" color="var(--accent-color)" />
+                    <span style={{ fontSize: '0.8rem', fontWeight: 'bold' }}>{project.rating}</span>
+                  </div>
                 </div>
+                <p style={{ fontSize: '0.85rem', opacity: 0.7, marginBottom: '1rem', borderLeft: '2px solid var(--accent-color)', paddingLeft: '8px' }}>
+                  {lang === 'ar' ? 'بإشراف:' : 'Supervisor:'} {project.supervisor}
+                </p>
               </div>
-              <p style={{ fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.5rem' }}>{lang === 'ar' ? 'بإشراف:' : 'By:'} {project.supervisor}</p>
-              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.65rem', opacity: 0.5 }}>{(project.students || []).length} {lang === 'ar' ? 'طلاب' : 'Students'}</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.5 }}>•</span>
-                <span style={{ fontSize: '0.65rem', opacity: 0.5 }}>{(project.images || []).length} {lang === 'ar' ? 'صور' : 'Photos'}</span>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{(project.students || []).length} {lang === 'ar' ? 'طلاب' : 'Students'}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.4 }}>•</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{(project.images || []).length} {lang === 'ar' ? 'صور' : 'Photos'}</span>
+                </div>
+                <button className="btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', borderRadius: '8px' }}>
+                  {lang === 'ar' ? 'عرض التفاصيل' : 'View Details'}
+                </button>
               </div>
               
               {isAdmin && (
-                <div style={{ position: 'absolute', top: '1.25rem', left: '1.25rem', display: 'flex', gap: '0.5rem', opacity: 0.4 }}>
-                  <Edit2 size={14} style={{ cursor: 'pointer' }} onClick={(e) => {
-                     e.stopPropagation();
-                     setNewProj({
-                       ...project,
-                       name: { ar: project.name_ar || project.name?.ar, en: project.name_en || project.name?.en },
-                       notes: { ar: project.notes_ar || project.notes?.ar, en: project.notes_en || project.notes?.en }
-                     });
-                     setEditingProjectId(project.id);
-                     setIsAdding(true);
-                  }} />
-                  <Trash2 size={14} style={{ cursor: 'pointer', color: '#ff4444' }} onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }} />
+                <div style={{ position: 'absolute', top: '-10px', left: '-10px', display: 'flex', gap: '0.3rem' }}>
+                  <button onClick={(e) => {
+                    e.stopPropagation();
+                    setNewProj({
+                      ...project,
+                      name: { ar: project.name_ar || project.name?.ar, en: project.name_en || project.name?.en },
+                      notes: { ar: project.notes_ar || project.notes?.ar, en: project.notes_en || project.notes?.en }
+                    });
+                    setEditingProjectId(project.id);
+                    setIsAdding(true);
+                  }} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                    <Edit2 size={12} />
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); deleteProject(project.id); }} style={{ background: '#ff4444', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.3)' }}>
+                    <Trash2 size={12} />
+                  </button>
                 </div>
               )}
             </motion.div>
