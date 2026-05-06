@@ -34,10 +34,11 @@ export const AuthProvider = ({ children }) => {
           const userData = usersFound && usersFound.length > 0 ? usersFound[0] : null;
 
           if (!uErr && userData) {
+            const { password, ...safeUserData } = userData;
             const freshUser = {
-              ...userData,
-              name: { ar: userData.name_ar, en: userData.name_en },
-              departmentId: userData.department_id
+              ...safeUserData,
+              name: { ar: safeUserData.name_ar, en: safeUserData.name_en },
+              departmentId: safeUserData.department_id
             };
             setUser(freshUser);
             localStorage.setItem('site_user', JSON.stringify(freshUser));
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.from('users').select('*');
     if (error) return [];
     if (data) {
-      const mapped = data.map(u => ({
+      const mapped = data.map(({ password, ...u }) => ({
         ...u,
         name: { ar: u.name_ar, en: u.name_en },
         departmentId: u.department_id
@@ -150,11 +151,12 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: 'كلمة المرور غير صحيحة' };
       }
 
+      const { password: _pw, ...safeData } = data;
       const loggedUser = { 
-        ...data, 
-        name: { ar: data.name_ar, en: data.name_en },
-        departmentId: data.department_id,
-        permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(data.role)
+        ...safeData, 
+        name: { ar: safeData.name_ar, en: safeData.name_en },
+        departmentId: safeData.department_id,
+        permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(safeData.role)
           ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
           : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
       };
@@ -426,10 +428,11 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       if (data && data.length > 0) {
+        const { password, ...safeData } = data[0];
         const updatedUser = { 
           ...user, 
-          ...data[0],
-          name: { ar: data[0].name_ar, en: data[0].name_en }
+          ...safeData,
+          name: { ar: safeData.name_ar, en: safeData.name_en }
         };
         setUser(updatedUser);
         localStorage.setItem('site_user', JSON.stringify(updatedUser));
@@ -446,8 +449,14 @@ export const AuthProvider = ({ children }) => {
     try {
       if (!user) return { success: false, message: 'لم يتم تسجيل الدخول' };
       
-      // التحقق من كلمة المرور القديمة
-      if (user.password !== oldPassword) {
+      // التحقق من كلمة المرور القديمة بشكل آمن عبر قاعدة البيانات
+      const { data: userFound, error: authError } = await supabase
+        .rpc('secure_login', { 
+          p_username: user.username, 
+          p_password: oldPassword 
+        });
+
+      if (authError || !userFound || userFound.length === 0) {
         return { success: false, message: 'كلمة المرور القديمة غير صحيحة' };
       }
 
@@ -458,9 +467,6 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      const updatedUser = { ...user, password: newPassword };
-      setUser(updatedUser);
-      localStorage.setItem('site_user', JSON.stringify(updatedUser));
       return { success: true };
     } catch (error) {
       console.error('Change Password Error:', error);

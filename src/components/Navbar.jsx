@@ -111,7 +111,7 @@ const Navbar = () => {
         { to: '/current', label: t('nav.current') },
         { to: '/faculty', label: t('nav.faculty') },
         { to: '/academic-advisor', label: t('nav.ai_advisor') },
-        { to: '/roadmap', label: t('nav.roadmap') },
+        { to: '/current', label: lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans' },
         { to: '/academic-calendar', label: lang === 'ar' ? 'التقويم الجامعي' : 'Academic Calendar' },
         { to: '/honor-roll', label: lang === 'ar' ? 'لوحة الشرف' : 'Honor Roll' }
       ]
@@ -123,8 +123,7 @@ const Navbar = () => {
         { to: '/virtual-tour', label: t('nav.virtual_tour') },
         { to: '/live-labs', label: t('nav.live_labs') },
         { to: '/events', label: t('nav.events') },
-        { to: '/achievements', label: lang === 'ar' ? 'إنجازات الكلية' : 'Faculty Achievements' },
-        { to: '/contact', label: t('nav.contact') }
+        { to: '/achievements', label: lang === 'ar' ? 'إنجازات الكلية' : 'Faculty Achievements' }
       ]
     },
     {
@@ -228,7 +227,7 @@ const Navbar = () => {
       <nav className={`sidebar ${isMobileMenuOpen ? 'open' : ''} ${lang === 'ar' ? 'sidebar-rtl' : 'sidebar-ltr'}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
-            <div className="sidebar-logo clickable-logo" onClick={() => user ? navigate('/profile') : (setActiveTab('login'), toggleLogin(true))}>
+            <div className="sidebar-logo clickable-logo" onClick={() => { closeMenu(); if (user) navigate('/profile'); else { setActiveTab('login'); toggleLogin(true); } }}>
               <img src={user?.avatar_url || "/logo.png"} alt="Logo" className="logo-img profile-preview" />
               <div className="logo-info">
                 <span className="logo-text">{user ? (lang === 'ar' ? user.name?.ar || user.username : user.name?.en || user.username) : t('faculty_name')}</span>

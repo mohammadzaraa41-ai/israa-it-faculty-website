@@ -29,7 +29,6 @@ const Prospective = lazy(() => lazyRetry(() => import('../pages/Prospective')));
 const CurrentStudents = lazy(() => lazyRetry(() => import('../pages/CurrentStudents')));
 const Faculty = lazy(() => lazyRetry(() => import('../pages/Faculty')));
 const Alumni = lazy(() => lazyRetry(() => import('../pages/Alumni')));
-const Contact = lazy(() => lazyRetry(() => import('../pages/Contact')));
 const AcademicAdvisor = lazy(() => lazyRetry(() => import('../pages/AcademicAdvisor')));
 const ThreeDRoadmap = lazy(() => lazyRetry(() => import('../pages/ThreeDRoadmap')));
 const VirtualTour = lazy(() => lazyRetry(() => import('../pages/VirtualTour')));
@@ -92,7 +91,7 @@ const AnimatedRoutes = () => {
     else if (path === '/current' || path === '/roadmap' || path === '/events') currentClass = 'bg-current';
     else if (path === '/faculty' || path === '/live-labs') currentClass = 'bg-faculty';
     else if (path === '/alumni' || path === '/honor-roll') currentClass = 'bg-alumni';
-    else if (path === '/contact' || path === '/achievements') currentClass = 'bg-contact';
+    else if (path === '/achievements') currentClass = 'bg-contact';
     else if (path === '/academic-advisor' || path === '/dev-network') currentClass = 'bg-academic-advisor';
     
     document.body.classList.add(currentClass);
@@ -106,7 +105,6 @@ const AnimatedRoutes = () => {
         <Route path="/current" element={<PageWrapper><SEO title={lang === 'ar' ? 'الطلبة الحاليون' : 'Current Students'} /><CurrentStudents /></PageWrapper>} />
         <Route path="/faculty" element={<PageWrapper><SEO title={lang === 'ar' ? 'الهيئة التدريسية' : 'Faculty'} /><Faculty /></PageWrapper>} />
         <Route path="/alumni" element={<PageWrapper><SEO title={lang === 'ar' ? 'الخريجون' : 'Alumni'} /><Alumni /></PageWrapper>} />
-        <Route path="/contact" element={<PageWrapper><SEO title={lang === 'ar' ? 'تواصل معنا' : 'Contact Us'} /><Contact /></PageWrapper>} />
         
         <Route path="/academic-advisor" element={<PageWrapper><SEO title={lang === 'ar' ? 'الارشاد الأكاديمي' : 'Academic Advisor'} /><AcademicAdvisor /></PageWrapper>} />
         <Route path="/roadmap" element={<PageWrapper><SEO title={lang === 'ar' ? 'خريطة المواد 3D' : '3D Roadmap'} /><ThreeDRoadmap /></PageWrapper>} />

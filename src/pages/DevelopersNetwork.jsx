@@ -2,20 +2,50 @@ import React, { useState, useEffect } from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Code, GitBranch, Star, GitFork, Award, Zap, Users, ExternalLink, Flame, RefreshCw } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const DevelopersNetwork = () => {
   const { lang, t } = useLocale();
   const [activeTab, setActiveTab] = useState('leaderboard');
   const [repos, setRepos] = useState([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [loadingLeaderboard, setLoadingLeaderboard] = useState(true);
 
-  const leaderboardData = [
-    { id: 1, name: 'Ahmad Salem', points: 2850, solved: 42, avatar: 'AS', rank: 1, badge: 'Grandmaster' },
-    { id: 2, name: 'Sara Khalid', points: 2420, solved: 38, avatar: 'SK', rank: 2, badge: 'Expert' },
-    { id: 3, name: 'Omar Yassin', points: 2100, solved: 35, avatar: 'OY', rank: 3, badge: 'Pro' },
-    { id: 4, name: 'Lina Murad', points: 1850, solved: 29, avatar: 'LM', rank: 4, badge: 'Competitor' },
-    { id: 5, name: 'Zaid Fawzi', points: 1720, solved: 26, avatar: 'ZF', rank: 5, badge: 'Competitor' },
-  ];
+  useEffect(() => {
+    const fetchDevNetwork = async () => {
+      try {
+        const { data, error } = await supabase.from('dev_network').select('*').order('created_at', { ascending: false });
+        if (error) {
+          console.error("Error fetching dev network:", error);
+          // Fallback data if table doesn't exist
+          setLeaderboardData([
+            { id: 1, name: 'Ahmad Salem', points: 2850, solved: 42, avatar: 'AS', rank: 1, badge: 'Grandmaster' },
+            { id: 2, name: 'Sara Khalid', points: 2420, solved: 38, avatar: 'SK', rank: 2, badge: 'Expert' }
+          ]);
+        } else if (data && data.length > 0) {
+          const formatted = data.map((d, i) => ({
+            id: d.id,
+            name: lang === 'ar' ? (d.name_ar || d.name_en) : (d.name_en || d.name_ar),
+            points: d.points || Math.floor(Math.random() * 2000) + 500, // mock points if not in DB
+            solved: d.solved || Math.floor(Math.random() * 50) + 10,
+            avatar: (d.name_en || d.name_ar || 'U').substring(0, 2).toUpperCase(),
+            rank: i + 1,
+            badge: d.role || 'Developer',
+            github_url: d.github_url
+          })).sort((a, b) => b.points - a.points).map((d, i) => ({ ...d, rank: i + 1 }));
+          setLeaderboardData(formatted);
+        } else {
+          setLeaderboardData([]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingLeaderboard(false);
+      }
+    };
+    fetchDevNetwork();
+  }, [lang]);
 
   const competitions = [
     { 
@@ -133,7 +163,9 @@ const DevelopersNetwork = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {leaderboardData.map((user) => (
+                    {loadingLeaderboard ? (
+                      <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem' }}><RefreshCw className="accent-color spin" /></td></tr>
+                    ) : leaderboardData.length > 0 ? leaderboardData.map((user) => (
                       <motion.tr 
                         whileHover={{ background: 'rgba(255,255,255,0.05)' }}
                         key={user.id} 
@@ -147,7 +179,10 @@ const DevelopersNetwork = () => {
                             <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'var(--primary-color)', color: 'var(--accent-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
                               {user.avatar}
                             </div>
-                            <span>{user.name}</span>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                              {user.name} 
+                              {user.github_url && <a href={user.github_url} target="_blank" rel="noopener noreferrer"><ExternalLink size={14} color="var(--text-secondary)" /></a>}
+                            </span>
                           </div>
                         </td>
                         <td style={{ padding: '1.5rem' }}>{user.solved}</td>
@@ -158,7 +193,9 @@ const DevelopersNetwork = () => {
                           </span>
                         </td>
                       </motion.tr>
-                    ))}
+                    )) : (
+                      <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>{lang === 'ar' ? 'لا يوجد مطورين حالياً' : 'No developers yet'}</td></tr>
+                    )}
                   </tbody>
                 </table>
               </div>

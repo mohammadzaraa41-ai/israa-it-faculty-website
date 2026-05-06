@@ -37,9 +37,8 @@ const Footer = () => {
             <ul className="footer-links">
               <li><Link to="/prospective">{lang === 'ar' ? 'بوابة القبول' : 'Admissions Portal'}</Link></li>
               <li><Link to="/faculty">{lang === 'ar' ? 'البحث العلمي' : 'Scientific Research'}</Link></li>
-              <li><Link to="/roadmap">{lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans'}</Link></li>
+              <li><Link to="/current">{lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans'}</Link></li>
               <li><Link to="/academic-calendar">{lang === 'ar' ? 'التقويم الأكاديمي' : 'Academic Calendar'}</Link></li>
-              <li><a href="https://www.iu.edu.jo/index.php/ar/israa-library-ar" target="_blank" rel="noopener noreferrer">{lang === 'ar' ? 'المكتبة المركزية' : 'Central Library'}</a></li>
             </ul>
           </div>
 

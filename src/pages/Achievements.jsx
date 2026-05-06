@@ -98,13 +98,13 @@ const Achievements = () => {
           >
             <div style={{ height: '200px', width: '100%', position: 'relative' }}>
               <img 
-                src={ach.images?.[0] || ach.image_url || 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'} 
+                src={(Array.isArray(ach.images) ? ach.images[0] : (typeof ach.images === 'string' ? ach.images : null)) || ach.image_url || ach.image || 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'} 
                 onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'; }}
                 alt="achievement" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />
               <div style={{ position: 'absolute', top: '1rem', left: '1rem', background: 'var(--accent-color)', color: '#000', padding: '0.2rem 0.8rem', borderRadius: '50px', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                {ach.year}
+                {ach.year || new Date(ach.date).getFullYear() || ''}
               </div>
               {isAdmin && (
                 <div style={{ position: 'absolute', top: '1rem', right: '1rem', display: 'flex', gap: '0.5rem' }}>
@@ -116,10 +116,10 @@ const Achievements = () => {
 
             <div style={{ padding: '1.5rem' }}>
               <h3 style={{ fontSize: '1.3rem', marginBottom: '1rem', color: 'var(--primary-color)' }}>
-                {ach.title?.[lang] || ach.title?.ar || ach.title?.en || (typeof ach.title === 'string' ? ach.title : '')}
+                {ach.title?.[lang] || ach.title?.ar || ach.title?.en || (typeof ach.title === 'string' ? ach.title : '') || ach.name_ar || ach.name_en || 'إنجاز جديد'}
               </h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                {ach.summary?.[lang] || ach.summary?.ar || ach.summary?.en || (typeof ach.summary === 'string' ? ach.summary : '')}
+                {ach.summary?.[lang] || ach.summary?.ar || ach.summary?.en || (typeof ach.summary === 'string' ? ach.summary : '') || ach.description || ach.description_ar || ach.description_en || 'تفاصيل غير متوفرة'}
               </p>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--primary-light)', fontWeight: 'bold' }}>{ach.date}</span>
@@ -145,7 +145,7 @@ const Achievements = () => {
               
               <div style={{ height: '400px', width: '100%' }}>
                 <img 
-                  src={selectedAch.images?.[0] || selectedAch.image_url || 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'} 
+                  src={(Array.isArray(selectedAch.images) ? selectedAch.images[0] : (typeof selectedAch.images === 'string' ? selectedAch.images : null)) || selectedAch.image_url || selectedAch.image || 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'} 
                   onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1523240715632-d984bc31b32d?auto=format&fit=crop&q=80&w=800'; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
                 />
@@ -162,7 +162,7 @@ const Achievements = () => {
                 </div>
 
                 <h2 style={{ fontSize: '2.5rem', marginBottom: '2rem', color: 'var(--primary-color)' }}>
-                  {selectedAch.title?.[lang] || selectedAch.title?.ar || selectedAch.title?.en || (typeof selectedAch.title === 'string' ? selectedAch.title : '')}
+                  {selectedAch.title?.[lang] || selectedAch.title?.ar || selectedAch.title?.en || (typeof selectedAch.title === 'string' ? selectedAch.title : '') || selectedAch.name_ar || selectedAch.name_en || 'إنجاز جديد'}
                 </h2>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '3rem' }}>
@@ -177,7 +177,7 @@ const Achievements = () => {
                 <div className="report-content" style={{ color: 'var(--text-primary)', lineHeight: '1.8', fontSize: '1.1rem' }}>
                   <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', color: 'var(--primary-light)' }}><FileText size={20} /> {lang === 'ar' ? 'التقرير الكامل' : 'Full Report'}</h4>
                   <div style={{ whiteSpace: 'pre-wrap' }}>
-                    {selectedAch.report?.[lang] || selectedAch.report?.ar || selectedAch.report?.en || (typeof selectedAch.report === 'string' ? selectedAch.report : '')}
+                    {selectedAch.report?.[lang] || selectedAch.report?.ar || selectedAch.report?.en || (typeof selectedAch.report === 'string' ? selectedAch.report : '') || selectedAch.content || selectedAch.content_ar || selectedAch.summary?.[lang] || selectedAch.summary?.ar || (typeof selectedAch.summary === 'string' ? selectedAch.summary : '') || '---'}
                   </div>
                 </div>
               </div>

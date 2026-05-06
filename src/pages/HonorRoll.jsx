@@ -46,8 +46,9 @@ const HonorRoll = () => {
 
   // Group students by major and sort by year descending
   const groupedStudents = honorRoll.reduce((acc, student) => {
-    if (!acc[student.major]) acc[student.major] = [];
-    acc[student.major].push(student);
+    const majorKey = student.major || student.department_id || 'unassigned';
+    if (!acc[majorKey]) acc[majorKey] = [];
+    acc[majorKey].push(student);
     return acc;
   }, {});
 
@@ -108,13 +109,20 @@ const HonorRoll = () => {
                   </div>
                   
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
-                    {student.studentName ? (typeof student.studentName === 'object' ? student.studentName[lang] : (student.name_ar || student.studentName)) : '---'}
+                    {student.studentName 
+                      ? (typeof student.studentName === 'object' ? student.studentName[lang] : student.studentName) 
+                      : (lang === 'ar' ? (student.name_ar || student.name_en) : (student.name_en || student.name_ar)) || '---'}
                   </h3>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-secondary)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                      <Calendar size={16} /> {student.year}
+                      <Calendar size={16} /> {lang === 'ar' ? `سنة ${student.year}` : `Year ${student.year}`}
                     </div>
+                    {student.gpa && (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold', color: 'var(--accent-color)' }}>
+                        <Star size={16} fill="var(--accent-color)" /> GPA: {student.gpa}
+                      </div>
+                    )}
                   </div>
                 </motion.div>
               ))}
@@ -140,7 +148,8 @@ const HonorRoll = () => {
                 </div>
                 <div className="input-group">
                   <label>التخصص</label>
-                  <select className="custom-select" value={formData.major} onChange={e => setFormData({ ...formData, major: e.target.value })}>
+                  <select className="custom-select" value={formData.major || formData.department_id || ''} onChange={e => setFormData({ ...formData, major: e.target.value, department_id: e.target.value })}>
+                    <option value="">-- اختر التخصص --</option>
                     {departments.map(d => <option key={d.id} value={d.id}>{d.name.ar}</option>)}
                   </select>
                 </div>

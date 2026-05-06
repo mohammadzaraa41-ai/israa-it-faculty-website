@@ -145,7 +145,7 @@ const LiveLabs = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-light)', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                      <Clock size={14} /> {lang === 'ar' ? 'المحاضرة الحالية' : 'Current Class'}
+                      <Clock size={14} /> {lang === 'ar' ? 'وقت الانشغال الحالي' : 'Current Busy Time'}
                     </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
                       {lab.current_class || (lang === 'ar' ? 'لا يوجد' : 'None')}
@@ -153,7 +153,7 @@ const LiveLabs = () => {
                   </div>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--primary-light)', marginBottom: '0.5rem', fontSize: '0.85rem', fontWeight: 'bold' }}>
-                      <Clock size={14} /> {lang === 'ar' ? 'المحاضرة القادمة' : 'Next Class'}
+                      <Clock size={14} /> {lang === 'ar' ? 'وقت الانشغال القادم' : 'Next Busy Time'}
                     </div>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
                       {lab.next_class || (lang === 'ar' ? 'لا يوجد' : 'None')}
@@ -224,20 +224,20 @@ const LiveLabs = () => {
                 </div>
 
                 <div className="input-group">
-                  <label>{lang === 'ar' ? 'المحاضرة الحالية' : 'Current Class'}</label>
+                  <label>{lang === 'ar' ? 'وقت الانشغال الحالي' : 'Current Busy Time'}</label>
                   <input 
                     type="text" value={formData.current_class || ''} 
                     onChange={e => setFormData({ ...formData, current_class: e.target.value })}
-                    placeholder={lang === 'ar' ? 'مثال: مقدمة في البرمجة' : 'e.g., Intro to Programming'}
+                    placeholder={lang === 'ar' ? 'مثال: 10:00 ص - 11:30 ص' : 'e.g., 10:00 AM - 11:30 AM'}
                   />
                 </div>
 
                 <div className="input-group">
-                  <label>{lang === 'ar' ? 'المحاضرة القادمة' : 'Next Class'}</label>
+                  <label>{lang === 'ar' ? 'وقت الانشغال القادم' : 'Next Busy Time'}</label>
                   <input 
                     type="text" value={formData.next_class || ''} 
                     onChange={e => setFormData({ ...formData, next_class: e.target.value })}
-                    placeholder={lang === 'ar' ? 'مثال: تراكيب البيانات' : 'e.g., Data Structures'}
+                    placeholder={lang === 'ar' ? 'مثال: 12:00 م - 01:30 م' : 'e.g., 12:00 PM - 01:30 PM'}
                   />
                 </div>
 

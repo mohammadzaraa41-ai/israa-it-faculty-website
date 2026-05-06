@@ -48,6 +48,15 @@ const Alumni = () => {
     if (item[prefix] && typeof item[prefix] === 'string') return item[prefix];
     return '';
   };
+
+  const getArray = (val) => {
+    if (!val) return [];
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+       try { const parsed = JSON.parse(val); return Array.isArray(parsed) ? parsed : [val]; } catch(e) { return [val]; }
+    }
+    return [];
+  };
   
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
   const isAuthenticated = !!user;
@@ -460,26 +469,26 @@ const Alumni = () => {
                   {lang === 'ar' ? 'فريق العمل' : 'Project Team'}
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}><strong>{lang === 'ar' ? 'المشرف:' : 'Supervisor:'}</strong> {viewingProject.supervisor}</div>
-                  {viewingProject?.students?.map((s, i) => (
+                  <div style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}><strong>{lang === 'ar' ? 'المشرف:' : 'Supervisor:'}</strong> {viewingProject.supervisor || 'غير محدد'}</div>
+                  {getArray(viewingProject.students).map((s, i) => (
                     <div key={i} style={{ fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <CheckCircle size={14} color="#2ecc71" /> {s}
+                      <CheckCircle size={14} color="#2ecc71" /> {typeof s === 'string' ? s : (s.name || JSON.stringify(s))}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {viewingProject.files && viewingProject.files.length > 0 && (
+              {getArray(viewingProject.files).length > 0 && (
                 <div>
                   <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                     {lang === 'ar' ? 'ملفات المشروع' : 'Project Files'}
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    {viewingProject.files.map((file, i) => (
+                    {getArray(viewingProject.files).map((file, i) => (
                       <div key={i} className="glass-panel" style={{ padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem' }}>
                             <FileText size={16} color="var(--accent-color)" />
-                            <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                            <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name || 'ملف'}</span>
                          </div>
                          <div style={{ display: 'flex', gap: '0.4rem' }}>
                             <button className="btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem' }} onClick={() => handleViewFile(file.url)}>
@@ -496,16 +505,16 @@ const Alumni = () => {
               )}
             </div>
 
-            {viewingProject.images && viewingProject.images.length > 0 && (
+            {getArray(viewingProject.images).length > 0 && (
               <div>
                 <h4 style={{ fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                   {lang === 'ar' ? 'معرض صور المشروع' : 'Project Gallery'}
                 </h4>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
-                  {viewingProject.images.map((img, i) => (
+                  {getArray(viewingProject.images).map((img, i) => (
                     <motion.img 
                       key={i} 
-                      src={img} 
+                      src={typeof img === 'string' ? img : img.url} 
                       whileHover={{ scale: 1.05 }}
                       onClick={() => window.open(img, '_blank')}
                       style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }} 
@@ -572,9 +581,9 @@ const Alumni = () => {
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{(project.students || []).length} {lang === 'ar' ? 'طلاب' : 'Students'}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{getArray(project.students).length} {lang === 'ar' ? 'طلاب' : 'Students'}</span>
                   <span style={{ fontSize: '0.7rem', opacity: 0.4 }}>•</span>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{(project.images || []).length} {lang === 'ar' ? 'صور' : 'Photos'}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.6 }}>{getArray(project.images).length} {lang === 'ar' ? 'صور' : 'Photos'}</span>
                 </div>
                 <button className="btn-outline" style={{ padding: '0.3rem 0.6rem', fontSize: '0.7rem', borderRadius: '8px' }}>
                   {lang === 'ar' ? 'عرض التفاصيل' : 'View Details'}
