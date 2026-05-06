@@ -41,7 +41,14 @@ const Achievements = () => {
 
   const handleOpenEdit = (ach, e) => {
     e.stopPropagation();
-    setFormData({ ...ach });
+    setFormData({ 
+      ...ach,
+      title: typeof ach.title === 'string' ? { ar: ach.title, en: '' } : (ach.title || { ar: '', en: '' }),
+      summary: typeof ach.summary === 'string' ? { ar: ach.summary, en: '' } : (ach.summary || { ar: '', en: '' }),
+      report: typeof ach.report === 'string' ? { ar: ach.report, en: '' } : (ach.report || { ar: '', en: '' }),
+      participants: typeof ach.participants === 'string' ? { ar: ach.participants, en: '' } : (ach.participants || { ar: '', en: '' }),
+      images: ach.images || (ach.image_url ? [ach.image_url] : [''])
+    });
     setEditingAch(ach);
     setShowAddModal(true);
   };
@@ -185,16 +192,16 @@ const Achievements = () => {
               <h2 style={{ marginBottom: '2rem', color: 'var(--primary-color)' }}>{editingAch ? 'تعديل الإنجاز' : 'إضافة إنجاز جديد'}</h2>
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                 <div className="form-grid">
-                  <div className="input-group full-width"><label>العنوان (عربي)</label><input required value={formData.title.ar} onChange={e => setFormData({...formData, title: {...formData.title, ar: e.target.value}})} /></div>
-                  <div className="input-group full-width"><label>Title (EN)</label><input required value={formData.title.en} onChange={e => setFormData({...formData, title: {...formData.title, en: e.target.value}})} /></div>
-                  <div className="input-group full-width"><label>ملخص قصير (عربي)</label><textarea rows="2" value={formData.summary.ar} onChange={e => setFormData({...formData, summary: {...formData.summary, ar: e.target.value}})} /></div>
-                  <div className="input-group full-width"><label>Short Summary (EN)</label><textarea rows="2" value={formData.summary.en} onChange={e => setFormData({...formData, summary: {...formData.summary, en: e.target.value}})} /></div>
-                  <div className="input-group full-width"><label>التقرير الكامل (عربي)</label><textarea rows="5" value={formData.report.ar} onChange={e => setFormData({...formData, report: {...formData.report, ar: e.target.value}})} /></div>
-                  <div className="input-group full-width"><label>Full Report (EN)</label><textarea rows="5" value={formData.report.en} onChange={e => setFormData({...formData, report: {...formData.report, en: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>العنوان (عربي)</label><input required value={formData.title?.ar || ''} onChange={e => setFormData({...formData, title: {...formData.title, ar: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>Title (EN)</label><input required value={formData.title?.en || ''} onChange={e => setFormData({...formData, title: {...formData.title, en: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>ملخص قصير (عربي)</label><textarea rows="2" value={formData.summary?.ar || ''} onChange={e => setFormData({...formData, summary: {...formData.summary, ar: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>Short Summary (EN)</label><textarea rows="2" value={formData.summary?.en || ''} onChange={e => setFormData({...formData, summary: {...formData.summary, en: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>التقرير الكامل (عربي)</label><textarea rows="5" value={formData.report?.ar || ''} onChange={e => setFormData({...formData, report: {...formData.report, ar: e.target.value}})} /></div>
+                  <div className="input-group full-width"><label>Full Report (EN)</label><textarea rows="5" value={formData.report?.en || ''} onChange={e => setFormData({...formData, report: {...formData.report, en: e.target.value}})} /></div>
                   <div className="input-group">
                     <label>السنة الدراسية</label>
                     <select 
-                      value={formData.year} 
+                      value={formData.year || '1'} 
                       onChange={e => setFormData({...formData, year: e.target.value})}
                       style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
                     >
@@ -204,8 +211,8 @@ const Achievements = () => {
                       <option value="4">سنة رابعة</option>
                     </select>
                   </div>
-                  <div className="input-group"><label>التاريخ</label><input required type="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
-                  <div className="input-group full-width"><label>المشاركون</label><input value={formData.participants.ar} onChange={e => setFormData({...formData, participants: {...formData.participants, ar: e.target.value}})} placeholder="أسماء أعضاء هيئة التدريس، الطلاب..." /></div>
+                  <div className="input-group"><label>التاريخ</label><input required type="date" value={formData.date || ''} onChange={e => setFormData({...formData, date: e.target.value})} /></div>
+                  <div className="input-group full-width"><label>المشاركون</label><input value={formData.participants?.ar || ''} onChange={e => setFormData({...formData, participants: {...formData.participants, ar: e.target.value}})} placeholder="أسماء أعضاء هيئة التدريس، الطلاب..." /></div>
                   <div className="input-group full-width">
                     <label>{lang === 'ar' ? 'رفع صورة الإنجاز' : 'Upload Achievement Image'}</label>
                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
@@ -216,7 +223,7 @@ const Achievements = () => {
                           const file = e.target.files[0];
                           if (file) {
                             setIsUploading(true);
-                            const url = await uploadImage(file);
+                            const url = await uploadFile(file);
                             if (url) setFormData({...formData, images: [url]});
                             setIsUploading(false);
                           }
@@ -224,7 +231,7 @@ const Achievements = () => {
                         style={{ flex: 1 }}
                       />
                       {isUploading && <div className="loading-spinner-small" />}
-                      {formData.images[0] && <img src={formData.images[0]} style={{ width: '50px', height: '50px', borderRadius: '4px', objectFit: 'cover' }} alt="preview" />}
+                      {formData.images && formData.images[0] && <img src={formData.images[0]} style={{ width: '50px', height: '50px', borderRadius: '4px', objectFit: 'cover' }} alt="preview" />}
                     </div>
                   </div>
                 </div>
