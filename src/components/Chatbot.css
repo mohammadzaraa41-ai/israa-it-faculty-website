@@ -316,4 +316,10 @@
     right: 1rem !important;
     height: 470px;
   }
+  
+  .chatbot-fab {
+    bottom: 1.5rem !important;
+    width: 55px !important;
+    height: 55px !important;
+  }
 }

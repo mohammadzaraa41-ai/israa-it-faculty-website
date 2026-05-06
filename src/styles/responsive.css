@@ -257,3 +257,41 @@
   .glass-panel       { padding: 1rem !important; }
   .announcement-bar  { padding: 0.6rem 0.75rem !important; font-size: 0.8rem !important; }
 }
+
+/* =====================================================
+   MOBILE UX OPTIMIZATIONS (Touch, Hover, Form Zoom)
+   ===================================================== */
+
+/* Fix iOS Auto-Zoom on form inputs */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Global Text Overflow Prevention */
+body {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word; /* Important for long Arabic names/URLs */
+}
+
+/* Ensure Touch Targets are large enough */
+.utility-link, .contact-list li, .footer-links a, .tabs-row button {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}
+
+/* Disable Hover states on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover,
+  .btn-outline:hover,
+  .quick-reply-btn:hover,
+  .post-card:hover,
+  .glass-panel:hover {
+    transform: none !important;
+    filter: none !important;
+    box-shadow: inherit !important;
+  }
+}

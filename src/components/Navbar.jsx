@@ -184,7 +184,7 @@ const Navbar = () => {
 
           {/* Actions & Mobile Menu Button */}
           <div className="utility-actions">
-            <NotificationDropdown />
+            {['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role) && <NotificationDropdown />}
             <div className="utility-sep">|</div>
             <button className="utility-btn" onClick={(e) => { e.stopPropagation(); toggleTheme(); }}>
               {isDark ? <Sun size={14} /> : <Moon size={14} />}
