@@ -111,7 +111,9 @@ const HonorRoll = () => {
                   <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>
                     {student.studentName 
                       ? (typeof student.studentName === 'object' ? student.studentName[lang] : student.studentName) 
-                      : (lang === 'ar' ? (student.name_ar || student.name_en) : (student.name_en || student.name_ar)) || '---'}
+                      : student.student_name 
+                        ? (typeof student.student_name === 'object' ? student.student_name[lang] : student.student_name)
+                        : (lang === 'ar' ? (student.name_ar || student.name_en) : (student.name_en || student.name_ar)) || '---'}
                   </h3>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', color: 'var(--text-secondary)' }}>
