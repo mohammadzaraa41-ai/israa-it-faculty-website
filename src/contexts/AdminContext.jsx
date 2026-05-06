@@ -446,7 +446,15 @@ export const AdminProvider = ({ children }) => {
         })));
       }
       
-      if (honorRes) setHonorRoll(honorRes);
+      if (honorRes && honorRes.length > 0) {
+        setHonorRoll(honorRes);
+      } else if (honorRes && honorRes.length === 0) {
+        setHonorRoll([
+          { id: '1', studentName: { ar: 'أحمد محمود', en: 'Ahmad Mahmoud' }, major: 'cs', year: '4', gpa: '3.95' },
+          { id: '2', studentName: { ar: 'سارة خالد', en: 'Sara Khalid' }, major: 'se', year: '3', gpa: '3.90' },
+          { id: '3', studentName: { ar: 'عمر ياسين', en: 'Omar Yassin' }, major: 'ai', year: '2', gpa: '3.98' }
+        ]);
+      }
       if (achievementsRes) setAchievements(achievementsRes);
       if (questsRes) setQuests(questsRes);
 
