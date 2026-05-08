@@ -413,7 +413,16 @@ const FacultyManagement = ({
   const handleEdit = (member) => {
     if (!member) return;
     setIsEditing(member.id);
-    setFormData(member);
+    
+    // Ensure name is a string for the input field
+    const nameStr = typeof member.name === 'object' 
+      ? (member.name.ar || member.name.en || '') 
+      : (member.name || '');
+      
+    setFormData({
+      ...member,
+      name: nameStr
+    });
   };
 
   const handleSave = (e) => {

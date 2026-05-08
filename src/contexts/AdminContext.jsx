@@ -560,8 +560,8 @@ export const AdminProvider = ({ children }) => {
   const addFaculty = async (member) => {
     try {
       const cleanMember = {
-        name_ar: member.name?.ar || member.name,
-        name_en: member.name?.en || member.name,
+        name_ar: typeof member.name === 'object' ? (member.name.ar || member.name.en) : member.name,
+        name_en: typeof member.name === 'object' ? (member.name.en || member.name.ar) : member.name,
         department_id: member.departmentId || member.department_id,
         role: member.role,
         specialization: member.specialization,
@@ -570,50 +570,57 @@ export const AdminProvider = ({ children }) => {
         office_hours: member.officeHours || member.office_hours
       };
 
-      let { data, error } = await supabase.from('faculty_members').insert([cleanMember]).select();
+      const { data, error } = await supabase.from('faculty_members').insert([cleanMember]).select();
       
-      if (error && (error.message.includes('column') || error.code === '42703')) {
-        const legacyMember = {
-          name: member.name?.ar || member.name,
-          department_id: member.departmentId,
-          role: member.role,
-          specialization: member.specialization,
-          courses: Array.isArray(member.courses) ? member.courses.join(', ') : member.courses,
-          office: member.office,
-          office_hours: member.officeHours
+      if (!error && data) {
+        const normalized = {
+          ...data[0],
+          name: { ar: data[0].name_ar, en: data[0].name_en },
+          office: data[0].office_location,
+          officeHours: data[0].office_hours
         };
-        const fallback = await supabase.from('faculty_members').insert([legacyMember]).select();
-        data = fallback.data;
-        error = fallback.error;
-      }
-
-      if (error) throw error;
-      if (data) {
-        setFacultyMembers(prev => [...prev, data[0]]);
+        setFacultyMembers(prev => [...prev, normalized]);
         addToast(lang === 'ar' ? 'تمت الإضافة' : 'Added', lang === 'ar' ? 'تم إضافة عضو الهيئة بنجاح' : 'Faculty added successfully', 'success');
+        return { success: true };
+      } else {
+        throw error;
       }
     } catch (err) {
       console.error("Add Faculty Error:", err);
       addToast(lang === 'ar' ? 'خطأ في الحفظ' : 'Save Error', err.message, 'error');
+      return { success: false, error: err };
     }
   };
 
   const editFaculty = async (updatedMember) => {
-    const dbData = {
-      name: updatedMember.name,
-      department_id: updatedMember.departmentId || updatedMember.department_id,
-      role: updatedMember.role,
-      specialization: updatedMember.specialization,
-      office: updatedMember.office,
-      office_hours: updatedMember.officeHours || updatedMember.office_hours,
-      courses: Array.isArray(updatedMember.courses) ? updatedMember.courses.join(', ') : updatedMember.courses
-    };
-    const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updatedMember.id);
-    if (!error) {
-      setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { ...updatedMember } : m));
-      addToast('تم التحديث', 'تم تحديث البيانات بنجاح', 'success');
-    } else {
-      addToast('خطأ في التحديث', error?.message || 'فشل تحديث البيانات', 'error');
+    try {
+      const dbData = {
+        name_ar: typeof updatedMember.name === 'object' ? (updatedMember.name.ar || updatedMember.name.en) : updatedMember.name,
+        name_en: typeof updatedMember.name === 'object' ? (updatedMember.name.en || updatedMember.name.ar) : updatedMember.name,
+        department_id: updatedMember.departmentId || updatedMember.department_id,
+        role: updatedMember.role,
+        specialization: updatedMember.specialization,
+        office_location: updatedMember.office || updatedMember.office_location,
+        office_hours: updatedMember.officeHours || updatedMember.office_hours,
+        courses: Array.isArray(updatedMember.courses) ? updatedMember.courses.join(', ') : updatedMember.courses
+      };
+
+      const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updatedMember.id);
+      
+      if (!error) {
+        setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { 
+          ...updatedMember,
+          name: typeof updatedMember.name === 'object' ? updatedMember.name : { ar: updatedMember.name, en: updatedMember.name }
+        } : m));
+        addToast('تم التحديث', 'تم تحديث البيانات بنجاح', 'success');
+        return { success: true };
+      } else {
+        throw error;
+      }
+    } catch (err) {
+      console.error("Supabase Error (editFaculty):", err);
+      addToast('خطأ في التحديث', err?.message || 'فشل تحديث البيانات', 'error');
+      return { success: false, error: err };
     }
   };
 
