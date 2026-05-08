@@ -9,6 +9,7 @@ import {
   Edit2, 
   X, 
   Trophy, 
+  Clock,
   Image as ImageIcon,
   FileUp,
   Info,
