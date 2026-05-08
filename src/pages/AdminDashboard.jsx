@@ -53,6 +53,7 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('approvals');
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
@@ -201,6 +202,7 @@ const AdminDashboard = () => {
             updateUserRole={updateUserRole}
             updateUser={updateUser}
             departments={departments || []}
+            setSelectedUser={setSelectedUser}
           />
         )}
         {activeTab === 'register' && (
@@ -212,6 +214,66 @@ const AdminDashboard = () => {
           />
         )}
       </div>
+
+      {/* Global User Detail Modal - Outside glass panels for fixed positioning */}
+      {selectedUser && (
+        <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
+          <motion.div 
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="glass-panel modal-content-scrollable" 
+            onClick={e => e.stopPropagation()}
+            style={{ padding: '2.5rem', position: 'relative' }}
+          >
+            <button 
+              onClick={() => setSelectedUser(null)}
+              style={{ position: 'absolute', top: '1rem', left: lang === 'ar' ? '1rem' : 'auto', right: lang === 'ar' ? 'auto' : '1rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+            >
+              <X size={24} />
+            </button>
+
+            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <Users size={40} />
+              </div>
+              <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>
+                {selectedUser.name_ar || (typeof selectedUser.name === 'object' ? (selectedUser.name[lang] || selectedUser.name.ar) : selectedUser.name) || selectedUser.username}
+              </h2>
+              <p style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>#{selectedUser.username}</p>
+            </div>
+
+            <div style={{ display: 'grid', gap: '1rem' }}>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الرتبة' : 'Role'}</label>
+                <div style={{ fontWeight: 'bold' }}>{selectedUser.role}</div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'القسم' : 'Department'}</label>
+                <div style={{ fontWeight: 'bold' }}>
+                  {(() => {
+                    const dept = (departments || []).find(d => d.id === selectedUser.departmentId);
+                    return dept ? (dept.name?.[lang] || dept.name?.ar) : selectedUser.departmentId;
+                  })()}
+                </div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
+                <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Phone size={16} /> {selectedUser.phone_number || selectedUser.phone || '---'}
+                </div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الساعات المقطوعة' : 'Hours Completed'}</label>
+                <div style={{ fontWeight: 'bold' }}>{selectedUser.hours || 0}</div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date'}</label>
+                <div style={{ fontWeight: 'bold' }}>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'}</div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
@@ -887,10 +949,9 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
   );
 };
 
-const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [] }) => {
+const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [], setSelectedUser }) => {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedUser, setSelectedUser] = useState(null);
 
   const filteredUsers = users.filter(u => {
     const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
@@ -1016,66 +1077,6 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
         })}
       </div>
 
-      {/* User Detail Modal */}
-      {selectedUser && (
-        <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
-          <motion.div 
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="glass-panel modal-content-scrollable" 
-            onClick={e => e.stopPropagation()}
-            style={{ padding: '2.5rem', position: 'relative' }}
-          >
-            <button 
-              onClick={() => setSelectedUser(null)}
-              style={{ position: 'absolute', top: '1rem', left: lang === 'ar' ? '1rem' : 'auto', right: lang === 'ar' ? 'auto' : '1rem', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-            >
-              <X size={24} />
-            </button>
-
-            <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                <Users size={40} />
-              </div>
-              <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>
-                {selectedUser.name_ar || (typeof selectedUser.name === 'object' ? (selectedUser.name[lang] || selectedUser.name.ar) : selectedUser.name) || selectedUser.username}
-              </h2>
-              <p style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>#{selectedUser.username}</p>
-            </div>
-
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الرتبة' : 'Role'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.role}</div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'القسم' : 'Department'}</label>
-                <div style={{ fontWeight: 'bold' }}>
-                  {(() => {
-                    const dept = departments.find(d => d.id === selectedUser.departmentId);
-                    return dept ? (dept.name?.[lang] || dept.name?.ar) : selectedUser.departmentId;
-                  })()}
-                </div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Phone size={16} /> {selectedUser.phone_number || selectedUser.phone || '---'}
-                </div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الساعات المقطوعة' : 'Hours Completed'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.hours || 0}</div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'}</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-      
       {filteredUsers.length === 0 && (
         <div style={{ textAlign: 'center', padding: '5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '15px', border: '1px dashed var(--border-color)' }}>
           <Users size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
