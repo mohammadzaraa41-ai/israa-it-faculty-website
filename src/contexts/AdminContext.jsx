@@ -1126,41 +1126,49 @@ export const AdminProvider = ({ children }) => {
       finalUrl = uploadedUrl;
     }
 
-    const payload1 = { name: t.name, url: finalUrl, file_name: t.file };
-    const payload2 = { name: t.name, url: finalUrl };
-    const payload3 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl, file_name: t.file };
-    const payload4 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl };
-    const payload5 = { name_ar: t.name.ar, url: finalUrl };
-    const payload6 = { title_ar: t.name.ar, title_en: t.name.en, url: finalUrl };
-    const payload7 = { title_ar: t.name.ar, url: finalUrl };
+    const nameObj = typeof t.name === 'object' ? t.name : { ar: t.name, en: t.name };
+    const nameStr = nameObj.ar || nameObj.en || 'CV Template';
+
+    const payload1 = { name: nameObj, url: finalUrl, file_name: t.file };
+    const payload2 = { name: nameStr, url: finalUrl, file_name: t.file };
+    const payload3 = { name: nameStr, url: finalUrl };
+    const payload4 = { name_ar: nameObj.ar, name_en: nameObj.en, url: finalUrl, file_name: t.file };
+    const payload5 = { name_ar: nameObj.ar, name_en: nameObj.en, url: finalUrl };
+    const payload6 = { title: nameStr, url: finalUrl };
+    const payload7 = { template_name: nameStr, url: finalUrl };
+    const payload8 = { cv_name: nameStr, url: finalUrl };
 
     console.log('[addCvTemplate] Starting insertion fallbacks...');
 
     let result = await supabase.from('cv_templates').insert([payload1]).select();
     
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
-      console.log('[addCvTemplate] Fallback to payload2');
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload2 (name as string + file_name)');
       result = await supabase.from('cv_templates').insert([payload2]).select();
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
-      console.log('[addCvTemplate] Fallback to payload3');
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload3 (name as string)');
       result = await supabase.from('cv_templates').insert([payload3]).select();
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
-      console.log('[addCvTemplate] Fallback to payload4');
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload4 (name_ar/name_en)');
       result = await supabase.from('cv_templates').insert([payload4]).select();
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
       console.log('[addCvTemplate] Fallback to payload5');
       result = await supabase.from('cv_templates').insert([payload5]).select();
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
-      console.log('[addCvTemplate] Fallback to payload6');
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload6 (title as string)');
       result = await supabase.from('cv_templates').insert([payload6]).select();
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
-      console.log('[addCvTemplate] Fallback to payload7');
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload7 (template_name)');
       result = await supabase.from('cv_templates').insert([payload7]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      console.log('[addCvTemplate] Fallback to payload8 (cv_name)');
+      result = await supabase.from('cv_templates').insert([payload8]).select();
     }
 
     const { data, error } = result;
@@ -1180,24 +1188,39 @@ export const AdminProvider = ({ children }) => {
   };
 
   const editCvTemplate = async (t) => {
-    const payload1 = { name: t.name || { ar: t.name_ar, en: t.name_en }, url: t.url, file_name: t.file_name || t.file };
-    const payload2 = { name: t.name || { ar: t.name_ar, en: t.name_en }, url: t.url };
-    const payload3 = { name_ar: t.name_ar || t.name?.ar, name_en: t.name_en || t.name?.en, url: t.url, file_name: t.file_name || t.file };
-    const payload4 = { name_ar: t.name_ar || t.name?.ar, name_en: t.name_en || t.name?.en, url: t.url };
-    const payload5 = { name_ar: t.name_ar || t.name?.ar, url: t.url };
+    const nameObj = typeof t.name === 'object' && t.name !== null ? t.name : { ar: t.name_ar || t.name, en: t.name_en || t.name };
+    const nameStr = nameObj.ar || nameObj.en || t.name_ar || t.name || 'CV Template';
+
+    const payload1 = { name: nameObj, url: t.url, file_name: t.file_name || t.file };
+    const payload2 = { name: nameStr, url: t.url, file_name: t.file_name || t.file };
+    const payload3 = { name: nameStr, url: t.url };
+    const payload4 = { name_ar: nameObj.ar, name_en: nameObj.en, url: t.url, file_name: t.file_name || t.file };
+    const payload5 = { name_ar: nameObj.ar, name_en: nameObj.en, url: t.url };
+    const payload6 = { title: nameStr, url: t.url };
+    const payload7 = { template_name: nameStr, url: t.url };
+    const payload8 = { cv_name: nameStr, url: t.url };
 
     let result = await supabase.from('cv_templates').update(payload1).eq('id', t.id);
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
       result = await supabase.from('cv_templates').update(payload2).eq('id', t.id);
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
       result = await supabase.from('cv_templates').update(payload3).eq('id', t.id);
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
       result = await supabase.from('cv_templates').update(payload4).eq('id', t.id);
     }
-    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
       result = await supabase.from('cv_templates').update(payload5).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      result = await supabase.from('cv_templates').update(payload6).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      result = await supabase.from('cv_templates').update(payload7).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703' || result.error.message.includes('type'))) {
+      result = await supabase.from('cv_templates').update(payload8).eq('id', t.id);
     }
 
     const { error } = result;
