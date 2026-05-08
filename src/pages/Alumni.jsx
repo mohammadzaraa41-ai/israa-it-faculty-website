@@ -571,7 +571,11 @@ const Alumni = () => {
 
             {isAdmin && (
               <div style={{ marginTop: '4rem', padding: '1rem', border: '1px dashed #ff4444', borderRadius: '8px', opacity: 0.5 }}>
-                <p style={{ color: '#ff4444', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Debug Mode: Raw Data</p>
+                <p style={{ color: '#ff4444', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Debug Mode: Raw Data & Schema Discovery</p>
+                <div style={{ marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
+                  <p style={{ fontSize: '0.7rem', color: 'var(--accent-color)' }}>Detected Columns in Table:</p>
+                  <code style={{ fontSize: '0.7rem' }}>{Object.keys(viewingProject).filter(k => !['name', 'notes'].includes(k)).join(', ')}</code>
+                </div>
                 <pre style={{ fontSize: '0.7rem', overflow: 'auto', maxHeight: '200px' }}>
                   {JSON.stringify(viewingProject, null, 2)}
                 </pre>
