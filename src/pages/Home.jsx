@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLocale } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock, Edit2, CornerDownRight, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock, Edit2, CornerDownRight, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X, Bell } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
@@ -9,11 +10,11 @@ import { useToast } from '../contexts/ToastContext';
 import './Home.css';
 
 const Home = () => {
+  const navigate = useNavigate();
   const { lang, t } = useLocale();
   const { addToast } = useToast();
-  const { user, toggleLogin } = useAuth();
-  const { users } = useAuth();
-  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading } = useAdmin();
+  const { user, toggleLogin, users, pendingUsers, alumniRequests } = useAuth();
+  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
   const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
   const [showCommentForm, setShowCommentForm] = useState(null);
@@ -405,6 +406,37 @@ const Home = () => {
         </main>
 
         <aside className="feed-sidebar">
+          {isAdmin && ((pendingUsers && pendingUsers.length > 0) || (pendingPosts && pendingPosts.length > 0) || (alumniRequests && alumniRequests.length > 0)) && (
+            <div className="glass-panel sidebar-widget" style={{ marginBottom: '1.5rem', border: '1px solid var(--primary-color)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--primary-color)' }}>
+                <Bell size={24} />
+                <h3 style={{ margin: 0 }}>{lang === 'ar' ? "إشعارات الإدارة" : "Admin Notifications"}</h3>
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {pendingUsers && pendingUsers.length > 0 && (
+                  <li style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
+                    <span>{lang === 'ar' ? "طلبات تسجيل:" : "Registration Requests:"}</span>
+                    <strong style={{ color: '#e74c3c' }}>{pendingUsers.length}</strong>
+                  </li>
+                )}
+                {pendingPosts && pendingPosts.length > 0 && (
+                  <li style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
+                    <span>{lang === 'ar' ? "منشورات معلقة:" : "Pending Posts:"}</span>
+                    <strong style={{ color: '#f1c40f' }}>{pendingPosts.length}</strong>
+                  </li>
+                )}
+                {alumniRequests && alumniRequests.length > 0 && (
+                  <li style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
+                    <span>{lang === 'ar' ? "طلبات خريجين:" : "Alumni Requests:"}</span>
+                    <strong style={{ color: '#3498db' }}>{alumniRequests.length}</strong>
+                  </li>
+                )}
+              </ul>
+              <button className="btn-primary" style={{ width: '100%', marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate('/admin')}>
+                {lang === 'ar' ? "المراجعة الآن" : "Review Now"}
+              </button>
+            </div>
+          )}
 
           <div className="glass-panel sidebar-widget">
             <h3>{lang === 'ar' ? "الأحداث القادمة" : "Upcoming Events"}</h3>
