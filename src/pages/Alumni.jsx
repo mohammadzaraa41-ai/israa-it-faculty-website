@@ -412,7 +412,7 @@ const CareerSection = memo(({
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><FileText size={16} color="var(--accent-color)" /><span>{getLoc(cv, 'name', lang)}</span></div>
                 {isAdmin && (
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Edit2 size={16} color="var(--primary-light)" onClick={(e) => { e.stopPropagation(); setModalData({ ...cv, nameAr: cv.name_ar, nameEn: cv.name_en }); setActiveModal('cv'); }} />
+                    <Edit2 size={16} color="var(--primary-light)" onClick={(e) => { e.stopPropagation(); setModalData({ id: cv.id, nameAr: cv.name_ar || cv.name?.ar, nameEn: cv.name_en || cv.name?.en, url: cv.url, file_name: cv.file_name || cv.file }); setActiveModal('cv'); }} />
                     <Trash2 size={16} color="#ff4444" onClick={(e) => { e.stopPropagation(); deleteCvTemplate(cv.id); }} />
                   </div>
                 )}
@@ -439,7 +439,10 @@ const CareerSection = memo(({
               <div key={res.id} className="glass-panel" style={{ padding: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                   <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{getLoc(res, 'title', lang)}</span>
-                  {isAdmin && <Trash2 size={16} color="#ff4444" onClick={() => deleteInterviewResource(res.id)} />}
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {isAdmin && <Edit2 size={16} color="var(--primary-light)" onClick={() => { setModalData({ id: res.id, titleAr: res.title_ar || res.title?.ar, titleEn: res.title_en || res.title?.en, type: res.type, url: res.url }); setActiveModal('interview'); }} />}
+                    {isAdmin && <Trash2 size={16} color="#ff4444" onClick={() => deleteInterviewResource(res.id)} />}
+                  </div>
                 </div>
                 <button onClick={() => window.open(res.url, '_blank')} className="btn-outline" style={{ width: '100%', fontSize: '0.75rem' }}>{lang === 'ar' ? 'فتح المورد' : 'Open Resource'}</button>
               </div>
@@ -454,7 +457,10 @@ const CareerSection = memo(({
             <div key={tip.id} className="glass-panel" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{getLoc(tip, 'title', lang)}</span>
-                {isAdmin && <Trash2 size={16} color="#ff4444" onClick={() => deleteLinkedinTip(tip.id)} />}
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  {isAdmin && <Edit2 size={16} color="var(--primary-light)" onClick={() => { setModalData({ id: tip.id, titleAr: tip.title_ar || tip.title?.ar, titleEn: tip.title_en || tip.title?.en, type: tip.type, content: tip.content, url: tip.url }); setActiveModal('linkedin'); }} />}
+                  {isAdmin && <Trash2 size={16} color="#ff4444" onClick={() => deleteLinkedinTip(tip.id)} />}
+                </div>
               </div>
               <p style={{ fontSize: '0.8rem', opacity: 0.8 }}>{tip.content || tip.url}</p>
             </div>
@@ -573,18 +579,20 @@ const Alumni = () => {
         {activeModal && (
           <AdminModal lang={lang} isSubmitting={isSubmitting} onClose={() => setActiveModal(null)} title={
               activeModal === 'cv' ? (lang === 'ar' ? 'قالب السيرة الذاتية' : 'CV Template') :
-              activeModal === 'interview' ? (lang === 'ar' ? 'إضافة مقابلة' : 'Add Interview') :
+              activeModal === 'interview' ? (lang === 'ar' ? 'إضافة/تعديل مقابلة' : 'Add/Edit Interview') :
               (lang === 'ar' ? 'LinkedIn نصيحة' : 'LinkedIn Tip')
           } onSave={async () => {
               setIsSubmitting(true);
               try {
                 if (activeModal === 'cv') {
-                  if (modalData.id) await editCvTemplate(modalData.id, modalData.nameAr, lang);
+                  if (modalData.id) await editCvTemplate({ id: modalData.id, name: { ar: modalData.nameAr, en: modalData.nameEn }, url: modalData.url, file_name: modalData.file_name });
                   else await addCvTemplate({ name: { ar: modalData.nameAr, en: modalData.nameEn }, file: modalData.file.name, url: URL.createObjectURL(modalData.file), fileObject: modalData.file });
                 } else if (activeModal === 'interview') {
-                  await addInterviewResource({ title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, url: modalData.url });
+                  if (modalData.id) await editInterviewResource({ id: modalData.id, title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, url: modalData.url });
+                  else await addInterviewResource({ title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, url: modalData.url });
                 } else if (activeModal === 'linkedin') {
-                  await addLinkedinTip({ title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, content: modalData.content, url: modalData.url });
+                  if (modalData.id) await editLinkedinTip({ id: modalData.id, title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, content: modalData.content, url: modalData.url });
+                  else await addLinkedinTip({ title: { ar: modalData.titleAr, en: modalData.titleEn }, type: modalData.type, content: modalData.content, url: modalData.url });
                 }
                 setActiveModal(null); setModalData({});
               } catch (e) { alert('Save failed'); } finally { setIsSubmitting(false); }
