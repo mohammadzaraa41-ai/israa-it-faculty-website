@@ -334,8 +334,6 @@ export const AdminProvider = ({ children }) => {
 
   const uploadFile = async (file, bucket = 'faculty_uploads') => {
     try {
-      addToast(lang === 'ar' ? 'جاري الرفع...' : 'Uploading...', lang === 'ar' ? 'يرجى الانتظار' : 'Please wait', 'info');
-      
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -344,18 +342,15 @@ export const AdminProvider = ({ children }) => {
         .from(bucket)
         .upload(filePath, file);
 
-      if (uploadError) {
-        addToast(lang === 'ar' ? 'فشل الرفع' : 'Upload Failed', uploadError.message, 'error');
-        throw uploadError;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
         .from(bucket)
         .getPublicUrl(filePath);
 
-      addToast(lang === 'ar' ? 'تم الرفع' : 'Uploaded', lang === 'ar' ? 'جاري حفظ البيانات...' : 'Saving...', 'success');
       return publicUrl;
     } catch (error) {
+      console.error("Upload error:", error);
       return null;
     }
   };
@@ -428,7 +423,11 @@ export const AdminProvider = ({ children }) => {
           name_ar: p.name_ar || p.name?.ar || 'مشروع',
           name_en: p.name_en || p.name?.en || 'Project',
           notes_ar: p.notes_ar || p.notes?.ar || '',
-          notes_en: p.notes_en || p.notes?.en || ''
+          notes_en: p.notes_en || p.notes?.en || '',
+          supervisor: p.supervisor || p.instructor || p.doctor || '',
+          students: p.students || [],
+          files: p.files || [],
+          images: p.images || []
         })));
       }
       
@@ -1053,7 +1052,7 @@ export const AdminProvider = ({ children }) => {
   };
 
   const editProject = async (p) => {
-    addToast(lang === 'ar' ? 'جاري الحفظ' : 'Saving', lang === 'ar' ? 'جاري رفع الملفات وتحديث البيانات...' : 'Uploading files and updating data...', 'info');
+    addToast(lang === 'ar' ? 'جاري الحفظ' : 'Saving', lang === 'ar' ? 'جاري معالجة الملفات وتحديث البيانات...' : 'Processing files and updating data...', 'info');
     
     // 1. Upload files
     const uploadedFiles = [];
@@ -1092,25 +1091,45 @@ export const AdminProvider = ({ children }) => {
       images: uploadedImages
     };
     
-    let { error } = await supabase.from('project_bank').update(dbData).eq('id', p.id);
+    const tryUpdate = async (payload) => {
+       let res = await supabase.from('project_bank').update(payload).eq('id', p.id);
+       
+       if (res.error && (res.error.message.includes('supervisor') || res.error.code === '42703')) {
+         const { supervisor, ...rest } = payload;
+         res = await supabase.from('project_bank').update({ ...rest, instructor: supervisor }).eq('id', p.id);
+         if (res.error) res = await supabase.from('project_bank').update({ ...rest, doctor: supervisor }).eq('id', p.id);
+         if (res.error) res = await supabase.from('project_bank').update(rest).eq('id', p.id);
+       }
+       
+       if (res.error && (res.error.message.includes('json') || res.error.message.includes('array'))) {
+         const stringified = {
+           ...payload,
+           students: JSON.stringify(payload.students),
+           files: JSON.stringify(payload.files),
+           images: JSON.stringify(payload.images)
+         };
+         res = await supabase.from('project_bank').update(stringified).eq('id', p.id);
+       }
+       return res;
+    };
+
+    let result = await tryUpdate(dbData);
     
-    if (error && error.message.includes('supervisor')) {
-      const { supervisor, ...fallbackData } = dbData;
-      const fallback = await supabase.from('project_bank').update(fallbackData).eq('id', p.id);
-      error = fallback.error;
-    }
-    
-    if (!error) {
-      setProjectBank(prev => prev.map(oldP => oldP.id === p.id ? { ...oldP, ...dbData } : oldP));
+    if (!result.error) {
+      const updatedItem = {
+        ...dbData,
+        id: p.id
+      };
+      setProjectBank(prev => prev.map(oldP => oldP.id === p.id ? updatedItem : oldP));
       addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', lang === 'ar' ? 'تم تعديل المشروع بنجاح' : 'Project updated', 'success');
     } else {
-      addToast(lang === 'ar' ? 'خطأ' : 'Error', error.message, 'error');
+      addToast(lang === 'ar' ? 'خطأ' : 'Error', result.error.message, 'error');
     }
   };
 
   // Final verified project insertion logic - 3-level fallback
   const addProject = async (p) => {
-    addToast(lang === 'ar' ? 'جاري الرفع' : 'Uploading', lang === 'ar' ? 'جاري رفع الملفات والصور...' : 'Uploading files and images...', 'info');
+    addToast(lang === 'ar' ? 'جاري الحفظ' : 'Saving', lang === 'ar' ? 'جاري معالجة الملفات والبيانات...' : 'Processing files and data...', 'info');
     
     // 1. Upload files
     const uploadedFiles = [];
@@ -1136,49 +1155,82 @@ export const AdminProvider = ({ children }) => {
       }
     }
 
-    const newData = {
-      name_ar: p.name.ar, 
-      name_en: p.name.en, 
+    const baseData = {
+      name_ar: p.name.ar,
+      name_en: p.name.en,
       students: p.students,
-      supervisor: p.supervisor, 
+      supervisor: p.supervisor,
       rating: p.rating,
-      notes_ar: p.notes.ar, 
-      notes_en: p.notes.en, 
-      files: uploadedFiles, 
+      notes_ar: p.notes.ar,
+      notes_en: p.notes.en,
+      files: uploadedFiles,
       images: uploadedImages,
       link: p.link
     };
 
-    // L2 fallback: extreme minimum
-    const minimalData = {
-      name_ar: p.name.ar, 
-      rating: p.rating, 
-      notes_ar: p.notes.ar
+    const tryInsert = async (payload) => {
+      // Try as is
+      let res = await supabase.from('project_bank').insert([payload]).select();
+      
+      // If error is about supervisor column, try alternatives
+      if (res.error && (res.error.message.includes('supervisor') || res.error.code === '42703')) {
+        const { supervisor, ...rest } = payload;
+        // Try 'instructor'
+        res = await supabase.from('project_bank').insert([{ ...rest, instructor: supervisor }]).select();
+        if (res.error) {
+          // Try 'doctor'
+          res = await supabase.from('project_bank').insert([{ ...rest, doctor: supervisor }]).select();
+        }
+        if (res.error) {
+          // Try without supervisor entirely
+          res = await supabase.from('project_bank').insert([rest]).select();
+        }
+      }
+
+      // If still error and looks like array/json issue, try stringifying
+      if (res.error && (res.error.message.includes('json') || res.error.message.includes('array') || res.error.code === '22P02')) {
+        const stringified = {
+          ...payload,
+          students: JSON.stringify(payload.students),
+          files: JSON.stringify(payload.files),
+          images: JSON.stringify(payload.images)
+        };
+        res = await supabase.from('project_bank').insert([stringified]).select();
+      }
+
+      return res;
     };
 
-    let { data, error } = await supabase.from('project_bank').insert([newData]).select();
-    
-    if (error) {
-      console.error("Project Bank Add Error:", error);
-      // Fallback 1: Try without supervisor
-      const { supervisor, ...legacyData } = newData;
-      const fallback1 = await supabase.from('project_bank').insert([legacyData]).select();
-      
-      if (fallback1.error) {
-        // Fallback 2: Absolute minimum
-        const fallback2 = await supabase.from('project_bank').insert([minimalData]).select();
-        data = fallback2.data;
-        error = fallback2.error;
-      } else {
-        data = fallback1.data;
-        error = null;
-      }
+    let result = await tryInsert(baseData);
+
+    // Final fallback: Minimal data
+    if (result.error) {
+      console.error("Project Bank Add Failed, trying minimal:", result.error);
+      const minimal = {
+        name_ar: p.name.ar,
+        rating: p.rating,
+        notes_ar: p.notes.ar
+      };
+      result = await supabase.from('project_bank').insert([minimal]).select();
     }
-    if (!error && data) {
-      setProjectBank(prev => [...prev, { ...data[0], name: p.name, notes: p.notes }]);
-      addToast(lang === 'ar' ? 'تم بنجاح' : 'Success', lang === 'ar' ? 'تم إضافة المشروع لبنك المشاريع' : 'Project added', 'success');
-    } else if (error) {
-      addToast(lang === 'ar' ? 'خطأ' : 'Error', error.message, 'error');
+
+    if (!result.error && result.data) {
+      const dbItem = result.data[0];
+      const mappedNew = {
+        ...dbItem,
+        name_ar: dbItem.name_ar || (typeof dbItem.name === 'object' ? dbItem.name.ar : null) || p.name.ar,
+        name_en: dbItem.name_en || (typeof dbItem.name === 'object' ? dbItem.name.en : null) || p.name.en,
+        notes_ar: dbItem.notes_ar || (typeof dbItem.notes === 'object' ? dbItem.notes.ar : null) || p.notes.ar,
+        notes_en: dbItem.notes_en || (typeof dbItem.notes === 'object' ? dbItem.notes.en : null) || p.notes.en,
+        supervisor: dbItem.supervisor || dbItem.instructor || dbItem.doctor || p.supervisor,
+        students: (typeof dbItem.students === 'string' ? JSON.parse(dbItem.students) : dbItem.students) || p.students,
+        files: (typeof dbItem.files === 'string' ? JSON.parse(dbItem.files) : dbItem.files) || p.files,
+        images: (typeof dbItem.images === 'string' ? JSON.parse(dbItem.images) : dbItem.images) || p.images
+      };
+      setProjectBank(prev => [...prev, mappedNew]);
+      addToast(lang === 'ar' ? 'تم بنجاح' : 'Success', lang === 'ar' ? 'تم إضافة المشروع بنجاح' : 'Project added successfully', 'success');
+    } else {
+      addToast(lang === 'ar' ? 'خطأ' : 'Error', result.error?.message || 'Failed to save', 'error');
     }
   };
 
