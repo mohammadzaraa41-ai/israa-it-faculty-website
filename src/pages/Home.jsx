@@ -36,7 +36,7 @@ const Home = () => {
       const timer = setTimeout(() => setShowEventsPopup(true), 1500); // Small delay for effect
       return () => clearTimeout(timer);
     }
-  }, [events]);
+  }, [homeEvents]);
 
   const closeEventsPopup = () => {
     setShowEventsPopup(false);
