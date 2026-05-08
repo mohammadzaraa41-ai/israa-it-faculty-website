@@ -1092,7 +1092,6 @@ export const AdminProvider = ({ children }) => {
     };
     
     const tryUpdate = async (payload) => {
-       // Helper to try update with alternative column names
        const attempt = async (currentPayload) => {
          return await supabase.from('project_bank').update(currentPayload).eq('id', p.id);
        };
@@ -1120,12 +1119,12 @@ export const AdminProvider = ({ children }) => {
          res = await attempt(newPayload);
        }
        
-       if (res.error && (res.error.message.includes('json') || res.error.message.includes('array'))) {
+       if (res.error && (res.error.message.includes('json') || res.error.message.includes('array') || res.error.code === '22P02')) {
          const stringified = {
            ...payload,
-           students: JSON.stringify(payload.students),
-           files: JSON.stringify(payload.files),
-           images: JSON.stringify(payload.images)
+           students: typeof payload.students === 'object' ? JSON.stringify(payload.students) : payload.students,
+           files: typeof payload.files === 'object' ? JSON.stringify(payload.files) : payload.files,
+           images: typeof payload.images === 'object' ? JSON.stringify(payload.images) : payload.images
          };
          res = await attempt(stringified);
        }
@@ -1194,6 +1193,7 @@ export const AdminProvider = ({ children }) => {
 
       let res = await attempt(payload);
       
+      // 1. If error is about column names, try alternatives
       if (res.error && (res.error.message.includes('column') || res.error.code === '42703')) {
         const errCol = res.error.message.split('"')[1] || '';
         const newPayload = { ...payload };
@@ -1213,22 +1213,32 @@ export const AdminProvider = ({ children }) => {
         }
         
         res = await attempt(newPayload);
-        
-        // If still failing, try a very minimal version
-        if (res.error) {
-          const minimal = { name_ar: payload.name_ar, rating: payload.rating };
-          res = await attempt(minimal);
-        }
       }
 
-      if (res.error && (res.error.message.includes('json') || res.error.message.includes('array'))) {
+      // 2. If error is about JSON/Array types, try stringifying
+      if (res.error && (res.error.message.includes('json') || res.error.message.includes('array') || res.error.code === '22P02')) {
         const stringified = {
           ...payload,
           students: typeof payload.students === 'object' ? JSON.stringify(payload.students) : payload.students,
           files: typeof payload.files === 'object' ? JSON.stringify(payload.files) : payload.files,
           images: typeof payload.images === 'object' ? JSON.stringify(payload.images) : payload.images
         };
+        // Also try alternatives for supervisor if it was already swapped
+        if (res.error.message.includes('supervisor') || res.error.message.includes('instructor') || res.error.message.includes('doctor')) {
+           // already handled above or will be tried by postgres
+        }
         res = await attempt(stringified);
+      }
+
+      // 3. If STILL failing, try a very minimal version as absolute last resort
+      if (res.error) {
+        console.error("Critical insert failure, trying minimal:", res.error);
+        const minimal = { 
+          name_ar: payload.name_ar, 
+          rating: payload.rating,
+          supervisor: payload.supervisor || payload.instructor || payload.doctor || null
+        };
+        res = await attempt(minimal);
       }
 
       return res;
