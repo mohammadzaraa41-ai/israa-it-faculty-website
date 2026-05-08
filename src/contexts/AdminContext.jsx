@@ -650,37 +650,38 @@ export const AdminProvider = ({ children }) => {
     if (!user) return { status: 'ERROR' };
     const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role);
     
-    let finalImageUrl = postData.image;
+    let finalImageUrls = [];
 
-    if (postData.imageFile) {
+    if (postData.imageFiles && postData.imageFiles.length > 0) {
       try {
-        const file = postData.imageFile;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `post-${Date.now()}.${fileExt}`;
-        const filePath = `posts/${fileName}`;
+        for (const file of postData.imageFiles) {
+          const fileExt = file.name.split('.').pop();
+          const fileName = `post-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `posts/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('faculty_uploads')
-          .upload(filePath, file);
+          const { error: uploadError } = await supabase.storage
+            .from('faculty_uploads')
+            .upload(filePath, file);
 
-        if (uploadError) {
-          console.error("Upload Error:", uploadError);
-          return { status: 'ERROR', message: lang === 'ar' ? 'فشل رفع الصورة: ' + uploadError.message : 'Image upload failed: ' + uploadError.message };
+          if (!uploadError) {
+            const { data: { publicUrl } } = supabase.storage
+              .from('faculty_uploads')
+              .getPublicUrl(filePath);
+            finalImageUrls.push(publicUrl);
+          }
         }
-
-        const { data: { publicUrl } } = supabase.storage
-          .from('faculty_uploads')
-          .getPublicUrl(filePath);
-        finalImageUrl = publicUrl;
       } catch (err) {
         console.error("Image Upload Exception:", err);
-        return { status: 'ERROR', message: err.message };
       }
+    } else if (postData.image) {
+      finalImageUrls = [postData.image];
     }
+
+    const imageValue = finalImageUrls.length > 0 ? finalImageUrls.join(',') : null;
 
     const { data, error } = await supabase.from('posts').insert([{
       content: postData.content,
-      image: finalImageUrl,
+      image: imageValue,
       author_username: user.username,
       author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
       author_role: user.role,
