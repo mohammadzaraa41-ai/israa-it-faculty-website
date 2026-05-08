@@ -1064,6 +1064,10 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
                 </div>
               </div>
               <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الساعات المقطوعة' : 'Hours Completed'}</label>
+                <div style={{ fontWeight: 'bold' }}>{selectedUser.hours || 0}</div>
+              </div>
+              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date'}</label>
                 <div style={{ fontWeight: 'bold' }}>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'}</div>
               </div>

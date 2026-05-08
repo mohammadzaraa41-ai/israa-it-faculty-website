@@ -314,17 +314,21 @@ export const AuthProvider = ({ children }) => {
       });
 
       if (insertErr) {
+        console.error("RPC Error:", insertErr);
         return false;
       }
 
-      setUsers(prev => [...prev, { 
-        id: 'u' + Date.now(),
-        username: userToApprove.universityId,
-        role: 'STUDENT',
-        name: { ar: userToApprove.fullName, en: '' },
-        departmentId: (['cs', 'se', 'cyber', 'dsai', 'ns', 'mm', 'cis', 'ai'].includes(userToApprove.major)) ? userToApprove.major : (userToApprove.major || 'cs'),
-        is_alumni: false
-      }]);
+      // Save extra fields after account creation
+      await supabase.from('users').update({
+        phone: userToApprove.phone || userToApprove.phone_number,
+        major: userToApprove.major,
+        year_sem: userToApprove.yearSem || userToApprove.year_sem,
+        hours: userToApprove.hours || 0,
+        name_ar: userToApprove.fullName // Ensure name_ar is set
+      }).ilike('username', userToApprove.universityId);
+
+      // Force refresh users list from DB
+      await fetchAllUsers();
 
       await supabase.from('pending_users').delete().eq('id', pendingId);
       setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
