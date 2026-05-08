@@ -295,10 +295,19 @@ const Events = () => {
                 <option value="مسابقة برمجية">مسابقة برمجية</option>
                 <option value="ندوة">ندوة</option>
               </select>
-              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => fileInputRef.current?.click()}>{isUploading ? '...' : 'رفع صورة'}</button>
-                <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*" />
-                {formData.image_url && <ImageIcon size={20} color="var(--accent-color)" />}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                  <button type="button" className="btn-outline" style={{ flex: 1, position: 'relative', overflow: 'hidden' }} onClick={() => fileInputRef.current?.click()}>
+                    <FileUp size={16} style={{marginInlineEnd: '8px'}} />
+                    {isUploading ? (lang === 'ar' ? 'جاري الرفع...' : 'Uploading...') : (lang === 'ar' ? 'تغيير الصورة' : 'Change Image')}
+                  </button>
+                  <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*" />
+                </div>
+                {formData.image_url && (
+                  <div style={{ width: '100%', height: '100px', borderRadius: '12px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <img src={formData.image_url} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  </div>
+                )}
               </div>
               <textarea placeholder="الوصف بالعربي" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '80px' }} value={formData.text.ar} onChange={e => setFormData({...formData, text: {...formData.text, ar: e.target.value}})} />
               <textarea placeholder="Description (EN)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '80px' }} value={formData.text.en} onChange={e => setFormData({...formData, text: {...formData.text, en: e.target.value}})} />
