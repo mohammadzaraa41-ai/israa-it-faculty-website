@@ -97,7 +97,7 @@ export const AdminProvider = ({ children }) => {
         const [annRes, eventsRes, postsRes, coursesRes] = await Promise.all([
           supabase.from('announcements').select('*').limit(10),
           supabase.from('events').select('*').limit(10),
-          supabase.from('posts').select('*, comments(*)').eq('status', 'APPROVED').limit(10),
+          supabase.from('posts').select('*, comments(*)').eq('status', 'APPROVED').order('created_at', { ascending: false }).limit(10),
           supabase.from('courses').select('*')
         ]);
 
@@ -406,7 +406,7 @@ export const AdminProvider = ({ children }) => {
         safeFetch('events'),
         safeFetch('courses'),
         safeFetch('student_tips'),
-        supabase.from('posts').select('*, comments(*)')
+        supabase.from('posts').select('*, comments(*)').order('created_at', { ascending: false })
       ]);
 
       if (roadmapCoursesRes) setRoadmapCourses(roadmapCoursesRes);
@@ -663,13 +663,18 @@ export const AdminProvider = ({ children }) => {
           .from('faculty_uploads')
           .upload(filePath, file);
 
-        if (!uploadError) {
-          const { data: { publicUrl } } = supabase.storage
-            .from('faculty_uploads')
-            .getPublicUrl(filePath);
-          finalImageUrl = publicUrl;
+        if (uploadError) {
+          console.error("Upload Error:", uploadError);
+          return { status: 'ERROR', message: lang === 'ar' ? 'فشل رفع الصورة: ' + uploadError.message : 'Image upload failed: ' + uploadError.message };
         }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('faculty_uploads')
+          .getPublicUrl(filePath);
+        finalImageUrl = publicUrl;
       } catch (err) {
+        console.error("Image Upload Exception:", err);
+        return { status: 'ERROR', message: err.message };
       }
     }
 
