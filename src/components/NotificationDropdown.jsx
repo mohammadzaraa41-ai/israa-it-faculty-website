@@ -118,7 +118,7 @@ const NotificationDropdown = () => {
                     {pendingUsersCount > 0 && (
                       <li 
                         style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
-                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'approvals' } }); }}
+                        onClick={() => { setIsOpen(false); navigate('/admin-dashboard', { state: { tab: 'approvals' } }); }}
                       >
                         <span>• {lang === 'ar' ? 'طلبات التسجيل:' : 'Registration Requests:'}</span> <strong>{pendingUsersCount}</strong>
                       </li>
@@ -126,7 +126,7 @@ const NotificationDropdown = () => {
                     {pendingPostsCount > 0 && (
                       <li 
                         style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
-                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'social' } }); }}
+                        onClick={() => { setIsOpen(false); navigate('/admin-dashboard', { state: { tab: 'social' } }); }}
                       >
                         <span>• {lang === 'ar' ? 'منشورات معلقة:' : 'Pending Posts:'}</span> <strong>{pendingPostsCount}</strong>
                       </li>
@@ -134,7 +134,7 @@ const NotificationDropdown = () => {
                     {alumniRequestsCount > 0 && (
                       <li 
                         style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
-                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'alumni' } }); }}
+                        onClick={() => { setIsOpen(false); navigate('/admin-dashboard', { state: { tab: 'alumni' } }); }}
                       >
                         <span>• {lang === 'ar' ? 'طلبات خريجين:' : 'Alumni Requests:'}</span> <strong>{alumniRequestsCount}</strong>
                       </li>

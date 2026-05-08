@@ -432,7 +432,7 @@ const Home = () => {
                   </li>
                 )}
               </ul>
-              <button className="btn-primary" style={{ width: '100%', marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate('/admin')}>
+              <button className="btn-primary" style={{ width: '100%', marginTop: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }} onClick={() => navigate('/admin-dashboard')}>
                 {lang === 'ar' ? "المراجعة الآن" : "Review Now"}
               </button>
             </div>

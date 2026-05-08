@@ -57,6 +57,12 @@ const AdminDashboard = () => {
   const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
+    if (location.state?.tab) {
+      setActiveTab(location.state.tab);
+    }
+  }, [location.state?.tab]);
+
+  useEffect(() => {
     const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
     if (!user || !isAdminRole) {
       navigate('/');
