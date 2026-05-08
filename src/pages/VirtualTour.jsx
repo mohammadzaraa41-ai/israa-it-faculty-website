@@ -1,225 +1,280 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Box, 
-  Cpu, 
-  Globe, 
-  Lock, 
   Terminal, 
-  Layers, 
-  Activity,
-  ChevronLeft,
-  Search,
-  Code
+  Cpu, 
+  Database, 
+  ShieldAlert, 
+  Zap, 
+  Maximize,
+  Box,
+  Binary
 } from 'lucide-react';
 import { useLocale } from '../contexts/LocalizationContext';
 
 const VirtualTour = () => {
   const { lang } = useLocale();
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [logs, setLogs] = useState([]);
+  const [progress, setProgress] = useState(0);
 
-  const handleMouseMove = (e) => {
-    if (containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      setMousePos({
-        x: (e.clientX - rect.left - rect.width / 2) / 25,
-        y: (e.clientY - rect.top - rect.height / 2) / 25,
-      });
+  // Simulation Logs
+  const logMessages = [
+    "> INITIALIZING SPATIAL RECONSTRUCTION...",
+    "> CONNECTING TO NEURAL MAPPING ENGINE...",
+    "> DOWNLOADING TERRAIN MESH DATA...",
+    "> RESOLVING EQUIRECTANGULAR PROJECTION...",
+    "> OPTIMIZING GPU SHADERS...",
+    "> SYNCHRONIZING REAL-TIME LIGHTING...",
+    "> GENERATING HOTSPOT MAPPING NODES...",
+    "> CALIBRATING 360 FIELD OF VIEW...",
+    "> RENDERING FACULTY MAIN HALL...",
+    "> SECURITY PROTOCOLS: ACTIVE",
+    "> LOADING ASSETS: 84% COMPLETE"
+  ];
+
+  useEffect(() => {
+    let currentLog = 0;
+    const interval = setInterval(() => {
+      if (currentLog < logMessages.length) {
+        setLogs(prev => [...prev.slice(-8), logMessages[currentLog]]);
+        currentLog++;
+      } else {
+        currentLog = 0;
+        setLogs([]);
+      }
+    }, 2000);
+
+    const progressInterval = setInterval(() => {
+      setProgress(prev => (prev < 100 ? prev + 1 : 0));
+    }, 100);
+
+    return () => {
+      clearInterval(interval);
+      clearInterval(progressInterval);
+    };
+  }, []);
+
+  // Neural Network Canvas Animation
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let particles = [];
+    const particleCount = 100;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    class Particle {
+      constructor() {
+        this.reset();
+      }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 1.5;
+        this.vy = (Math.random() - 0.5) * 1.5;
+        this.size = Math.random() * 2 + 1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.fillStyle = 'rgba(0, 243, 255, 0.5)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
-  };
 
-  const FloatingNode = ({ icon: Icon, delay, initialPos }) => (
-    <motion.div
-      initial={initialPos}
-      animate={{
-        y: [initialPos.y - 20, initialPos.y + 20, initialPos.y - 20],
-        x: [initialPos.x - 10, initialPos.x + 10, initialPos.x - 10],
-      }}
-      transition={{
-        duration: 5 + Math.random() * 5,
-        repeat: Infinity,
-        ease: "easeInOut",
-        delay: delay
-      }}
-      style={{
-        position: 'absolute',
-        padding: '1rem',
-        background: 'rgba(0, 243, 255, 0.05)',
-        border: '1px solid rgba(0, 243, 255, 0.2)',
-        borderRadius: '16px',
-        backdropFilter: 'blur(10px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        boxShadow: '0 0 20px rgba(0, 243, 255, 0.1)',
-        zIndex: 2
-      }}
-    >
-      <Icon size={24} color="var(--accent-color)" />
-    </motion.div>
-  );
+    const init = () => {
+      resize();
+      particles = [];
+      for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      particles.forEach((p, i) => {
+        p.update();
+        p.draw();
+
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+          if (dist < 150) {
+            ctx.strokeStyle = `rgba(0, 243, 255, ${1 - dist / 150})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(p.x, p.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      });
+
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    window.addEventListener('resize', resize);
+    init();
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
 
   return (
-    <div 
-      ref={containerRef}
-      onMouseMove={handleMouseMove}
-      style={{ 
-        minHeight: '100vh', 
-        background: '#050505', 
-        color: '#fff', 
-        position: 'relative', 
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: 'Inter, sans-serif'
-      }}
-    >
-      {/* Background Coding Lines */}
-      <div style={{ position: 'absolute', inset: 0, opacity: 0.1, zIndex: 0 }}>
-        {[...Array(20)].map((_, i) => (
-          <div 
-            key={i}
-            style={{
-              position: 'absolute',
-              top: `${i * 5}%`,
-              left: 0,
-              right: 0,
-              height: '1px',
-              background: 'linear-gradient(90deg, transparent, var(--accent-color), transparent)',
-              animation: `slideLeft ${10 + i}s linear infinite`
-            }}
-          />
-        ))}
-      </div>
+    <div style={{ 
+      position: 'relative', 
+      width: '100vw', 
+      height: '100vh', 
+      background: '#020202', 
+      color: '#00f3ff', 
+      overflow: 'hidden',
+      fontFamily: '"Share Tech Mono", monospace'
+    }}>
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, zIndex: 0 }} />
 
-      {/* Floating Elements with Parallax */}
-      <div style={{ 
-        position: 'relative', 
-        zIndex: 1, 
-        transform: `translate(${mousePos.x}px, ${mousePos.y}px)`,
-        transition: 'transform 0.1s ease-out'
-      }}>
+      {/* Futuristic Grid Overlay */}
+      <div style={{
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(rgba(0,243,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,243,255,0.03) 1px, transparent 1px)',
+        backgroundSize: '40px 40px',
+        zIndex: 1
+      }} />
+
+      {/* Main Content Interface */}
+      <div style={{ position: 'relative', zIndex: 10, height: '100%', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
         
-        {/* Central Glowing Core */}
-        <motion.div
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 180, 360]
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          style={{
-            width: '300px',
-            height: '300px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(0,243,255,0.2) 0%, transparent 70%)',
-            border: '2px dashed rgba(0,243,255,0.3)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative'
-          }}
-        >
-          <div style={{
-            width: '150px',
-            height: '150px',
-            borderRadius: '50%',
-            background: 'rgba(0,0,0,0.8)',
-            border: '1px solid var(--accent-color)',
-            boxShadow: '0 0 50px rgba(0,243,255,0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <Globe size={60} color="var(--accent-color)" />
+        {/* Header HUD */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,243,255,0.2)', paddingBottom: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <Zap size={24} className="pulse" />
+            <div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 'bold', letterSpacing: '2px' }}>ISRAA-IT-NODE_01</div>
+              <div style={{ fontSize: '0.7rem', opacity: 0.7 }}>STATUS: INITIALIZING_SIMULATION</div>
+            </div>
           </div>
-        </motion.div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.8rem', opacity: 0.6 }}>COORD: 31.42°N, 34.42°E</div>
+            <div style={{ fontSize: '0.8rem', color: '#ff0055' }}>VULNERABILITY_CHECK: 0 ERRORS</div>
+          </div>
+        </div>
 
-        {/* Nodes around the core */}
-        <FloatingNode icon={Terminal} initialPos={{ x: -200, y: -100 }} delay={0} />
-        <FloatingNode icon={Cpu} initialPos={{ x: 200, y: -150 }} delay={1} />
-        <FloatingNode icon={Layers} initialPos={{ x: -180, y: 150 }} delay={2} />
-        <FloatingNode icon={Activity} initialPos={{ x: 220, y: 100 }} delay={1.5} />
-        <FloatingNode icon={Lock} initialPos={{ x: 0, y: -250 }} delay={0.5} />
-      </div>
+        {/* Centerpiece Visualization */}
+        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+            style={{ position: 'relative' }}
+          >
+            {/* The "Building" Wireframe Core */}
+            <div className="wireframe-sphere">
+               <Box size={180} strokeWidth={0.5} style={{ opacity: 0.5 }} />
+            </div>
+            
+            {/* Orbiting Elements */}
+            <motion.div 
+              animate={{ rotate: -360 }}
+              transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              style={{ position: 'absolute', inset: -50, border: '1px solid rgba(0,243,255,0.1)', borderRadius: '50%' }}
+            />
+          </motion.div>
 
-      {/* Hero Text Content */}
-      <div style={{ 
-        position: 'absolute', 
-        zIndex: 10, 
-        textAlign: 'center',
-        padding: '0 2rem'
-      }}>
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1 }}
-        >
+          <div style={{ position: 'absolute', textAlign: 'center' }}>
+            <h1 style={{ 
+              fontSize: '4rem', 
+              fontWeight: 'bold', 
+              textTransform: 'uppercase', 
+              letterSpacing: '10px',
+              textShadow: '0 0 30px rgba(0,243,255,0.5)',
+              margin: 0
+            }}>
+              {lang === 'ar' ? 'الجولة 360' : 'CORE_TOUR'}
+            </h1>
+            <div style={{ fontSize: '1.2rem', letterSpacing: '5px', marginTop: '1rem', opacity: 0.8 }}>
+              {progress}% {lang === 'ar' ? 'جاري بناء العالم الرقمي' : 'BUILDING DIGITAL TWIN'}
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom HUD - Console & Stats */}
+        <div style={{ display: 'flex', gap: '2rem', height: '200px' }}>
+          {/* Real-time Console */}
           <div style={{ 
-            display: 'inline-flex', 
-            alignItems: 'center', 
-            gap: '0.8rem', 
-            background: 'rgba(0, 243, 255, 0.1)',
-            padding: '0.5rem 1.5rem',
-            borderRadius: '50px',
-            border: '1px solid var(--accent-color)',
-            marginBottom: '2rem'
+            flex: 1, 
+            background: 'rgba(0,243,255,0.05)', 
+            border: '1px solid rgba(0,243,255,0.2)', 
+            padding: '1rem',
+            overflow: 'hidden',
+            borderRadius: '4px'
           }}>
-            <Code size={18} color="var(--accent-color)" />
-            <span style={{ fontSize: '0.9rem', letterSpacing: '2px', color: 'var(--accent-color)', fontWeight: 'bold' }}>
-              {lang === 'ar' ? 'نظام المحاكاة قيد التطوير' : 'SYSTEM SIMULATION ACTIVE'}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', fontSize: '0.8rem', color: 'rgba(0,243,255,0.6)' }}>
+              <Terminal size={14} /> SYSTEM_LOGS.EXE
+            </div>
+            {logs.map((log, i) => (
+              <div key={i} style={{ fontSize: '0.8rem', marginBottom: '4px', opacity: (i + 1) / logs.length }}>
+                {log}
+              </div>
+            ))}
           </div>
 
-          <h1 style={{ 
-            fontSize: 'clamp(2.5rem, 8vw, 5rem)', 
-            fontWeight: '900', 
-            marginBottom: '1.5rem',
-            lineHeight: '0.9',
-            textTransform: 'uppercase',
-            letterSpacing: '-2px'
-          }}>
-            {lang === 'ar' ? 'الجولة' : 'Virtual'}<br />
-            <span style={{ color: 'transparent', WebkitTextStroke: '1px var(--accent-color)' }}>
-              {lang === 'ar' ? 'الافتراضية' : 'Experience'}
-            </span>
-          </h1>
-
-          <p style={{ 
-            maxWidth: '600px', 
-            margin: '0 auto', 
-            fontSize: '1.2rem', 
-            color: 'rgba(255,255,255,0.6)',
-            lineHeight: '1.6'
-          }}>
-            {lang === 'ar' 
-              ? 'نحن الآن نقوم بمعالجة البيانات المكانية لبناء تجربة 360 درجة فريدة لكلية تكنولوجيا المعلومات. ابقوا على اطلاع.' 
-              : 'We are currently processing spatial data to build a unique 360-degree experience for the Faculty of IT. Stay tuned.'}
-          </p>
-
-          <div style={{ marginTop: '3rem', display: 'flex', gap: '1.5rem', justifyContent: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: '8px', height: '8px', background: 'var(--accent-color)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-color)' }} />
-              <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{lang === 'ar' ? 'معالجة الصور' : 'IMAGE PROCESSING'}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: '8px', height: '8px', background: '#333', borderRadius: '50%' }} />
-              <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{lang === 'ar' ? 'ربط النقاط' : 'HOTSPOT MAPPING'}</span>
-            </div>
+          {/* Stats Panel */}
+          <div style={{ width: '300px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            {[
+              { label: 'MEM', val: '4.2GB', icon: Database },
+              { label: 'LATENCY', val: '12ms', icon: Cpu },
+              { label: 'NODES', val: '842', icon: Binary },
+              { label: 'UPLINK', val: 'GigaBit', icon: Maximize }
+            ].map((stat, i) => (
+              <div key={i} style={{ background: 'rgba(0,243,255,0.05)', border: '1px solid rgba(0,243,255,0.2)', padding: '0.8rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <stat.icon size={16} style={{ marginBottom: '0.3rem', opacity: 0.6 }} />
+                <div style={{ fontSize: '0.6rem', opacity: 0.5 }}>{stat.label}</div>
+                <div style={{ fontSize: '1rem', fontWeight: 'bold' }}>{stat.val}</div>
+              </div>
+            ))}
           </div>
-        </motion.div>
+        </div>
+
+        {/* Loading Progress Bar */}
+        <div style={{ marginTop: '2rem', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', position: 'relative' }}>
+          <motion.div 
+            style={{ height: '100%', background: 'var(--accent-color)', boxShadow: '0 0 15px var(--accent-color)' }}
+            animate={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
 
-      {/* Global CSS for Animations */}
+      {/* Global Animations Style */}
       <style>{`
-        @keyframes slideLeft {
-          from { transform: translateX(100%); }
-          to { transform: translateX(-100%); }
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        .pulse {
+          animation: pulse 2s infinite;
         }
-        .title-stroke {
-          -webkit-text-stroke: 1px var(--accent-color);
-          color: transparent;
+        @keyframes pulse {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.1); opacity: 0.7; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .wireframe-sphere {
+          animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-20px); }
         }
       `}</style>
     </div>
