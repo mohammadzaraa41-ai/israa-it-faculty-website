@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocale } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock, Edit2, CornerDownRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { Heart, MessageCircle, Send, Plus, Trash2, CheckCircle, AlertCircle, Info, Image as ImageIcon, User, Clock, Edit2, CornerDownRight, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
@@ -15,12 +15,15 @@ const Home = () => {
   const { users } = useAuth();
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading } = useAdmin();
 
-  const [newPost, setNewPost] = useState({ content: '', image: '', imageFile: null });
+  const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showEventsPopup, setShowEventsPopup] = useState(false);
+  const [lightboxImages, setLightboxImages] = useState([]);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const fileInputRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -55,7 +58,7 @@ const Home = () => {
         return;
       }
 
-      setNewPost({ content: '', image: '', imageFile: null });
+      setNewPost({ content: '', images: [], imageFiles: [] });
       setPostStatus(result.status);
 
       if (result.status === 'PENDING') {
@@ -79,14 +82,88 @@ const Home = () => {
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPost({ ...newPost, image: reader.result, imageFile: file });
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      const newImages = [];
+      const newFiles = [];
+      let loaded = 0;
+      
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push(reader.result);
+          newFiles.push(file);
+          loaded++;
+          if (loaded === files.length) {
+            setNewPost(prev => ({ 
+              ...prev, 
+              images: [...(prev.images || []), ...newImages], 
+              imageFiles: [...(prev.imageFiles || []), ...newFiles] 
+            }));
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeImage = (indexToRemove) => {
+    setNewPost(prev => ({
+      ...prev,
+      images: prev.images.filter((_, index) => index !== indexToRemove),
+      imageFiles: prev.imageFiles.filter((_, index) => index !== indexToRemove)
+    }));
+  };
+
+  const openLightbox = (images, index) => {
+    setLightboxImages(images);
+    setLightboxIndex(index);
+    setIsLightboxOpen(true);
+  };
+
+  const nextLightboxImage = (e) => {
+    e.stopPropagation();
+    setLightboxIndex((prev) => (prev + 1) % lightboxImages.length);
+  };
+
+  const prevLightboxImage = (e) => {
+    e.stopPropagation();
+    setLightboxIndex((prev) => (prev - 1 + lightboxImages.length) % lightboxImages.length);
+  };
+
+  const renderPostImages = (imageString) => {
+    if (!imageString) return null;
+    const images = imageString.split(',').map(url => url.trim());
+    if (images.length === 0) return null;
+
+    if (images.length === 1) {
+      return (
+        <img 
+          src={images[0]} 
+          alt="Post content" 
+          className="post-image single-image" 
+          onClick={() => openLightbox(images, 0)}
+          style={{ cursor: 'pointer', width: '100%', borderRadius: '12px', marginTop: '10px' }}
+        />
+      );
+    }
+
+    return (
+      <div className={`post-image-grid count-${Math.min(images.length, 4)}`}>
+         {images.slice(0, 4).map((url, idx) => (
+            <div 
+              key={idx} 
+              className={`post-image-wrapper ${images.length > 4 && idx === 3 ? 'has-more' : ''}`} 
+              onClick={() => openLightbox(images, idx)}
+            >
+               <img src={url} alt="Post content" />
+               {images.length > 4 && idx === 3 && (
+                 <div className="more-images-overlay">+{images.length - 4}</div>
+               )}
+            </div>
+         ))}
+      </div>
+    );
   };
 
   const handleAddComment = (postId) => {
@@ -149,17 +226,23 @@ const Home = () => {
             </div>
 
             <AnimatePresence>
-              {newPost.image && (
+              {newPost.images && newPost.images.length > 0 && (
                 <motion.div
-                  className="post-image-preview"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="post-image-preview-container"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
                 >
-                  <img src={newPost.image} alt="Preview" />
-                  <button className="remove-img-btn" onClick={() => setNewPost({ ...newPost, image: '' })}>
-                    <Trash2 size={16} />
-                  </button>
+                  <div className="preview-grid">
+                    {newPost.images.map((imgSrc, idx) => (
+                      <div key={idx} className="preview-item">
+                        <img src={imgSrc} alt="Preview" />
+                        <button className="remove-img-btn" onClick={() => removeImage(idx)}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -169,6 +252,7 @@ const Home = () => {
                 <input
                   type="file"
                   hidden
+                  multiple
                   ref={fileInputRef}
                   accept="image/*"
                   onChange={handleImageUpload}
@@ -184,7 +268,7 @@ const Home = () => {
               <button
                 className="btn-primary post-submit-btn"
                 onClick={handleCreatePost}
-                disabled={!newPost.content.trim() && !newPost.image}
+                disabled={!newPost.content.trim() && newPost.images.length === 0}
               >
                 <Plus size={18} />
                 {lang === 'ar' ? "نشر" : "Post"}
@@ -246,7 +330,7 @@ const Home = () => {
 
                   <div className="post-content">
                     <p>{post.content}</p>
-                    {post.image && <img src={post.image} alt="Post content" className="post-image" />}
+                    {renderPostImages(post.image)}
                   </div>
 
                   <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
@@ -394,6 +478,47 @@ const Home = () => {
               <button className="btn-primary full-width-btn" onClick={closeEventsPopup} style={{ marginTop: '1rem', width: '100%' }}>
                 {lang === 'ar' ? 'فهمت' : 'Got it'}
               </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isLightboxOpen && lightboxImages.length > 0 && (
+          <div className="lightbox-overlay" onClick={() => setIsLightboxOpen(false)}>
+            <motion.div 
+              className="lightbox-content"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <button className="lightbox-close-btn" onClick={() => setIsLightboxOpen(false)}>
+                <X size={30} />
+              </button>
+              
+              {lightboxImages.length > 1 && (
+                <button className="lightbox-nav-btn prev" onClick={prevLightboxImage}>
+                  <ChevronLeft size={40} />
+                </button>
+              )}
+              
+              <img 
+                src={lightboxImages[lightboxIndex]} 
+                alt="Enlarged view" 
+                className="lightbox-img" 
+              />
+              
+              {lightboxImages.length > 1 && (
+                <button className="lightbox-nav-btn next" onClick={nextLightboxImage}>
+                  <ChevronRight size={40} />
+                </button>
+              )}
+
+              {lightboxImages.length > 1 && (
+                <div className="lightbox-counter">
+                  {lightboxIndex + 1} / {lightboxImages.length}
+                </div>
+              )}
             </motion.div>
           </div>
         )}
