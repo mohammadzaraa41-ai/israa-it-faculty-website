@@ -382,7 +382,7 @@ const Alumni = () => {
     
     const [newProj, setNewProj] = useState({
       name: { ar: '', en: '' },
-      students: ['', '', '', '', ''],
+      students: '',
       supervisor: '',
       link: '',
       rating: 0,
@@ -422,8 +422,21 @@ const Alumni = () => {
 
       const projectData = {
         ...newProj,
-        students: newProj.students.filter(s => s && (typeof s === 'string' ? s.trim() !== '' : true))
+        students: typeof newProj.students === 'string' 
+          ? newProj.students.split(',').map(s => s.trim()).filter(s => s !== '')
+          : newProj.students.filter(s => s && (typeof s === 'string' ? s.trim() !== '' : true))
       };
+
+      // DEBUG ALERT
+      const summary = `
+        Saving Project:
+        Name: ${projectData.name.ar}
+        Supervisor: ${projectData.supervisor}
+        Students Count: ${projectData.students.length}
+        Files Count: ${projectData.files.length}
+        Images Count: ${projectData.images.length}
+      `;
+      alert(lang === 'ar' ? `سيتم حفظ البيانات التالية:\n${summary}` : `Sending data:\n${summary}`);
 
       try {
         if (editingProjectId) {
@@ -433,7 +446,7 @@ const Alumni = () => {
         }
         setIsAdding(false);
         setEditingProjectId(null);
-        setNewProj({ name: { ar: '', en: '' }, students: ['', '', '', '', ''], supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
+        setNewProj({ name: { ar: '', en: '' }, students: '', supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
       } catch (err) {
         console.error("Save error:", err);
       } finally {
@@ -680,16 +693,14 @@ const Alumni = () => {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'أسماء الطلاب (حتى 5 طلاب)' : 'Students (up to 5)'}</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
-                      {newProj.students.map((s, i) => (
-                        <input key={i} type="text" placeholder={`${lang === 'ar' ? 'طالب' : 'Student'} ${i+1}`} className="glass-panel" style={{ width: '100%', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', fontSize: '0.8rem' }} value={s} onChange={e => {
-                          const updated = [...newProj.students];
-                          updated[i] = e.target.value;
-                          setNewProj({...newProj, students: updated});
-                        }} />
-                      ))}
-                    </div>
+                    <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'أسماء الطلاب (افصل بينهم بفاصلة ,)' : 'Student Names (separate by comma ,)'}</label>
+                    <textarea 
+                      placeholder={lang === 'ar' ? 'مثال: أحمد علي, سارة محمد, ...' : 'Example: Ahmed Ali, Sara Mohamed, ...'}
+                      className="glass-panel" 
+                      style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '60px', fontSize: '0.85rem' }} 
+                      value={typeof newProj.students === 'string' ? newProj.students : newProj.students.join(', ')} 
+                      onChange={e => setNewProj({...newProj, students: e.target.value})} 
+                    />
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
