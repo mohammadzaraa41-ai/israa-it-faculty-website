@@ -1,14 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bell, Check, Trash2, X } from 'lucide-react';
+import { Bell, Check, Trash2, X, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useLocale } from '../contexts/LocalizationContext';
+import { useAuth } from '../contexts/AuthContext';
+import { useAdmin } from '../contexts/AdminContext';
 
 const NotificationDropdown = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearNotifications } = useNotifications();
   const { lang } = useLocale();
+  const navigate = useNavigate();
   const dropdownRef = useRef(null);
+
+  const { user, pendingUsers, alumniRequests } = useAuth();
+  const { pendingPosts } = useAdmin();
+
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+  const pendingUsersCount = pendingUsers?.length || 0;
+  const pendingPostsCount = pendingPosts?.length || 0;
+  const alumniRequestsCount = alumniRequests?.length || 0;
+  const adminPendingCount = isAdmin ? (pendingUsersCount + pendingPostsCount + alumniRequestsCount) : 0;
+  const totalBadgeCount = unreadCount + adminPendingCount;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -28,7 +42,7 @@ const NotificationDropdown = () => {
         style={{ position: 'relative' }}
       >
         <Bell size={18} />
-        {unreadCount > 0 && (
+        {totalBadgeCount > 0 && (
           <span className="notification-badge" style={{
             position: 'absolute',
             top: '-5px',
@@ -45,7 +59,7 @@ const NotificationDropdown = () => {
             justifyContent: 'center',
             boxShadow: '0 0 10px rgba(0,0,0,0.5)'
           }}>
-            {unreadCount}
+            {totalBadgeCount > 9 ? '9+' : totalBadgeCount}
           </span>
         )}
       </button>
@@ -86,7 +100,35 @@ const NotificationDropdown = () => {
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {notifications.length === 0 ? (
+              {isAdmin && adminPendingCount > 0 && (
+                <div style={{ 
+                  background: 'rgba(241, 196, 15, 0.1)', 
+                  border: '1px solid #f1c40f', 
+                  borderRadius: '12px', 
+                  padding: '0.75rem',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f1c40f', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                    <ShieldAlert size={16} />
+                    {lang === 'ar' ? 'مهام إدارية بانتظار المراجعة' : 'Admin Tasks Pending'}
+                  </div>
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '0.8rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                    {pendingUsersCount > 0 && <li>• {lang === 'ar' ? 'طلبات التسجيل:' : 'Registration Requests:'} <strong>{pendingUsersCount}</strong></li>}
+                    {pendingPostsCount > 0 && <li>• {lang === 'ar' ? 'منشورات معلقة:' : 'Pending Posts:'} <strong>{pendingPostsCount}</strong></li>}
+                    {alumniRequestsCount > 0 && <li>• {lang === 'ar' ? 'طلبات خريجين:' : 'Alumni Requests:'} <strong>{alumniRequestsCount}</strong></li>}
+                  </ul>
+                  <button 
+                    onClick={() => { setIsOpen(false); navigate('/admin'); }}
+                    style={{ background: '#f1c40f', color: '#000', border: 'none', borderRadius: '6px', padding: '0.4rem', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '0.25rem' }}
+                  >
+                    {lang === 'ar' ? 'المراجعة الآن' : 'Review Now'}
+                  </button>
+                </div>
+              )}
+
+              {notifications.length === 0 && adminPendingCount === 0 ? (
                 <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                   {lang === 'ar' ? 'لا توجد إشعارات جديدة' : 'No new notifications'}
                 </div>
