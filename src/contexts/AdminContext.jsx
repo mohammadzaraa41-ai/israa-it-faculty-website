@@ -663,20 +663,41 @@ export const AdminProvider = ({ children }) => {
             .from('faculty_uploads')
             .upload(filePath, file);
 
+<<<<<<< HEAD
           if (!uploadError) {
             const { data: { publicUrl } } = supabase.storage
               .from('faculty_uploads')
               .getPublicUrl(filePath);
             finalImageUrls.push(publicUrl);
           }
+=======
+          if (uploadError) {
+            console.error("Upload Error for file:", file.name, uploadError);
+            continue; // Skip failed uploads but continue with others
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('faculty_uploads')
+            .getPublicUrl(filePath);
+          finalImageUrls.push(publicUrl);
+>>>>>>> 6b671584c3e40867eb356a8e59e9797987d4a6d1
         }
       } catch (err) {
         console.error("Image Upload Exception:", err);
       }
     } else if (postData.image) {
+<<<<<<< HEAD
       finalImageUrls = [postData.image];
     }
 
+=======
+      // Fallback for single image as data URL or single URL
+      finalImageUrls = [postData.image];
+    }
+
+    // Join multiple URLs with a special separator or just use the first one if we want to be safe
+    // But the user wants multiple, so let's join them with a comma or store as JSON string
+>>>>>>> 6b671584c3e40867eb356a8e59e9797987d4a6d1
     const imageValue = finalImageUrls.length > 0 ? finalImageUrls.join(',') : null;
 
     const { data, error } = await supabase.from('posts').insert([{

@@ -12,10 +12,10 @@ const Home = () => {
   const { lang, t } = useLocale();
   const { addToast } = useToast();
   const { user, toggleLogin } = useAuth();
-  const { users } = useAuth(); 
+  const { users } = useAuth();
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading } = useAdmin();
-  
-  const [newPost, setNewPost] = useState({ content: '', images: [] }); 
+
+  const [newPost, setNewPost] = useState({ content: '', image: '', imageFile: null });
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
@@ -24,11 +24,12 @@ const Home = () => {
   const fileInputRef = React.useRef(null);
 
   React.useEffect(() => {
+    // Show events popup only for mobile users who haven't seen it in this session
     const isMobile = window.innerWidth <= 992;
     const hasSeen = sessionStorage.getItem('hasSeenEventsPopup');
-    
+
     if (isMobile && !hasSeen && events.length > 0) {
-      const timer = setTimeout(() => setShowEventsPopup(true), 1500);
+      const timer = setTimeout(() => setShowEventsPopup(true), 1500); // Small delay for effect
       return () => clearTimeout(timer);
     }
   }, [events]);
@@ -46,21 +47,17 @@ const Home = () => {
       toggleLogin(true);
       return;
     }
-    
+
     try {
-      const postData = {
-        ...newPost,
-        imageFiles: newPost.images.map(img => img.file)
-      };
-      const result = await addPost(postData, user);
+      const result = await addPost(newPost, user);
       if (result.status === 'ERROR') {
         addToast(t('common.error'), result.message, 'error');
         return;
       }
 
-      setNewPost({ content: '', images: [] });
+      setNewPost({ content: '', image: '', imageFile: null });
       setPostStatus(result.status);
-      
+
       if (result.status === 'PENDING') {
         addToast(
           lang === 'ar' ? 'تم الإرسال' : 'Sent',
@@ -74,7 +71,7 @@ const Home = () => {
           'success'
         );
       }
-      
+
       setTimeout(() => setPostStatus(null), 5000);
     } catch (err) {
       addToast(t('common.error'), err.message, 'error');
@@ -82,26 +79,14 @@ const Home = () => {
   };
 
   const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setNewPost(prev => ({
-            ...prev,
-            images: [...prev.images, { id: Date.now() + Math.random(), url: reader.result, file }]
-          }));
-        };
-        reader.readAsDataURL(file);
-      });
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewPost({ ...newPost, image: reader.result, imageFile: file });
+      };
+      reader.readAsDataURL(file);
     }
-  };
-
-  const removeImage = (id) => {
-    setNewPost(prev => ({
-      ...prev,
-      images: prev.images.filter(img => img.id !== id)
-    }));
   };
 
   const handleAddComment = (postId) => {
@@ -112,7 +97,7 @@ const Home = () => {
     if (!newComment.trim()) return;
     addComment(postId, {
       text: newComment,
-      author: user?.name_ar || user?.name_en || (typeof user?.name === 'string' ? user.name : (user?.name?.ar || user?.name?.en || 'User')),
+      author: user.name.ar || user.name,
       username: user.username
     });
     setNewComment('');
@@ -130,7 +115,7 @@ const Home = () => {
 
       <div className="announcements-container">
         {announcements.map((ann) => (
-          <motion.div 
+          <motion.div
             key={ann.id}
             className={`announcement-bar ${ann.type}`}
             initial={{ y: -50, opacity: 0 }}
@@ -146,7 +131,7 @@ const Home = () => {
       <div className="feed-layout">
         <main className="feed-main">
 
-          <motion.div 
+          <motion.div
             className="glass-panel post-creation-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -155,7 +140,7 @@ const Home = () => {
               <div className="user-avatar-small">
                 {user ? <User size={20} /> : <AlertCircle size={20} />}
               </div>
-              <textarea 
+              <textarea
                 placeholder={lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
                 value={newPost.content}
                 onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
@@ -164,48 +149,42 @@ const Home = () => {
             </div>
 
             <AnimatePresence>
-              {newPost.images.length > 0 && (
-                <div className="post-images-preview-grid">
-                  {newPost.images.map(img => (
-                    <motion.div 
-                      key={img.id}
-                      className="post-image-preview-item"
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                    >
-                      <img src={img.url} alt="Preview" />
-                      <button className="remove-img-btn-small" onClick={() => removeImage(img.id)}>
-                        <Plus size={14} style={{ transform: 'rotate(45deg)' }} />
-                      </button>
-                    </motion.div>
-                  ))}
-                </div>
+              {newPost.image && (
+                <motion.div
+                  className="post-image-preview"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                >
+                  <img src={newPost.image} alt="Preview" />
+                  <button className="remove-img-btn" onClick={() => setNewPost({ ...newPost, image: '' })}>
+                    <Trash2 size={16} />
+                  </button>
+                </motion.div>
               )}
             </AnimatePresence>
-            
+
             <div className="post-actions-bar">
               <div className="post-tools">
-                <input 
-                  type="file" 
-                  multiple
-                  hidden 
-                  ref={fileInputRef} 
-                  accept="image/*" 
-                  onChange={handleImageUpload} 
+                <input
+                  type="file"
+                  hidden
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageUpload}
                 />
-                <button 
-                  className="tool-btn" 
+                <button
+                  className="tool-btn"
                   onClick={() => user ? fileInputRef.current.click() : toggleLogin(true)}
                 >
                   <ImageIcon size={20} />
                   <span>{lang === 'ar' ? "صورة" : "Image"}</span>
                 </button>
               </div>
-              <button 
-                className="btn-primary post-submit-btn" 
+              <button
+                className="btn-primary post-submit-btn"
                 onClick={handleCreatePost}
-                disabled={!newPost.content.trim() && newPost.images.length === 0}
+                disabled={!newPost.content.trim() && !newPost.image}
               >
                 <Plus size={18} />
                 {lang === 'ar' ? "نشر" : "Post"}
@@ -214,7 +193,7 @@ const Home = () => {
 
             <AnimatePresence>
               {postStatus === 'PENDING' && (
-                <motion.div 
+                <motion.div
                   className="post-status-msg pending"
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
@@ -232,7 +211,7 @@ const Home = () => {
               [1, 2, 3].map(i => <CardSkeleton key={i} />)
             ) : (
               posts.map((post, index) => (
-                <motion.div 
+                <motion.div
                   key={post.id}
                   className="glass-panel post-card"
                   initial={{ opacity: 0, y: 30 }}
@@ -249,7 +228,7 @@ const Home = () => {
                         )}
                       </div>
                       <div>
-                        <h4 
+                        <h4
                           className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
                           onClick={() => isAdmin && showUserInfo(post.author.username)}
                         >
@@ -267,13 +246,7 @@ const Home = () => {
 
                   <div className="post-content">
                     <p>{post.content}</p>
-                    {post.image && (
-                      <div className={`post-image-gallery count-${post.image.split(',').length}`}>
-                        {post.image.split(',').map((img, idx) => (
-                          <img key={idx} src={img} alt={`Post content ${idx}`} className="post-gallery-img" />
-                        ))}
-                      </div>
-                    )}
+                    {post.image && <img src={post.image} alt="Post content" className="post-image" />}
                   </div>
 
                   <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
@@ -288,14 +261,14 @@ const Home = () => {
                   </div>
 
                   <div className="post-actions-buttons">
-                    <button 
+                    <button
                       className={`action-btn ${user && post.likes.includes(user.username) ? 'active' : ''}`}
                       onClick={() => user ? toggleLike(post.id, user.username) : toggleLogin(true)}
                     >
                       <Heart size={20} />
                       <span>{lang === 'ar' ? "إعجاب" : "Like"}</span>
                     </button>
-                    <button 
+                    <button
                       className="action-btn"
                       onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)}
                     >
@@ -355,7 +328,7 @@ const Home = () => {
       <AnimatePresence>
         {selectedUser && (
           <div className="login-modal-overlay" onClick={() => setSelectedUser(null)}>
-            <motion.div 
+            <motion.div
               className="glass-panel user-info-modal"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -399,7 +372,7 @@ const Home = () => {
       <AnimatePresence>
         {showEventsPopup && (
           <div className="login-modal-overlay mobile-popup-overlay">
-            <motion.div 
+            <motion.div
               className="glass-panel mobile-events-popup"
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -434,12 +407,13 @@ const COMMENTS_PER_PAGE = 3;
 
 const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, deleteComment, editComment, likeComment, showUserInfo }) => {
   const [text, setText] = useState('');
-  const [replyTo, setReplyTo] = useState(null);
+  const [replyTo, setReplyTo] = useState(null); // { id, author }
   const [editingId, setEditingId] = useState(null);
   const [editText, setEditText] = useState('');
   const [showAll, setShowAll] = useState(false);
-  const [expandedReplies, setExpandedReplies] = useState({});
+  const [expandedReplies, setExpandedReplies] = useState({}); // { commentId: bool }
 
+  // Separate top-level and replies by parent_id in local state
   const allComments = post.comments || [];
   const topLevel = allComments.filter(c => !c.parent_id);
   const getReplies = (commentId) => allComments.filter(c => c.parent_id === commentId);
@@ -519,6 +493,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
             <p className="comment-text">{comment.text}</p>
           )}
 
+          {/* Replies toggle */}
           {!isReply && replies.length > 0 && (
             <button
               className="toggle-replies-btn"
@@ -531,12 +506,14 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
             </button>
           )}
 
+          {/* Nested replies */}
           {!isReply && repliesExpanded && (
             <div className="replies-container">
               {replies.map(r => <CommentBubble key={r.id} comment={r} isReply />)}
             </div>
           )}
 
+          {/* Inline reply input */}
           {replyTo?.id === comment.id && (
             <div className="comment-reply-input">
               <input
@@ -557,6 +534,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
 
   return (
     <div className="comments-panel">
+      {/* Main input */}
       <div className="comment-input-area">
         {replyTo && (
           <span className="reply-badge">
@@ -575,6 +553,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
         <button onClick={() => !replyTo && handleSend()}><Send size={18} /></button>
       </div>
 
+      {/* Top-level comments */}
       <div className="comments-list">
         {visibleTop.map(comment => (
           <CommentBubble key={comment.id} comment={comment} />
