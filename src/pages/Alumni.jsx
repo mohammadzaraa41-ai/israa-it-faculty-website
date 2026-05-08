@@ -646,19 +646,6 @@ const Alumni = () => {
           </AnimatePresence>
         </motion.div>
       );
-    }Top: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,100,100,0.1)', borderLeft: '4px solid var(--accent-color)' }}>
-                <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-                  {lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}
-                </h4>
-                <p style={{ fontSize: '0.95rem', opacity: 0.8, lineHeight: '1.6', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
-                  {lang === 'ar' ? viewingProject.notes_ar : (viewingProject.notes_en || viewingProject.notes_ar)}
-                </p>
-              </div>
-            )}
-
-          </div>
-        </motion.div>
-      );
     }
 
     return (
