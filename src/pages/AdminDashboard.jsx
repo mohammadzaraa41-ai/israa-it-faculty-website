@@ -1022,9 +1022,9 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
           <motion.div 
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="glass-panel" 
+            className="glass-panel modal-content-scrollable" 
             onClick={e => e.stopPropagation()}
-            style={{ padding: '2.5rem', maxWidth: '500px', width: '90%', position: 'relative' }}
+            style={{ padding: '2.5rem', position: 'relative' }}
           >
             <button 
               onClick={() => setSelectedUser(null)}
