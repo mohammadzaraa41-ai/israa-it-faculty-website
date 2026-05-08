@@ -166,7 +166,19 @@ const Events = () => {
               <input placeholder="العنوان بالعربي" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_ar} onChange={e => setFormData({...formData, title_ar: e.target.value})} />
               <input placeholder="Title (EN)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} />
               <input type="date" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-              <input placeholder="النوع (مثلاً هاكاثون)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} />
+              <select 
+                className="glass-panel" 
+                style={{ width: '100%', padding: '0.8rem', color: 'white', background: 'rgba(255,255,255,0.05)', border: 'none' }} 
+                value={formData.tag} 
+                onChange={e => setFormData({...formData, tag: e.target.value})}
+              >
+                <option value="" style={{background: '#1a1a1a'}}>{lang === 'ar' ? '--- اختر نوع الفعالية ---' : '--- Select Event Type ---'}</option>
+                <option value="هاكاثون" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'هاكاثون' : 'Hackathon'}</option>
+                <option value="ورشة عمل" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'ورشة عمل' : 'Workshop'}</option>
+                <option value="مسابقة برمجية" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'مسابقة برمجية' : 'Coding Contest'}</option>
+                <option value="ندوة" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'ندوة' : 'Seminar'}</option>
+                <option value="يوم مفتوح" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'يوم مفتوح' : 'Open Day'}</option>
+              </select>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => fileInputRef.current?.click()}>{isUploading ? '...' : 'رفع صورة'}</button>
                 <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*" />
