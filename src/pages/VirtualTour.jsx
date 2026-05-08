@@ -19,7 +19,7 @@ const VirtualTour = () => {
       id: 1, 
       label_ar: 'تصوير الموقع 360°', 
       label_en: '360° Site Photography', 
-      status: 'completed',
+      status: 'active',
       icon: Camera 
     },
     { 
@@ -169,10 +169,10 @@ const VirtualTour = () => {
         </div>
 
         {/* Footer Info */}
-        <div style={{ marginTop: '4rem', opacity: 0.5, fontSize: '0.9rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-            <Map size={16} />
-            <span>{lang === 'ar' ? 'مركز تكنولوجيا المعلومات - وحدة التحول الرقمي' : 'IT Center - Digital Transformation Unit'}</span>
+        <div style={{ marginTop: '4rem', opacity: 0.8, fontSize: '1rem', fontWeight: 'bold', color: 'var(--accent-color)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem' }}>
+            <Map size={18} />
+            <span>{lang === 'ar' ? 'م. يوسف حردان & م. محمد الزراع' : 'Eng. Yousef Hurdan & Eng. Mohammad Al-Zarraa'}</span>
           </div>
         </div>
 
