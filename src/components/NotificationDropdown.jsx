@@ -110,21 +110,36 @@ const NotificationDropdown = () => {
                   flexDirection: 'column',
                   gap: '0.5rem'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f1c40f', fontWeight: 'bold', fontSize: '0.85rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#f1c40f', fontWeight: 'bold', fontSize: '0.85rem', marginBottom: '0.25rem' }}>
                     <ShieldAlert size={16} />
                     {lang === 'ar' ? 'مهام إدارية بانتظار المراجعة' : 'Admin Tasks Pending'}
                   </div>
-                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '0.8rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
-                    {pendingUsersCount > 0 && <li>• {lang === 'ar' ? 'طلبات التسجيل:' : 'Registration Requests:'} <strong>{pendingUsersCount}</strong></li>}
-                    {pendingPostsCount > 0 && <li>• {lang === 'ar' ? 'منشورات معلقة:' : 'Pending Posts:'} <strong>{pendingPostsCount}</strong></li>}
-                    {alumniRequestsCount > 0 && <li>• {lang === 'ar' ? 'طلبات خريجين:' : 'Alumni Requests:'} <strong>{alumniRequestsCount}</strong></li>}
+                  <ul style={{ margin: 0, padding: 0, listStyle: 'none', fontSize: '0.8rem', color: 'var(--text-primary)', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {pendingUsersCount > 0 && (
+                      <li 
+                        style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
+                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'approvals' } }); }}
+                      >
+                        <span>• {lang === 'ar' ? 'طلبات التسجيل:' : 'Registration Requests:'}</span> <strong>{pendingUsersCount}</strong>
+                      </li>
+                    )}
+                    {pendingPostsCount > 0 && (
+                      <li 
+                        style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
+                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'social' } }); }}
+                      >
+                        <span>• {lang === 'ar' ? 'منشورات معلقة:' : 'Pending Posts:'}</span> <strong>{pendingPostsCount}</strong>
+                      </li>
+                    )}
+                    {alumniRequestsCount > 0 && (
+                      <li 
+                        style={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer', padding: '0.4rem', background: 'rgba(255,255,255,0.05)', borderRadius: '6px' }} 
+                        onClick={() => { setIsOpen(false); navigate('/admin', { state: { tab: 'alumni' } }); }}
+                      >
+                        <span>• {lang === 'ar' ? 'طلبات خريجين:' : 'Alumni Requests:'}</span> <strong>{alumniRequestsCount}</strong>
+                      </li>
+                    )}
                   </ul>
-                  <button 
-                    onClick={() => { setIsOpen(false); navigate('/admin'); }}
-                    style={{ background: '#f1c40f', color: '#000', border: 'none', borderRadius: '6px', padding: '0.4rem', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer', marginTop: '0.25rem' }}
-                  >
-                    {lang === 'ar' ? 'المراجعة الآن' : 'Review Now'}
-                  </button>
                 </div>
               )}
 
