@@ -16,21 +16,100 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminModal = memo(({ title, onSave, onClose, isSubmitting, lang, children }) => (
-  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-    <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="glass-panel" style={{ width: '100%', maxWidth: '500px', padding: '2rem', position: 'relative' }}>
-      <button style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', color: '#ff4444', background: 'none', border: 'none', cursor: 'pointer' }} onClick={onClose}><X size={20}/></button>
-      <h3 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center', color: 'var(--accent-color)' }}>{title}</h3>
-      {children}
+  <motion.div 
+    initial={{ opacity: 0 }} 
+    animate={{ opacity: 1 }} 
+    exit={{ opacity: 0 }} 
+    onClick={onClose}
+    style={{ 
+      position: 'fixed', 
+      inset: 0, 
+      background: 'rgba(0,0,0,0.9)', 
+      zIndex: 3000, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '1rem' 
+    }}
+  >
+    <motion.div 
+      initial={{ scale: 0.9, y: 20 }} 
+      animate={{ scale: 1, y: 0 }} 
+      onClick={e => e.stopPropagation()}
+      className="glass-panel" 
+      style={{ 
+        width: '95%', 
+        maxWidth: '550px', 
+        maxHeight: '90vh',
+        padding: '2rem', 
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',
+        borderRadius: '24px',
+        border: '1px solid rgba(255,255,255,0.1)'
+      }}
+    >
       <button 
-        className="btn-primary" 
-        disabled={isSubmitting}
-        style={{ width: '100%', padding: '1rem', marginTop: '1.5rem', opacity: isSubmitting ? 0.7 : 1 }} 
-        onClick={onSave}
+        style={{ 
+          position: 'absolute', 
+          top: '1rem', 
+          right: lang === 'ar' ? 'auto' : '1.5rem', 
+          left: lang === 'ar' ? '1.5rem' : 'auto', 
+          color: 'var(--text-secondary)', 
+          background: 'rgba(255,255,255,0.05)', 
+          border: 'none', 
+          cursor: 'pointer',
+          width: '32px',
+          height: '32px',
+          borderRadius: '50%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 0.3s'
+        }} 
+        onClick={onClose}
+        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,68,68,0.2)'}
+        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
       >
-        {isSubmitting 
-          ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
-          : (lang === 'ar' ? 'حفظ البيانات' : 'Save Data')}
+        <X size={18}/>
       </button>
+
+      <h3 style={{ 
+        fontSize: '1.5rem', 
+        fontWeight: 'bold', 
+        marginBottom: '2rem', 
+        textAlign: 'center', 
+        color: 'var(--accent-color)',
+        paddingRight: lang === 'ar' ? '0' : '2rem',
+        paddingLeft: lang === 'ar' ? '2rem' : '0'
+      }}>
+        {title}
+      </h3>
+
+      <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+        {children}
+      </div>
+
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
+        <button 
+          className="btn-primary" 
+          disabled={isSubmitting}
+          style={{ flex: 2, padding: '1rem', opacity: isSubmitting ? 0.7 : 1 }} 
+          onClick={onSave}
+        >
+          {isSubmitting 
+            ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
+            : (lang === 'ar' ? 'حفظ البيانات' : 'Save Data')}
+        </button>
+        <button 
+          className="btn-outline" 
+          style={{ flex: 1, border: '1px solid rgba(255,255,255,0.1)' }} 
+          onClick={onClose}
+        >
+          {lang === 'ar' ? 'إلغاء' : 'Cancel'}
+        </button>
+      </div>
     </motion.div>
   </motion.div>
 ));
