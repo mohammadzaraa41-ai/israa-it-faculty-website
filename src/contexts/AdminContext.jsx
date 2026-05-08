@@ -29,6 +29,7 @@ export const AdminProvider = ({ children }) => {
   const [liveLabs, setLiveLabs] = useState([]);
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [homeEvents, setHomeEvents] = useState([]);
   const [activities, setActivities] = useState([]);
