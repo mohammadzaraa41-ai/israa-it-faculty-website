@@ -89,8 +89,7 @@ const ProjectCard = memo(({ project, lang, isAdmin, onEdit, onDelete, onView }) 
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+        justifyContent: 'space-between'
       }}
     >
       <div>
@@ -260,7 +259,7 @@ const ProjectSection = memo(({ isAdmin, lang, projectBank, addProject, deletePro
     return (
       <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
         <button className="btn-outline" style={{ marginBottom: '2rem', padding: '0.5rem 1rem' }} onClick={() => setViewingProject(null)}>
-          ← {lang === 'ar' ? 'العودة للمشاريع' : 'Back to Projects'}
+          ← {lang === 'ar' ? 'العودة لمشاريع التخرج' : 'Back to Graduation Projects'}
         </button>
         <div className="glass-panel" style={{ padding: '2.5rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem' }}>
@@ -365,25 +364,25 @@ const ProjectSection = memo(({ isAdmin, lang, projectBank, addProject, deletePro
       </div>
       <AnimatePresence>
         {isAdding && (
-          <AdminModal title={editingProjectId ? (lang === 'ar' ? 'تعديل مشروع' : 'Edit Project') : (lang === 'ar' ? 'إضافة مشروع جديد' : 'Add Project')} onClose={() => setIsAdding(false)} isSubmitting={isSubmitting} lang={lang} onSave={handleAddProjectClick}>
+          <AdminModal title={editingProjectId ? (lang === 'ar' ? 'تعديل مشروع' : 'Edit Project') : (lang === 'ar' ? 'إضافة مشروع تخرج جديد' : 'Add New Graduation Project')} onClose={() => setIsAdding(false)} isSubmitting={isSubmitting} lang={lang} onSave={handleAddProjectClick}>
             <form style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', maxHeight: '70vh', overflowY: 'auto', padding: '0.5rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <input type="text" placeholder={lang === 'ar' ? 'الاسم عربي' : 'Name AR'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.name.ar} onChange={e => setNewProj({...newProj, name: {...newProj.name, ar: e.target.value}})} required />
-                <input type="text" placeholder={lang === 'ar' ? 'الاسم EN' : 'Name EN'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.name.en} onChange={e => setNewProj({...newProj, name: {...newProj.name, en: e.target.value}})} required />
+                <input type="text" placeholder={lang === 'ar' ? 'اسم المشروع بالعربي' : 'Project Name AR'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.name.ar} onChange={e => setNewProj({...newProj, name: {...newProj.name, ar: e.target.value}})} required />
+                <input type="text" placeholder={lang === 'ar' ? 'اسم المشروع بالإنجليزي' : 'Project Name EN'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.name.en} onChange={e => setNewProj({...newProj, name: {...newProj.name, en: e.target.value}})} required />
               </div>
-              <input type="text" placeholder={lang === 'ar' ? 'المشرف' : 'Supervisor'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.supervisor} onChange={e => setNewProj({...newProj, supervisor: e.target.value})} required />
+              <input type="text" placeholder={lang === 'ar' ? 'اسم المشرف' : 'Supervisor Name'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={newProj.supervisor} onChange={e => setNewProj({...newProj, supervisor: e.target.value})} required />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem' }}>
                 {newProj.students.map((s, i) => (
-                  <input key={i} type="text" placeholder={`S${i+1}`} className="glass-panel" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem', color: 'white' }} value={s} onChange={e => { const u = [...newProj.students]; u[i] = e.target.value; setNewProj({...newProj, students: u}); }} />
+                  <input key={i} type="text" placeholder={`${lang === 'ar' ? 'طالب' : 'Student'} ${i+1}`} className="glass-panel" style={{ width: '100%', padding: '0.5rem', fontSize: '0.8rem', color: 'white' }} value={s} onChange={e => { const u = [...newProj.students]; u[i] = e.target.value; setNewProj({...newProj, students: u}); }} />
                 ))}
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                 <button type="button" onClick={() => projectFilesRef.current?.click()} className="btn-outline" style={{ flex: 1, fontSize: '0.8rem' }}><FileUp size={14}/> {lang === 'ar' ? 'ملفات' : 'Files'} ({newProj.files.length})</button>
-                 <button type="button" onClick={() => projectImagesRef.current?.click()} className="btn-outline" style={{ flex: 1, fontSize: '0.8rem' }}><Plus size={14}/> {lang === 'ar' ? 'صور' : 'Images'} ({newProj.images.length})</button>
+                 <button type="button" onClick={() => projectFilesRef.current?.click()} className="btn-outline" style={{ flex: 1, fontSize: '0.8rem' }}><FileUp size={14}/> {lang === 'ar' ? 'إضافة ملفات' : 'Add Files'} ({newProj.files.length})</button>
+                 <button type="button" onClick={() => projectImagesRef.current?.click()} className="btn-outline" style={{ flex: 1, fontSize: '0.8rem' }}><Plus size={14}/> {lang === 'ar' ? 'إضافة صور' : 'Add Images'} ({newProj.images.length})</button>
                  <input type="file" multiple ref={projectFilesRef} hidden onChange={handleProjectFilesChange} />
                  <input type="file" multiple ref={projectImagesRef} hidden onChange={handleProjectImagesChange} />
               </div>
-              <textarea placeholder={lang === 'ar' ? 'الوصف' : 'Description'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', minHeight: '80px' }} value={newProj.description.ar} onChange={e => setNewProj({...newProj, description: {...newProj.description, ar: e.target.value}})} />
+              <textarea placeholder={lang === 'ar' ? 'وصف المشروع' : 'Project Description'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', minHeight: '80px' }} value={newProj.description.ar} onChange={e => setNewProj({...newProj, description: {...newProj.description, ar: e.target.value}})} />
             </form>
           </AdminModal>
         )}
@@ -406,7 +405,7 @@ const CareerSection = memo(({
         
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <SectionTitle title={lang === 'ar' ? 'السيرة الذاتية' : 'CV Builder'} icon={FileText} />
-          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة قالب' : 'Add Template'} onAdd={handleAddCvTemplate} />
+          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة قالب من الجهاز' : 'Add Template from Device'} onAdd={handleAddCvTemplate} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {cvTemplates.map(cv => (
               <div key={cv.id} onClick={() => setSelectedCv(cv)} className="glass-panel" style={{ cursor: 'pointer', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -434,7 +433,7 @@ const CareerSection = memo(({
 
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <SectionTitle title={lang === 'ar' ? 'المقابلات' : 'Interviews'} icon={Video} />
-          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة مقابلة' : 'Add Interview'} onAdd={() => { setModalData({ titleAr: '', titleEn: '', type: 'video', url: 'https://' }); setActiveModal('interview'); }} />
+          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة فيديو/أسئلة' : 'Add Video/Questions'} onAdd={() => { setModalData({ titleAr: '', titleEn: '', type: 'video', url: 'https://' }); setActiveModal('interview'); }} />
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {interviewResources.map(res => (
               <div key={res.id} className="glass-panel" style={{ padding: '1rem' }}>
@@ -450,7 +449,7 @@ const CareerSection = memo(({
 
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
           <SectionTitle title="LinkedIn" icon={ExternalLink} />
-          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة نصيحة' : 'Add Tip'} onAdd={() => { setModalData({ titleAr: '', titleEn: '', type: 'tip', content: '', url: 'https://' }); setActiveModal('linkedin'); }} />
+          <AdminControl isAdmin={isAdmin} label={lang === 'ar' ? 'إضافة نصيحة/فيديو' : 'Add Tip/Video'} onAdd={() => { setModalData({ titleAr: '', titleEn: '', type: 'tip', content: '', url: 'https://' }); setActiveModal('linkedin'); }} />
           {linkedinTips.map(tip => (
             <div key={tip.id} className="glass-panel" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -539,7 +538,7 @@ const Alumni = () => {
   if (!isAuthenticated) return (
     <div style={{ textAlign: 'center', padding: '5rem 2rem' }}>
       <Lock size={80} style={{ marginBottom: '2rem', opacity: 0.5 }}/>
-      <h2>{lang === 'ar' ? 'بوابة الخريجين مغلقة' : 'Alumni Portal Closed'}</h2>
+      <h2>{lang === 'ar' ? 'بوابة المتوقع تخرجهم مغلقة' : 'Graduation Portal Closed'}</h2>
       <button className="btn-primary" onClick={() => toggleLogin(true)} style={{ marginTop: '2rem' }}>{lang === 'ar' ? 'تسجيل الدخول' : 'Login'}</button>
     </div>
   );
@@ -550,29 +549,33 @@ const Alumni = () => {
          <div style={{ textAlign: 'center', padding: '2rem' }}><Clock size={60} style={{ marginBottom: '1rem' }}/><h3>{lang === 'ar' ? 'طلبك قيد المراجعة' : 'Under Review'}</h3></div>
       ) : (
         <form onSubmit={handleRequestSubmit} style={{ padding: '2rem' }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>{lang === 'ar' ? 'تفعيل البوابة' : 'Activate Portal'}</h2>
-          <input type="number" placeholder="Hours" required className="glass-panel" style={{ width: '100%', padding: '1rem', marginBottom: '1.5rem', color: 'white' }} value={requestForm.hours} onChange={e => setRequestForm({...requestForm, hours: e.target.value})}/>
+          <h2 style={{ textAlign: 'center', marginBottom: '2rem' }}>{lang === 'ar' ? 'تفعيل بوابة المتوقع تخرجهم' : 'Activate Graduation Portal'}</h2>
+          <input type="number" placeholder={lang === 'ar' ? 'عدد الساعات المقطوعة' : 'Completed Hours'} required className="glass-panel" style={{ width: '100%', padding: '1rem', marginBottom: '1.5rem', color: 'white' }} value={requestForm.hours} onChange={e => setRequestForm({...requestForm, hours: e.target.value})}/>
           <div onClick={() => scheduleRef.current.click()} style={{ border: '2px dashed #444', padding: '2rem', textAlign: 'center', cursor: 'pointer', borderRadius: '15px' }}>
-            {requestForm.scheduleImage ? 'Selected ✅' : 'Upload Schedule Image'}
+            {requestForm.scheduleImage ? (lang === 'ar' ? 'تم اختيار الصورة ✅' : 'Selected ✅') : (lang === 'ar' ? 'اضغط لرفع صورة الجدول' : 'Upload Schedule Image')}
             <input type="file" ref={scheduleRef} hidden onChange={e => setRequestForm({...requestForm, scheduleImage: URL.createObjectURL(e.target.files[0]), imageFile: e.target.files[0]})} />
           </div>
-          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '2rem' }}>{lang === 'ar' ? 'إرسال' : 'Submit'}</button>
+          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '2rem' }}>{lang === 'ar' ? 'إرسال الطلب' : 'Submit Request'}</button>
         </form>
       )}
     </div>
   );
 
   const tabs = [
-    { id: 'projects', label: lang === 'ar' ? 'المشاريع' : 'Projects', icon: Presentation },
-    { id: 'career', label: lang === 'ar' ? 'المهنة' : 'Career', icon: Briefcase },
-    { id: 'checklist', label: lang === 'ar' ? 'الخطوات' : 'Steps', icon: ClipboardList },
+    { id: 'projects', label: lang === 'ar' ? 'مشاريع التخرج' : 'Graduation Projects', icon: Presentation },
+    { id: 'career', label: lang === 'ar' ? 'التأهيل المهني' : 'Career Readiness', icon: Briefcase },
+    { id: 'checklist', label: lang === 'ar' ? 'خطوات التخرج' : 'Graduation Steps', icon: ClipboardList },
   ];
 
   return (
     <div style={{ padding: '1rem 2rem 4rem', maxWidth: '1200px', margin: '0 auto' }}>
       <AnimatePresence>
         {activeModal && (
-          <AdminModal lang={lang} isSubmitting={isSubmitting} onClose={() => setActiveModal(null)} title={activeModal} onSave={async () => {
+          <AdminModal lang={lang} isSubmitting={isSubmitting} onClose={() => setActiveModal(null)} title={
+              activeModal === 'cv' ? (lang === 'ar' ? 'قالب السيرة الذاتية' : 'CV Template') :
+              activeModal === 'interview' ? (lang === 'ar' ? 'إضافة مقابلة' : 'Add Interview') :
+              (lang === 'ar' ? 'LinkedIn نصيحة' : 'LinkedIn Tip')
+          } onSave={async () => {
               setIsSubmitting(true);
               try {
                 if (activeModal === 'cv') {
@@ -587,17 +590,18 @@ const Alumni = () => {
               } catch (e) { alert('Save failed'); } finally { setIsSubmitting(false); }
           }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <input type="text" placeholder="Title AR" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.titleAr || modalData.nameAr || ''} onChange={e => setModalData({...modalData, titleAr: e.target.value, nameAr: e.target.value})} />
-              <input type="text" placeholder="Title EN" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.titleEn || modalData.nameEn || ''} onChange={e => setModalData({...modalData, titleEn: e.target.value, nameEn: e.target.value})} />
-              {activeModal === 'linkedin' && <textarea placeholder="Content" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '100px' }} value={modalData.content || ''} onChange={e => setModalData({...modalData, content: e.target.value})} />}
-              <input type="url" placeholder="URL" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.url || ''} onChange={e => setModalData({...modalData, url: e.target.value})} />
+              <input type="text" placeholder={lang === 'ar' ? 'العنوان بالعربي' : 'Title AR'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.titleAr || modalData.nameAr || ''} onChange={e => setModalData({...modalData, titleAr: e.target.value, nameAr: e.target.value})} />
+              <input type="text" placeholder={lang === 'ar' ? 'العنوان بالإنجليزي' : 'Title EN'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.titleEn || modalData.nameEn || ''} onChange={e => setModalData({...modalData, titleEn: e.target.value, nameEn: e.target.value})} />
+              {activeModal === 'linkedin' && <textarea placeholder={lang === 'ar' ? 'محتوى النصيحة' : 'Tip Content'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '100px' }} value={modalData.content || ''} onChange={e => setModalData({...modalData, content: e.target.value})} />}
+              <input type="url" placeholder={lang === 'ar' ? 'الرابط URL' : 'Link URL'} className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={modalData.url || ''} onChange={e => setModalData({...modalData, url: e.target.value})} />
             </div>
           </AdminModal>
         )}
       </AnimatePresence>
 
       <header style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-        <h1 className="title" style={{ fontSize: '2.5rem', color: 'var(--primary-color)' }}>{lang === 'ar' ? 'بوابة الخريجين' : 'Alumni Portal'}</h1>
+        <h1 className="title" style={{ fontSize: '2.5rem', color: 'var(--primary-color)' }}>{lang === 'ar' ? 'بوابة المتوقع تخرجهم' : 'Graduation Portal'}</h1>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>{lang === 'ar' ? 'خطواتك الأخيرة نحو التخرج وسوق العمل.' : 'Your final steps towards graduation and career.'}</p>
       </header>
 
       <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '2.5rem', background: 'rgba(255,255,255,0.02)', padding: '0.5rem', borderRadius: '15px', width: 'fit-content', margin: '0 auto 2.5rem' }}>
