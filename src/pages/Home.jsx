@@ -15,7 +15,7 @@ const Home = () => {
   const { users } = useAuth(); 
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading } = useAdmin();
   
-  const [newPost, setNewPost] = useState({ content: '', image: '', imageFile: null });
+  const [newPost, setNewPost] = useState({ content: '', images: [] }); // Array of { id, url, file }
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
@@ -48,13 +48,18 @@ const Home = () => {
     }
     
     try {
-      const result = await addPost(newPost, user);
+      const postData = {
+        ...newPost,
+        imageFiles: newPost.images.map(img => img.file)
+      };
+      
+      const result = await addPost(postData, user);
       if (result.status === 'ERROR') {
         addToast(t('common.error'), result.message, 'error');
         return;
       }
 
-      setNewPost({ content: '', image: '', imageFile: null });
+      setNewPost({ content: '', images: [] });
       setPostStatus(result.status);
       
       if (result.status === 'PENDING') {
@@ -78,14 +83,26 @@ const Home = () => {
   };
 
   const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewPost({ ...newPost, image: reader.result, imageFile: file });
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setNewPost(prev => ({
+            ...prev,
+            images: [...prev.images, { id: Date.now() + Math.random(), url: reader.result, file }]
+          }));
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  const removeImage = (id) => {
+    setNewPost(prev => ({
+      ...prev,
+      images: prev.images.filter(img => img.id !== id)
+    }));
   };
 
   const handleAddComment = (postId) => {
@@ -148,18 +165,26 @@ const Home = () => {
             </div>
 
             <AnimatePresence>
-              {newPost.image && (
-                <motion.div 
-                  className="post-image-preview"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                >
-                  <img src={newPost.image} alt="Preview" />
-                  <button className="remove-img-btn" onClick={() => setNewPost({ ...newPost, image: '' })}>
-                    <Trash2 size={16} />
+              {newPost.images.length > 0 && (
+                <div className="post-images-preview-grid">
+                  {newPost.images.map(img => (
+                    <motion.div 
+                      key={img.id}
+                      className="post-image-preview-item"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                    >
+                      <img src={img.url} alt="Preview" />
+                      <button className="remove-img-btn-small" onClick={() => removeImage(img.id)}>
+                        <X size={14} />
+                      </button>
+                    </motion.div>
+                  ))}
+                  <button className="add-more-img-btn" onClick={() => fileInputRef.current.click()}>
+                    <Plus size={20} />
                   </button>
-                </motion.div>
+                </div>
               )}
             </AnimatePresence>
             
@@ -167,9 +192,10 @@ const Home = () => {
               <div className="post-tools">
                 <input 
                   type="file" 
-                  hidden 
-                  ref={fileInputRef} 
+                  multiple 
                   accept="image/*" 
+                  style={{ display: 'none' }} 
+                  ref={fileInputRef} 
                   onChange={handleImageUpload} 
                 />
                 <button 
@@ -183,7 +209,7 @@ const Home = () => {
               <button 
                 className="btn-primary post-submit-btn" 
                 onClick={handleCreatePost}
-                disabled={!newPost.content.trim() && !newPost.image}
+                disabled={!newPost.content.trim() && newPost.images.length === 0}
               >
                 <Plus size={18} />
                 {lang === 'ar' ? "نشر" : "Post"}
@@ -245,7 +271,13 @@ const Home = () => {
 
                   <div className="post-content">
                     <p>{post.content}</p>
-                    {post.image && <img src={post.image} alt="Post content" className="post-image" />}
+                    {post.image && (
+                      <div className={`post-image-gallery count-${post.image.split(',').length}`}>
+                        {post.image.split(',').map((img, idx) => (
+                          <img key={idx} src={img} alt={`Post content ${idx}`} className="post-gallery-img" />
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
