@@ -8,13 +8,10 @@ import {
   Trash2, 
   Edit2, 
   X, 
-  Check, 
   Trophy, 
   Clock, 
-  ExternalLink,
-  Presentation,
-  Layout,
-  Type
+  Image as ImageIcon,
+  FileUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -39,32 +36,34 @@ const AdminModal = memo(({ title, onSave, onClose, isSubmitting, lang, children 
 ));
 
 const Events = () => {
-  const { lang, t } = useLocale();
+  const { lang } = useLocale();
   const { user } = useAuth();
-  const { events, addEvent, deleteEvent, updateEvent } = useAdmin();
+  const { events, addEvent, deleteEvent, updateEvent, uploadFile } = useAdmin();
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [editingEvent, setEditingEvent] = useState(null);
+  const [editingEv, setEditingEv] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef(null);
   
   const [formData, setFormData] = useState({
     title_ar: '',
     title_en: '',
     text: { ar: '', en: '' },
     date: new Date().toISOString().split('T')[0],
-    tag: ''
+    tag: '',
+    image_url: ''
   });
 
   const handleOpenAdd = () => {
     setFormData({
-      title_ar: '',
-      title_en: '',
+      title_ar: '', title_en: '',
       text: { ar: '', en: '' },
       date: new Date().toISOString().split('T')[0],
-      tag: ''
+      tag: '', image_url: ''
     });
-    setEditingEvent(null);
+    setEditingEv(null);
     setIsAdding(true);
   };
 
@@ -73,12 +72,23 @@ const Events = () => {
     setFormData({
       title_ar: ev.title_ar || '',
       title_en: ev.title_en || '',
-      text: typeof ev.text === 'object' ? ev.text : { ar: ev.text || '', en: ev.text || '' },
+      text: typeof ev.text === 'object' ? ev.text : { ar: ev.text_ar || ev.text || '', en: ev.text_en || ev.text || '' },
       date: ev.date || '',
-      tag: ev.tag || ''
+      tag: ev.tag || '',
+      image_url: ev.image_url || ''
     });
-    setEditingEvent(ev);
+    setEditingEv(ev);
     setIsAdding(true);
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setIsUploading(true);
+      const url = await uploadFile(file);
+      if (url) setFormData(prev => ({ ...prev, image_url: url }));
+      setIsUploading(false);
+    }
   };
 
   const handleSave = async () => {
@@ -88,23 +98,15 @@ const Events = () => {
     }
     
     setIsSubmitting(true);
-    try {
-      const eventPayload = {
-        ...formData,
-        text: formData.text // This will be handled by Context (text_ar, text_en fallbacks)
-      };
-
-      if (editingEvent) {
-        await updateEvent({ ...eventPayload, id: editingEvent.id });
-      } else {
-        await addEvent(eventPayload);
-      }
-      setIsAdding(false);
-    } catch (err) {
-      console.error("Save failed:", err);
-    } finally {
-      setIsSubmitting(false);
+    let result;
+    if (editingEv) {
+      result = await updateEvent({ ...formData, id: editingEv.id });
+    } else {
+      result = await addEvent(formData);
     }
+    
+    if (result?.success) setIsAdding(false);
+    setIsSubmitting(false);
   };
 
   const sortedEvents = useMemo(() => {
@@ -118,9 +120,7 @@ const Events = () => {
           {lang === 'ar' ? 'الفعاليات والهاكاثون' : 'Events & Hackathons'}
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '700px', margin: '0 auto' }}>
-          {lang === 'ar' 
-            ? 'ابقَ على اطلاع بأحدث الفعاليات، المسابقات البرمجية، والهاكاثونات التي تنظمها الكلية.' 
-            : 'Stay updated with the latest events, coding competitions, and hackathons organized by our faculty.'}
+           {lang === 'ar' ? 'تعرف على آخر الأنشطة والمسابقات البرمجية.' : 'Discover the latest activities and coding competitions.'}
         </p>
         
         {isAdmin && (
@@ -131,130 +131,50 @@ const Events = () => {
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-        {sortedEvents.length > 0 ? (
-          sortedEvents.map((ev, i) => {
-            const title = ev.title_ar || ev.title_en ? (lang === 'ar' ? ev.title_ar : ev.title_en) : (ev.title || (typeof ev.text === 'object' ? ev.text[lang] : ev.text));
-            const desc = typeof ev.text === 'object' ? ev.text[lang] : ev.text;
-            const isHackathon = ev.tag?.toLowerCase().includes('hackathon') || ev.tag?.includes('هاكاثون');
+        {sortedEvents.map((ev, i) => {
+          const title = lang === 'ar' ? ev.title_ar : ev.title_en;
+          const desc = typeof ev.text === 'object' ? ev.text[lang] : ev.text;
+          const isHackathon = ev.tag?.toLowerCase().includes('hackathon') || ev.tag?.includes('هاكاثون');
 
-            return (
-              <motion.div 
-                key={ev.id || i} 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="glass-panel" 
-                style={{ 
-                  padding: '2rem', 
-                  position: 'relative',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  border: isHackathon ? '1px solid var(--accent-color)' : '1px solid var(--border-color)',
-                  boxShadow: isHackathon ? '0 0 15px rgba(220,179,36,0.1)' : 'none'
-                }}
-              >
-                {ev.tag && (
-                  <span style={{ 
-                    background: isHackathon ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', 
-                    color: isHackathon ? '#000' : 'var(--text-secondary)', 
-                    padding: '0.3rem 1rem', 
-                    borderRadius: '50px', 
-                    fontSize: '0.75rem', 
-                    fontWeight: 'bold', 
-                    display: 'inline-block', 
-                    marginBottom: '1.2rem',
-                    width: 'fit-content'
-                  }}>
-                    {isHackathon && <Trophy size={12} style={{marginInlineEnd: '5px'}}/>}
-                    {ev.tag}
-                  </span>
+          return (
+            <motion.div key={ev.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="glass-panel" style={{ padding: '0', overflow: 'hidden', border: isHackathon ? '1px solid var(--accent-color)' : '1px solid var(--border-color)', borderRadius: '20px' }}>
+              {ev.image_url && <div style={{ height: '200px' }}><img src={ev.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
+              <div style={{ padding: '1.5rem' }}>
+                <span style={{ background: isHackathon ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', color: isHackathon ? '#000' : 'var(--text-secondary)', padding: '0.3rem 1rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 'bold', display: 'inline-block', marginBottom: '1rem' }}>
+                  {isHackathon && <Trophy size={12} style={{marginInlineEnd: '5px'}}/>}
+                  {ev.tag}
+                </span>
+                <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '0.8rem', color: isHackathon ? 'var(--accent-color)' : 'var(--primary-color)' }}>{title}</h2>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', fontSize: '0.85rem' }}><Calendar size={14} color="var(--accent-color)" /><span>{ev.date}</span></div>
+                <p style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', lineHeight: '1.6', fontSize: '0.9rem', opacity: 0.8 }}>{desc}</p>
+                {isAdmin && (
+                  <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
+                    <button onClick={(e) => handleOpenEdit(ev, e)} className="btn-outline" style={{ flex: 1 }}><Edit2 size={14} /> {lang === 'ar' ? 'تعديل' : 'Edit'}</button>
+                    <button onClick={() => deleteEvent(ev.id)} className="btn-outline" style={{ color: '#ff4444' }}><Trash2 size={14} /></button>
+                  </div>
                 )}
-
-                <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem', color: isHackathon ? 'var(--accent-color)' : 'var(--primary-color)' }}>
-                  {title}
-                </h2>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-secondary)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                  <Calendar size={16} color="var(--accent-color)" />
-                  <span>{ev.date}</span>
-                </div>
-
-                {desc && desc !== title && (
-                  <p style={{ color: 'var(--text-primary)', marginBottom: '2.5rem', lineHeight: '1.7', fontSize: '0.95rem', opacity: 0.8 }}>
-                    {desc}
-                  </p>
-                )}
-
-                <div style={{ marginTop: 'auto', display: 'flex', gap: '0.8rem' }}>
-                  <button className="btn-outline" style={{ flex: 1, fontSize: '0.85rem' }}>
-                    {lang === 'ar' ? 'التفاصيل' : 'Details'}
-                  </button>
-                  {isAdmin && (
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button onClick={(e) => handleOpenEdit(ev, e)} style={{ background: 'var(--primary-color)', color: 'white', border: 'none', borderRadius: '8px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <Edit2 size={16} />
-                      </button>
-                      <button onClick={(e) => { e.stopPropagation(); deleteEvent(ev.id); }} style={{ background: '#ff4444', color: 'white', border: 'none', borderRadius: '8px', width: '38px', height: '38px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            );
-          })
-        ) : (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '4rem' }}>
-            <Calendar size={60} style={{ opacity: 0.1, marginBottom: '1.5rem' }} />
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.2rem' }}>
-              {lang === 'ar' ? 'لا توجد فعاليات قادمة حالياً.' : 'No upcoming events at the moment.'}
-            </p>
-          </div>
-        )}
+              </div>
+            </motion.div>
+          );
+        })}
       </div>
 
       <AnimatePresence>
         {isAdding && (
-          <AdminModal 
-            title={editingEvent ? (lang === 'ar' ? 'تعديل فعالية' : 'Edit Event') : (lang === 'ar' ? 'إضافة فعالية جديدة' : 'Add New Event')} 
-            onClose={() => setIsAdding(false)} 
-            isSubmitting={isSubmitting} 
-            lang={lang} 
-            onSave={handleSave}
-          >
-            <form style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="input-group">
-                  <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'العنوان بالعربي' : 'Title AR'}</label>
-                  <input type="text" className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={formData.title_ar} onChange={e => setFormData({...formData, title_ar: e.target.value})} required />
-                </div>
-                <div className="input-group">
-                  <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'العنوان بالإنجليزي' : 'Title EN'}</label>
-                  <input type="text" className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} required />
-                </div>
+          <AdminModal title={editingEv ? 'تعديل الفعالية' : 'إضافة فعالية'} onClose={() => setIsAdding(false)} isSubmitting={isSubmitting} lang={lang} onSave={handleSave}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <input placeholder="العنوان بالعربي" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_ar} onChange={e => setFormData({...formData, title_ar: e.target.value})} />
+              <input placeholder="Title (EN)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} />
+              <input type="date" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+              <input placeholder="النوع (مثلاً هاكاثون)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} />
+              <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+                <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => fileInputRef.current?.click()}>{isUploading ? '...' : 'رفع صورة'}</button>
+                <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept="image/*" />
+                {formData.image_url && <ImageIcon size={20} color="var(--accent-color)" />}
               </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="input-group">
-                  <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'التاريخ' : 'Date'}</label>
-                  <input type="date" className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required />
-                </div>
-                <div className="input-group">
-                  <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'نوع الفعالية (تاغ)' : 'Event Tag'}</label>
-                  <input type="text" placeholder="e.g. هاكاثون, Workshop" className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white' }} value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})} />
-                </div>
-              </div>
-
-              <div className="input-group">
-                <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'الوصف بالعربي' : 'Description AR'}</label>
-                <textarea className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', minHeight: '100px' }} value={formData.text.ar} onChange={e => setFormData({...formData, text: {...formData.text, ar: e.target.value}})} />
-              </div>
-
-              <div className="input-group">
-                <label style={{fontSize: '0.8rem', opacity: 0.7, marginBottom: '0.4rem', display: 'block'}}>{lang === 'ar' ? 'الوصف بالإنجليزي' : 'Description EN'}</label>
-                <textarea className="glass-panel" style={{ width: '100%', padding: '0.8rem', background: 'rgba(255,255,255,0.05)', color: 'white', minHeight: '100px' }} value={formData.text.en} onChange={e => setFormData({...formData, text: {...formData.text, en: e.target.value}})} />
-              </div>
-            </form>
+              <textarea placeholder="الوصف بالعربي" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '80px' }} value={formData.text.ar} onChange={e => setFormData({...formData, text: {...formData.text, ar: e.target.value}})} />
+              <textarea placeholder="Description (EN)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', minHeight: '80px' }} value={formData.text.en} onChange={e => setFormData({...formData, text: {...formData.text, en: e.target.value}})} />
+            </div>
           </AdminModal>
         )}
       </AnimatePresence>

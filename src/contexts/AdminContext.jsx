@@ -29,8 +29,9 @@ export const AdminProvider = ({ children }) => {
   const [liveLabs, setLiveLabs] = useState([]);
   const [posts, setPosts] = useState([]);
   const [pendingPosts, setPendingPosts] = useState([]);
-  const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
+  const [homeEvents, setHomeEvents] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [honorRoll, setHonorRoll] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [roadmapCourses, setRoadmapCourses] = useState(() => {
@@ -94,9 +95,10 @@ export const AdminProvider = ({ children }) => {
       }
       
       try {
-        const [annRes, eventsRes, postsRes, coursesRes] = await Promise.all([
+        const [annRes, eventsRes, homeEventsRes, postsRes, coursesRes] = await Promise.all([
           supabase.from('announcements').select('*').limit(10),
-          supabase.from('events').select('*').limit(10),
+          supabase.from('events').select('*').limit(20),
+          supabase.from('home_events').select('*').limit(10),
           supabase.from('posts').select('*, comments(*)').eq('status', 'APPROVED').order('created_at', { ascending: false }).limit(10),
           supabase.from('courses').select('*')
         ]);
@@ -113,15 +115,15 @@ export const AdminProvider = ({ children }) => {
           try { localStorage.setItem('site_ann_v3', JSON.stringify(normalizedAnn)); } catch(e){}
         }
         if (eventsRes.data) {
-          const normalizedEvents = eventsRes.data.map(ev => ({
+          const normalized = eventsRes.data.map(ev => ({
             ...ev,
-            text: {
-              ar: ev.text_ar || ev.text?.ar || ev.text || '',
-              en: ev.text_en || ev.text?.en || ev.text || ''
-            }
+            title: { ar: ev.title_ar || '', en: ev.title_en || '' },
+            text: { ar: ev.text_ar || '', en: ev.text_en || '' }
           }));
-          setEvents(normalizedEvents);
-          try { localStorage.setItem('site_events_v3', JSON.stringify(normalizedEvents)); } catch(e){}
+          setEvents(normalized);
+        }
+        if (homeEventsRes.data) {
+          setHomeEvents(homeEventsRes.data);
         }
         if (coursesRes.data) {
           setRoadmapCourses(coursesRes.data);
@@ -888,50 +890,45 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  const addEvent = async (event) => {
+  const addEvent = async (ev) => {
     const newData = { 
-      date: event.date, 
-      text_ar: event.text.ar, 
-      text_en: event.text.en,
-      title_ar: event.title_ar || '',
-      title_en: event.title_en || '',
-      tag: event.tag || ''
+      title_ar: ev.title_ar, title_en: ev.title_en, 
+      text_ar: ev.text?.ar || ev.text_ar, text_en: ev.text?.en || ev.text_en,
+      date: ev.date, tag: ev.tag, image_url: ev.image_url 
     };
-    const legacyData = { 
-      date: event.date, 
-      text: event.text,
-      title: event.title_ar || event.text.ar
+    const { data, error } = await supabase.from('events').insert([newData]).select();
+    if (!error && data) {
+      setEvents(prev => [...prev, { ...data[0], title: { ar: ev.title_ar, en: ev.title_en }, text: ev.text }]);
+      addToast(lang === 'ar' ? 'تمت إضافة الفعالية' : 'Event Added', '', 'success');
+      return { success: true };
+    }
+    return { success: false, error };
+  };
+
+  const updateEvent = async (ev) => {
+    const newData = { 
+      title_ar: ev.title_ar, title_en: ev.title_en, 
+      text_ar: ev.text?.ar || ev.text_ar, text_en: ev.text?.en || ev.text_en,
+      date: ev.date, tag: ev.tag, image_url: ev.image_url 
     };
-    const { data, error } = await robustInsert('events', newData, legacyData);
-    if (!error && data) setEvents(prev => [...prev, { ...data[0], text: event.text }]);
+    const { error } = await supabase.from('events').update(newData).eq('id', ev.id);
+    if (!error) {
+      setEvents(prev => prev.map(a => a.id === ev.id ? { ...a, ...ev } : a));
+      addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', '', 'success');
+      return { success: true };
+    }
+    return { success: false, error };
   };
 
   const deleteEvent = async (id) => {
     const { error } = await supabase.from('events').delete().eq('id', id);
-    if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+    if (!error) setEvents(prev => prev.filter(a => a.id !== id));
   };
 
-  const updateEvent = async (updatedEvent) => {
-    const newData = { 
-      date: updatedEvent.date, 
-      text_ar: updatedEvent.text.ar, 
-      text_en: updatedEvent.text.en,
-      title_ar: updatedEvent.title_ar || '',
-      title_en: updatedEvent.title_en || '',
-      tag: updatedEvent.tag || ''
-    };
-    
-    let { error } = await supabase.from('events').update(newData).eq('id', updatedEvent.id);
-    
-    if (error && (error.message.includes('column') || error.code === '42703')) {
-      // Fallback to legacy structure if new columns missing
-      error = (await supabase.from('events').update({ 
-        date: updatedEvent.date, 
-        text: updatedEvent.text 
-      }).eq('id', updatedEvent.id)).error;
-    }
-    
-    if (!error) setEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
+  // Home Side Events
+  const addHomeEvent = async (ev) => {
+    const { data, error } = await supabase.from('home_events').insert([ev]).select();
+    if (!error && data) setHomeEvents(prev => [...prev, data[0]]);
   };
 
   // Courses, Tips, Quests
@@ -1757,6 +1754,7 @@ export const AdminProvider = ({ children }) => {
       addComment, deleteComment, editComment, likeComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
+      homeEvents, addHomeEvent,
       liveLabs, addLab, editLab, deleteLab,
       honorRoll, addHonorStudent, deleteHonorStudent, editHonorStudent,
       achievements, addAchievement, deleteAchievement, editAchievement,
