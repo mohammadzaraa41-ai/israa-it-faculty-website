@@ -9,9 +9,10 @@ import {
   Edit2, 
   X, 
   Trophy, 
-  Clock, 
   Image as ImageIcon,
-  FileUp
+  FileUp,
+  Info,
+  ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -65,48 +66,26 @@ const AdminModal = memo(({ title, onSave, onClose, isSubmitting, lang, children 
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'center',
-          transition: 'all 0.3s'
+          justifyContent: 'center'
         }} 
         onClick={onClose}
-        onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,68,68,0.2)'}
-        onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
       >
         <X size={18}/>
       </button>
 
-      <h3 style={{ 
-        fontSize: '1.5rem', 
-        fontWeight: 'bold', 
-        marginBottom: '2rem', 
-        textAlign: 'center', 
-        color: 'var(--accent-color)',
-        paddingRight: lang === 'ar' ? '0' : '2rem',
-        paddingLeft: lang === 'ar' ? '2rem' : '0'
-      }}>
+      <h3 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '2rem', textAlign: 'center', color: 'var(--accent-color)' }}>
         {title}
       </h3>
 
-      <div style={{ flex: 1, overflowY: 'auto', paddingRight: '0.5rem' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         {children}
       </div>
 
       <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem' }}>
-        <button 
-          className="btn-primary" 
-          disabled={isSubmitting}
-          style={{ flex: 2, padding: '1rem', opacity: isSubmitting ? 0.7 : 1 }} 
-          onClick={onSave}
-        >
-          {isSubmitting 
-            ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') 
-            : (lang === 'ar' ? 'حفظ البيانات' : 'Save Data')}
+        <button className="btn-primary" disabled={isSubmitting} style={{ flex: 2, padding: '1rem' }} onClick={onSave}>
+          {isSubmitting ? (lang === 'ar' ? 'جاري الحفظ...' : 'Saving...') : (lang === 'ar' ? 'حفظ البيانات' : 'Save Data')}
         </button>
-        <button 
-          className="btn-outline" 
-          style={{ flex: 1, border: '1px solid rgba(255,255,255,0.1)' }} 
-          onClick={onClose}
-        >
+        <button className="btn-outline" style={{ flex: 1 }} onClick={onClose}>
           {lang === 'ar' ? 'إلغاء' : 'Cancel'}
         </button>
       </div>
@@ -114,25 +93,64 @@ const AdminModal = memo(({ title, onSave, onClose, isSubmitting, lang, children 
   </motion.div>
 ));
 
+const ActivityDetailModal = memo(({ act, onClose, lang }) => {
+  const isHackathon = act.tag?.toLowerCase().includes('hackathon') || act.tag?.includes('هاكاثون');
+  const title = lang === 'ar' ? act.title_ar : act.title_en;
+  const desc = typeof act.text === 'object' ? act.text[lang] : act.text;
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+      <motion.div initial={{ scale: 0.9, y: 30 }} animate={{ scale: 1, y: 0 }} onClick={e => e.stopPropagation()} className="glass-panel" style={{ width: '95%', maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto', borderRadius: '30px', border: isHackathon ? '2px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.1)', padding: 0 }}>
+        <div style={{ position: 'relative', width: '100%', height: '300px' }}>
+          <img src={act.image_url || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1000'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, #000)' }} />
+          <button onClick={onClose} style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer' }}><X size={24}/></button>
+          
+          <div style={{ position: 'absolute', bottom: '1.5rem', right: '1.5rem', left: '1.5rem' }}>
+             {act.tag && <span style={{ background: isHackathon ? 'var(--accent-color)' : 'var(--primary-color)', color: isHackathon ? '#000' : '#fff', padding: '0.4rem 1.2rem', borderRadius: '50px', fontSize: '0.8rem', fontWeight: 'bold', display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                {isHackathon && <Trophy size={14}/>}
+                {act.tag}
+             </span>}
+             <h2 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>{title}</h2>
+          </div>
+        </div>
+
+        <div style={{ padding: '2rem' }}>
+           <div style={{ display: 'flex', gap: '2rem', marginBottom: '2rem', color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Calendar size={18} color="var(--accent-color)" /><span>{act.date}</span></div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={18} color="var(--accent-color)" /><span>{lang === 'ar' ? 'فعالية متميزة' : 'Featured Activity'}</span></div>
+           </div>
+           <div style={{ lineHeight: '1.8', color: 'rgba(255,255,255,0.9)', fontSize: '1.1rem', whiteSpace: 'pre-wrap' }}>
+              {desc}
+           </div>
+           
+           <button onClick={onClose} className="btn-primary" style={{ marginTop: '3rem', width: '100%', padding: '1rem' }}>
+              {lang === 'ar' ? 'إغلاق' : 'Close'}
+           </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+});
+
 const Events = () => {
   const { lang } = useLocale();
   const { user } = useAuth();
-  const { activities, addActivity, deleteActivity, updateActivity, uploadFile } = useAdmin();
+  const { events, addEvent, deleteEvent, updateEvent, uploadFile } = useAdmin();
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const [isAdding, setIsAdding] = useState(false);
-  const [editingAct, setEditingAct] = useState(null);
+  const [editingEv, setEditingEv] = useState(null);
+  const [selectedAct, setSelectedAct] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = React.useRef(null);
   
   const [formData, setFormData] = useState({
-    title_ar: '',
-    title_en: '',
+    title_ar: '', title_en: '',
     text: { ar: '', en: '' },
     date: new Date().toISOString().split('T')[0],
-    tag: '',
-    image_url: ''
+    tag: '', image_url: ''
   });
 
   const handleOpenAdd = () => {
@@ -142,21 +160,21 @@ const Events = () => {
       date: new Date().toISOString().split('T')[0],
       tag: '', image_url: ''
     });
-    setEditingAct(null);
+    setEditingEv(null);
     setIsAdding(true);
   };
 
-  const handleOpenEdit = (act, e) => {
+  const handleOpenEdit = (ev, e) => {
     e.stopPropagation();
     setFormData({
-      title_ar: act.title_ar || '',
-      title_en: act.title_en || '',
-      text: typeof act.text === 'object' ? act.text : { ar: act.text || '', en: act.text || '' },
-      date: act.date || '',
-      tag: act.tag || '',
-      image_url: act.image_url || ''
+      title_ar: ev.title_ar || '',
+      title_en: ev.title_en || '',
+      text: typeof ev.text === 'object' ? ev.text : { ar: ev.text_ar || ev.text || '', en: ev.text_en || ev.text || '' },
+      date: ev.date || '',
+      tag: ev.tag || '',
+      image_url: ev.image_url || ''
     });
-    setEditingAct(act);
+    setEditingEv(ev);
     setIsAdding(true);
   };
 
@@ -175,22 +193,20 @@ const Events = () => {
       alert(lang === 'ar' ? 'يرجى ملء الحقول الأساسية' : 'Please fill basic fields');
       return;
     }
-    
     setIsSubmitting(true);
     let result;
-    if (editingAct) {
-      result = await updateActivity({ ...formData, id: editingAct.id });
+    if (editingEv) {
+      result = await updateEvent({ ...formData, id: editingEv.id });
     } else {
-      result = await addActivity(formData);
+      result = await addEvent(formData);
     }
-    
     if (result?.success) setIsAdding(false);
     setIsSubmitting(false);
   };
 
-  const sortedActivities = useMemo(() => {
-    return [...activities].sort((a, b) => new Date(b.date) - new Date(a.date));
-  }, [activities]);
+  const sortedEvents = useMemo(() => {
+    return [...events].sort((a, b) => new Date(b.date) - new Date(a.date));
+  }, [events]);
 
   return (
     <div style={{ padding: '2rem 1rem 5rem', maxWidth: '1200px', margin: '0 auto', minHeight: '80vh' }}>
@@ -199,39 +215,65 @@ const Events = () => {
           {lang === 'ar' ? 'الفعاليات والهاكاثون' : 'Events & Hackathons'}
         </h1>
         <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', maxWidth: '700px', margin: '0 auto' }}>
-          {lang === 'ar' ? 'أنشطة ومسابقات الكلية المتميزة.' : 'Distinctive faculty activities and competitions.'}
+           {lang === 'ar' ? 'تعرف على آخر الأنشطة والمسابقات البرمجية.' : 'Discover the latest activities and coding competitions.'}
         </p>
         
         {isAdmin && (
           <button onClick={handleOpenAdd} className="btn-primary" style={{ marginTop: '2.5rem', gap: '0.5rem', padding: '0.8rem 2rem' }}>
-            <Plus size={20} /> {lang === 'ar' ? 'إضافة فعالية/هاكاثون' : 'Add Activity/Hackathon'}
+            <Plus size={20} /> {lang === 'ar' ? 'إضافة فعالية جديدة' : 'Add New Event'}
           </button>
         )}
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-        {sortedActivities.map((act, i) => {
-          const title = lang === 'ar' ? act.title_ar : act.title_en;
-          const desc = typeof act.text === 'object' ? act.text[lang] : act.text;
-          const isHackathon = act.tag?.toLowerCase().includes('hackathon') || act.tag?.includes('هاكاثون');
+        {sortedEvents.map((ev, i) => {
+          const title = lang === 'ar' ? ev.title_ar : ev.title_en;
+          const desc = typeof ev.text === 'object' ? ev.text[lang] : (ev.text_ar || ev.text);
+          const isHackathon = ev.tag?.toLowerCase().includes('hackathon') || ev.tag?.includes('هاكاثون');
 
           return (
-            <motion.div key={act.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }} className="glass-panel" style={{ padding: '0', overflow: 'hidden', border: isHackathon ? '1px solid var(--accent-color)' : '1px solid var(--border-color)', borderRadius: '20px' }}>
-              {act.image_url && <div style={{ height: '200px' }}><img src={act.image_url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /></div>}
+            <motion.div 
+              key={ev.id} 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ delay: i * 0.1 }} 
+              className="glass-panel" 
+              onClick={() => setSelectedAct(ev)}
+              style={{ 
+                padding: '0', 
+                overflow: 'hidden', 
+                border: isHackathon ? '1px solid var(--accent-color)' : '1px solid var(--border-color)', 
+                borderRadius: '24px', 
+                cursor: 'pointer',
+                transition: 'transform 0.3s'
+              }}
+              whileHover={{ y: -10 }}
+            >
+              <div style={{ height: '220px', position: 'relative' }}>
+                <img src={ev.image_url || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=1000'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'absolute', top: '1rem', right: '1rem' }}>
+                   {isHackathon && <div style={{ background: 'var(--accent-color)', color: '#000', padding: '0.4rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trophy size={18} /></div>}
+                </div>
+              </div>
+              
               <div style={{ padding: '1.5rem' }}>
-                <span style={{ background: isHackathon ? 'var(--accent-color)' : 'rgba(255,255,255,0.05)', color: isHackathon ? '#000' : 'var(--text-secondary)', padding: '0.3rem 1rem', borderRadius: '50px', fontSize: '0.75rem', fontWeight: 'bold', display: 'inline-block', marginBottom: '1rem' }}>
-                  {isHackathon && <Trophy size={12} style={{marginInlineEnd: '5px'}}/>}
-                  {act.tag}
-                </span>
-                <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', marginBottom: '0.8rem', color: isHackathon ? 'var(--accent-color)' : 'var(--primary-color)' }}>{title}</h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', fontSize: '0.85rem' }}><Calendar size={14} color="var(--accent-color)" /><span>{act.date}</span></div>
-                <p style={{ color: 'var(--text-primary)', marginBottom: '1.5rem', lineHeight: '1.6', fontSize: '0.9rem', opacity: 0.8 }}>{desc}</p>
-                {isAdmin && (
-                  <div style={{ display: 'flex', gap: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1rem' }}>
-                    <button onClick={(e) => handleOpenEdit(act, e)} className="btn-outline" style={{ flex: 1 }}><Edit2 size={14} /> {lang === 'ar' ? 'تعديل' : 'Edit'}</button>
-                    <button onClick={() => deleteActivity(act.id)} className="btn-outline" style={{ color: '#ff4444' }}><Trash2 size={14} /></button>
-                  </div>
-                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.8rem' }}>
+                  <span style={{ color: 'var(--accent-color)', fontSize: '0.8rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1px' }}>{ev.tag}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}><Calendar size={12}/> {ev.date}</div>
+                </div>
+                
+                <h2 style={{ fontSize: '1.4rem', fontWeight: 'bold', marginBottom: '1rem', color: '#fff' }}>{title}</h2>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.5rem', display: '-webkit-box', WebkitLineClamp: '2', WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.6' }}>{desc}</p>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.8rem', color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>{lang === 'ar' ? 'عرض التفاصيل' : 'View Details'} <ChevronRight size={14}/></span>
+                  {isAdmin && (
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button onClick={(e) => handleOpenEdit(ev, e)} style={{ background: 'rgba(255,255,255,0.1)', color: '#fff', border: 'none', borderRadius: '8px', padding: '0.4rem' }}><Edit2 size={14} /></button>
+                      <button onClick={(e) => { e.stopPropagation(); deleteEvent(ev.id); }} style={{ background: 'rgba(255,68,68,0.1)', color: '#ff4444', border: 'none', borderRadius: '8px', padding: '0.4rem' }}><Trash2 size={14} /></button>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           );
@@ -240,23 +282,17 @@ const Events = () => {
 
       <AnimatePresence>
         {isAdding && (
-          <AdminModal title={editingAct ? 'تعديل' : 'إضافة جديد'} onClose={() => setIsAdding(false)} isSubmitting={isSubmitting} lang={lang} onSave={handleSave}>
+          <AdminModal title={editingEv ? 'تعديل الفعالية' : 'إضافة فعالية'} onClose={() => setIsAdding(false)} isSubmitting={isSubmitting} lang={lang} onSave={handleSave}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input placeholder="العنوان بالعربي" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_ar} onChange={e => setFormData({...formData, title_ar: e.target.value})} />
               <input placeholder="Title (EN)" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.title_en} onChange={e => setFormData({...formData, title_en: e.target.value})} />
               <input type="date" className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white' }} value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} />
-              <select 
-                className="glass-panel" 
-                style={{ width: '100%', padding: '0.8rem', color: 'white', background: 'rgba(255,255,255,0.05)', border: 'none' }} 
-                value={formData.tag} 
-                onChange={e => setFormData({...formData, tag: e.target.value})}
-              >
-                <option value="" style={{background: '#1a1a1a'}}>{lang === 'ar' ? '--- اختر نوع الفعالية ---' : '--- Select Event Type ---'}</option>
-                <option value="هاكاثون" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'هاكاثون' : 'Hackathon'}</option>
-                <option value="ورشة عمل" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'ورشة عمل' : 'Workshop'}</option>
-                <option value="مسابقة برمجية" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'مسابقة برمجية' : 'Coding Contest'}</option>
-                <option value="ندوة" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'ندوة' : 'Seminar'}</option>
-                <option value="يوم مفتوح" style={{background: '#1a1a1a'}}>{lang === 'ar' ? 'يوم مفتوح' : 'Open Day'}</option>
+              <select className="glass-panel" style={{ width: '100%', padding: '0.8rem', color: 'white', background: '#1a1a1a' }} value={formData.tag} onChange={e => setFormData({...formData, tag: e.target.value})}>
+                <option value="">{lang === 'ar' ? 'اختر النوع...' : 'Select Type...'}</option>
+                <option value="هاكاثون">هاكاثون</option>
+                <option value="ورشة عمل">ورشة عمل</option>
+                <option value="مسابقة برمجية">مسابقة برمجية</option>
+                <option value="ندوة">ندوة</option>
               </select>
               <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                 <button type="button" className="btn-outline" style={{ flex: 1 }} onClick={() => fileInputRef.current?.click()}>{isUploading ? '...' : 'رفع صورة'}</button>
@@ -268,6 +304,7 @@ const Events = () => {
             </div>
           </AdminModal>
         )}
+        {selectedAct && <ActivityDetailModal act={selectedAct} onClose={() => setSelectedAct(null)} lang={lang} />}
       </AnimatePresence>
     </div>
   );
