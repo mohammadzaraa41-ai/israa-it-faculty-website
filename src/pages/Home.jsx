@@ -51,21 +51,33 @@ const Home = () => {
       return;
     }
 
+    // 1. Capture payload for background upload
+    const postPayload = { ...newPost };
+
+    // 2. Optimistically clear the form instantly to prevent UX blocking
+    setNewPost({ content: '', images: [], imageFiles: [] });
+    addToast(
+      lang === 'ar' ? 'جاري النشر...' : 'Publishing...',
+      lang === 'ar' ? 'يتم الآن رفع الصور والمنشور' : 'Uploading images and post...',
+      'info'
+    );
+
+    // 3. Upload in background
     try {
-      const result = await addPost(newPost, user);
+      const result = await addPost(postPayload, user);
       if (result.status === 'ERROR') {
         addToast(t('common.error'), result.message, 'error');
+        setNewPost(postPayload); // Revert form clear
         return;
       }
 
-      setNewPost({ content: '', images: [], imageFiles: [] });
       setPostStatus(result.status);
 
       if (result.status === 'PENDING') {
         addToast(
           lang === 'ar' ? 'تم الإرسال' : 'Sent',
           lang === 'ar' ? 'منشورك قيد المراجعة' : 'Your post is under review',
-          'info'
+          'success'
         );
       } else {
         addToast(
@@ -78,6 +90,7 @@ const Home = () => {
       setTimeout(() => setPostStatus(null), 5000);
     } catch (err) {
       addToast(t('common.error'), err.message, 'error');
+      setNewPost(postPayload); // Revert form clear
     }
   };
 

@@ -650,6 +650,33 @@ export const AdminProvider = ({ children }) => {
     if (!user) return { status: 'ERROR' };
     const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role);
     
+    // 1. CREATE OPTIMISTIC POST (Instantly displayed to the user)
+    const optimisticId = 'temp-' + Date.now();
+    const optimisticPost = {
+      id: optimisticId,
+      content: postData.content,
+      // Use local base64 images for instant display
+      image: postData.images && postData.images.length > 0 ? postData.images.join(',') : null,
+      author: {
+        username: user.username,
+        name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
+        role: user.role,
+        avatar_url: user.avatar_url || null
+      },
+      date: new Date().toLocaleDateString('en-GB'),
+      comments: [],
+      likes: [],
+      status: isAdmin ? 'APPROVED' : 'PENDING'
+    };
+
+    // 2. IMMEDIATELY UPDATE STATE
+    if (isAdmin) {
+      setPosts(prev => [optimisticPost, ...prev]);
+    } else {
+      setPendingPosts(prev => [optimisticPost, ...prev]);
+    }
+
+    // 3. UPLOAD IN BACKGROUND
     let finalImageUrls = [];
 
     if (postData.imageFiles && postData.imageFiles.length > 0) {
@@ -676,15 +703,13 @@ export const AdminProvider = ({ children }) => {
       } catch (err) {
         console.error("Image Upload Exception:", err);
       }
-    } else if (postData.image) {
-      // Fallback for single image as data URL or single URL
+    } else if (postData.image && typeof postData.image === 'string') {
       finalImageUrls = [postData.image];
     }
 
-    // Join multiple URLs with a special separator or just use the first one if we want to be safe
-    // But the user wants multiple, so let's join them with a comma or store as JSON string
     const imageValue = finalImageUrls.length > 0 ? finalImageUrls.join(',') : null;
 
+    // 4. INSERT REAL DATA TO DB
     const { data, error } = await supabase.from('posts').insert([{
       content: postData.content,
       image: imageValue,
@@ -694,26 +719,31 @@ export const AdminProvider = ({ children }) => {
       status: isAdmin ? 'APPROVED' : 'PENDING'
     }]).select();
 
-    if (error) return { status: 'ERROR', message: error.message };
+    if (error) {
+      // Revert optimistic update on failure
+      if (isAdmin) {
+        setPosts(prev => prev.filter(p => p.id !== optimisticId));
+      } else {
+        setPendingPosts(prev => prev.filter(p => p.id !== optimisticId));
+      }
+      return { status: 'ERROR', message: error.message };
+    }
 
+    // 5. REPLACE OPTIMISTIC POST WITH REAL DB POST (Real IDs)
     const newP = {
       ...data[0],
-      author: {
-        username: user.username,
-        name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
-        role: user.role,
-        avatar_url: user.avatar_url || null
-      },
-      date: new Date().toLocaleDateString('en-GB'),
-      comments: []
+      author: optimisticPost.author,
+      date: optimisticPost.date,
+      comments: [],
+      likes: []
     };
 
-    if (!isAdmin) {
-      setPendingPosts(prev => [newP, ...prev]);
-      return { status: 'PENDING' };
-    } else {
-      setPosts(prev => [newP, ...prev]);
+    if (isAdmin) {
+      setPosts(prev => prev.map(p => p.id === optimisticId ? newP : p));
       return { status: 'PUBLISHED' };
+    } else {
+      setPendingPosts(prev => prev.map(p => p.id === optimisticId ? newP : p));
+      return { status: 'PENDING' };
     }
   };
 
