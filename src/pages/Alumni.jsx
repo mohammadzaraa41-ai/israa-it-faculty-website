@@ -548,6 +548,15 @@ const Alumni = () => {
                 </p>
               </div>
             )}
+
+            {isAdmin && (
+              <div style={{ marginTop: '4rem', padding: '1rem', border: '1px dashed #ff4444', borderRadius: '8px', opacity: 0.5 }}>
+                <p style={{ color: '#ff4444', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Debug Mode: Raw Data</p>
+                <pre style={{ fontSize: '0.7rem', overflow: 'auto', maxHeight: '200px' }}>
+                  {JSON.stringify(viewingProject, null, 2)}
+                </pre>
+              </div>
+            )}
           </div>
         </motion.div>
       );

@@ -420,14 +420,14 @@ export const AdminProvider = ({ children }) => {
       if (projectsRes) {
         setProjectBank(projectsRes.map(p => ({
           ...p,
-          name_ar: p.name_ar || p.name?.ar || 'مشروع',
-          name_en: p.name_en || p.name?.en || 'Project',
-          notes_ar: p.notes_ar || p.notes?.ar || '',
-          notes_en: p.notes_en || p.notes?.en || '',
-          supervisor: p.supervisor || p.instructor || p.doctor || '',
-          students: p.students || [],
-          files: p.files || [],
-          images: p.images || []
+          name_ar: p.name_ar || p.title_ar || p.name?.ar || 'مشروع',
+          name_en: p.name_en || p.title_en || p.name?.en || 'Project',
+          notes_ar: p.notes_ar || p.description_ar || p.description || p.info_ar || p.notes?.ar || '',
+          notes_en: p.notes_en || p.description_en || p.info_en || p.notes?.en || '',
+          supervisor: p.supervisor || p.instructor || p.doctor || p.supervisor_name || '',
+          students: p.students || p.members || p.team || p.student_names || [],
+          files: p.files || p.attachments || p.documents || [],
+          images: p.images || p.gallery || p.photos || []
         })));
       }
       
@@ -1092,13 +1092,32 @@ export const AdminProvider = ({ children }) => {
     };
     
     const tryUpdate = async (payload) => {
-       let res = await supabase.from('project_bank').update(payload).eq('id', p.id);
+       // Helper to try update with alternative column names
+       const attempt = async (currentPayload) => {
+         return await supabase.from('project_bank').update(currentPayload).eq('id', p.id);
+       };
+
+       let res = await attempt(payload);
        
-       if (res.error && (res.error.message.includes('supervisor') || res.error.code === '42703')) {
-         const { supervisor, ...rest } = payload;
-         res = await supabase.from('project_bank').update({ ...rest, instructor: supervisor }).eq('id', p.id);
-         if (res.error) res = await supabase.from('project_bank').update({ ...rest, doctor: supervisor }).eq('id', p.id);
-         if (res.error) res = await supabase.from('project_bank').update(rest).eq('id', p.id);
+       if (res.error && (res.error.message.includes('column') || res.error.code === '42703')) {
+         const errCol = res.error.message.split('"')[1] || '';
+         const newPayload = { ...payload };
+         
+         if (errCol === 'supervisor' || res.error.message.includes('supervisor')) {
+           delete newPayload.supervisor;
+           newPayload.instructor = payload.supervisor;
+         } else if (errCol === 'students' || res.error.message.includes('students')) {
+           delete newPayload.students;
+           newPayload.members = payload.students;
+         } else if (errCol === 'notes_ar' || res.error.message.includes('notes_ar')) {
+           delete newPayload.notes_ar;
+           newPayload.description = payload.notes_ar;
+         } else if (errCol === 'files' || res.error.message.includes('files')) {
+           delete newPayload.files;
+           newPayload.attachments = payload.files;
+         }
+         
+         res = await attempt(newPayload);
        }
        
        if (res.error && (res.error.message.includes('json') || res.error.message.includes('array'))) {
@@ -1108,7 +1127,7 @@ export const AdminProvider = ({ children }) => {
            files: JSON.stringify(payload.files),
            images: JSON.stringify(payload.images)
          };
-         res = await supabase.from('project_bank').update(stringified).eq('id', p.id);
+         res = await attempt(stringified);
        }
        return res;
     };
@@ -1169,33 +1188,47 @@ export const AdminProvider = ({ children }) => {
     };
 
     const tryInsert = async (payload) => {
-      // Try as is
-      let res = await supabase.from('project_bank').insert([payload]).select();
+      const attempt = async (currentPayload) => {
+        return await supabase.from('project_bank').insert([currentPayload]).select();
+      };
+
+      let res = await attempt(payload);
       
-      // If error is about supervisor column, try alternatives
-      if (res.error && (res.error.message.includes('supervisor') || res.error.code === '42703')) {
-        const { supervisor, ...rest } = payload;
-        // Try 'instructor'
-        res = await supabase.from('project_bank').insert([{ ...rest, instructor: supervisor }]).select();
-        if (res.error) {
-          // Try 'doctor'
-          res = await supabase.from('project_bank').insert([{ ...rest, doctor: supervisor }]).select();
+      if (res.error && (res.error.message.includes('column') || res.error.code === '42703')) {
+        const errCol = res.error.message.split('"')[1] || '';
+        const newPayload = { ...payload };
+        
+        if (errCol === 'supervisor' || res.error.message.includes('supervisor')) {
+          delete newPayload.supervisor;
+          newPayload.instructor = payload.supervisor;
+        } else if (errCol === 'students' || res.error.message.includes('students')) {
+          delete newPayload.students;
+          newPayload.members = payload.students;
+        } else if (errCol === 'notes_ar' || res.error.message.includes('notes_ar')) {
+          delete newPayload.notes_ar;
+          newPayload.description = payload.notes_ar;
+        } else if (errCol === 'files' || res.error.message.includes('files')) {
+          delete newPayload.files;
+          newPayload.attachments = payload.files;
         }
+        
+        res = await attempt(newPayload);
+        
+        // If still failing, try a very minimal version
         if (res.error) {
-          // Try without supervisor entirely
-          res = await supabase.from('project_bank').insert([rest]).select();
+          const minimal = { name_ar: payload.name_ar, rating: payload.rating };
+          res = await attempt(minimal);
         }
       }
 
-      // If still error and looks like array/json issue, try stringifying
-      if (res.error && (res.error.message.includes('json') || res.error.message.includes('array') || res.error.code === '22P02')) {
+      if (res.error && (res.error.message.includes('json') || res.error.message.includes('array'))) {
         const stringified = {
           ...payload,
-          students: JSON.stringify(payload.students),
-          files: JSON.stringify(payload.files),
-          images: JSON.stringify(payload.images)
+          students: typeof payload.students === 'object' ? JSON.stringify(payload.students) : payload.students,
+          files: typeof payload.files === 'object' ? JSON.stringify(payload.files) : payload.files,
+          images: typeof payload.images === 'object' ? JSON.stringify(payload.images) : payload.images
         };
-        res = await supabase.from('project_bank').insert([stringified]).select();
+        res = await attempt(stringified);
       }
 
       return res;
