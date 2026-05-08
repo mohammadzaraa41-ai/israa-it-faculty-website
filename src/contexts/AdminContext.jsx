@@ -1126,11 +1126,29 @@ export const AdminProvider = ({ children }) => {
       finalUrl = uploadedUrl;
     }
 
-    const newData = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl, file_name: t.file };
-    const legacyData = { name_ar: t.name.ar, url: finalUrl };
-    const minimalData = { name: t.name.ar, url: finalUrl };
+    const payload1 = { name: t.name, url: finalUrl, file_name: t.file };
+    const payload2 = { name: t.name, url: finalUrl };
+    const payload3 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl, file_name: t.file };
+    const payload4 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl };
+    const payload5 = { name_ar: t.name.ar, url: finalUrl };
 
-    const { data, error } = await robustInsert('cv_templates', newData, legacyData, minimalData);
+    let result = await supabase.from('cv_templates').insert([payload1]).select();
+    
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').insert([payload2]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').insert([payload3]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').insert([payload4]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').insert([payload5]).select();
+    }
+
+    const { data, error } = result;
+
     if (!error && data) {
       setCvTemplates(prev => [...prev, { ...data[0], name: t.name }]);
       addToast(lang === 'ar' ? 'تمت الإضافة' : 'Added', lang === 'ar' ? 'تم حفظ قالب السيرة الذاتية بنجاح' : 'CV Template saved', 'success');
@@ -1145,15 +1163,30 @@ export const AdminProvider = ({ children }) => {
   };
 
   const editCvTemplate = async (t) => {
-    const dbData = {
-      name_ar: t.name_ar || t.name?.ar,
-      name_en: t.name_en || t.name?.en,
-      url: t.url,
-      file_name: t.file_name || t.file
-    };
-    const { error } = await supabase.from('cv_templates').update(dbData).eq('id', t.id);
+    const payload1 = { name: t.name || { ar: t.name_ar, en: t.name_en }, url: t.url, file_name: t.file_name || t.file };
+    const payload2 = { name: t.name || { ar: t.name_ar, en: t.name_en }, url: t.url };
+    const payload3 = { name_ar: t.name_ar || t.name?.ar, name_en: t.name_en || t.name?.en, url: t.url, file_name: t.file_name || t.file };
+    const payload4 = { name_ar: t.name_ar || t.name?.ar, name_en: t.name_en || t.name?.en, url: t.url };
+    const payload5 = { name_ar: t.name_ar || t.name?.ar, url: t.url };
+
+    let result = await supabase.from('cv_templates').update(payload1).eq('id', t.id);
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').update(payload2).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').update(payload3).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').update(payload4).eq('id', t.id);
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      result = await supabase.from('cv_templates').update(payload5).eq('id', t.id);
+    }
+
+    const { error } = result;
+
     if (!error) {
-      setCvTemplates(prev => prev.map(oldT => oldT.id === t.id ? { ...oldT, ...dbData } : oldT));
+      setCvTemplates(prev => prev.map(oldT => oldT.id === t.id ? { ...oldT, ...payload3, name: payload1.name } : oldT));
       addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', lang === 'ar' ? 'تم التعديل بنجاح' : 'Updated successfully', 'success');
     }
   };
