@@ -420,14 +420,16 @@ export const AdminProvider = ({ children }) => {
       if (projectsRes) {
         setProjectBank(projectsRes.map(p => ({
           ...p,
-          name_ar: p.name_ar || p.title_ar || p.name?.ar || 'مشروع',
-          name_en: p.name_en || p.title_en || p.name?.en || 'Project',
-          notes_ar: p.notes_ar || p.description_ar || p.description || p.info_ar || p.notes?.ar || '',
-          notes_en: p.notes_en || p.description_en || p.info_en || p.notes?.en || '',
-          supervisor: p.supervisor || p.instructor || p.doctor || p.supervisor_name || '',
-          students: p.students || p.members || p.team || p.student_names || [],
-          files: p.files || p.attachments || p.documents || [],
-          images: p.images || p.gallery || p.photos || []
+          name_ar: p.name_ar || p.name?.ar || 'مشروع',
+          name_en: p.name_en || p.name?.en || 'Project',
+          description_ar: p.description_ar || p.notes_ar || '',
+          description_en: p.description_en || p.notes_en || '',
+          notes_ar: p.notes_ar || '',
+          notes_en: p.notes_en || '',
+          supervisor: p.supervisor || '',
+          students: p.students || [],
+          files: p.files || [],
+          images: p.images || []
         })));
       }
       
@@ -1179,6 +1181,8 @@ export const AdminProvider = ({ children }) => {
       students: p.students,
       supervisor: p.supervisor,
       rating: p.rating,
+      description_ar: p.description?.ar || '',
+      description_en: p.description?.en || '',
       notes_ar: p.notes.ar,
       notes_en: p.notes.en,
       files: uploadedFiles,

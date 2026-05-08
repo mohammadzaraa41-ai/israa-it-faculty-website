@@ -386,6 +386,7 @@ const Alumni = () => {
       supervisor: '',
       link: '',
       rating: 0,
+      description: { ar: '', en: '' },
       notes: { ar: '', en: '' },
       files: [],
       images: []
@@ -558,13 +559,24 @@ const Alumni = () => {
               </div>
             )}
 
-            {getLoc(viewingProject, 'notes') && (
-              <div style={{ marginTop: '3rem' }}>
+            {(viewingProject.description_ar || viewingProject.description_en) && (
+              <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem', color: 'var(--accent-color)' }}>
+                  {lang === 'ar' ? 'وصف المشروع' : 'Project Description'}
+                </h4>
+                <p style={{ fontSize: '1rem', opacity: 0.9, lineHeight: '1.8', whiteSpace: 'pre-wrap' }}>
+                  {lang === 'ar' ? viewingProject.description_ar : (viewingProject.description_en || viewingProject.description_ar)}
+                </p>
+              </div>
+            )}
+
+            {(viewingProject.notes_ar || viewingProject.notes_en) && (
+              <div style={{ marginTop: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,100,100,0.1)', borderLeft: '4px solid var(--accent-color)' }}>
                 <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                   {lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}
                 </h4>
-                <p style={{ fontSize: '1rem', opacity: 0.9, lineHeight: '1.8', whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                  {getLoc(viewingProject, 'notes')}
+                <p style={{ fontSize: '0.95rem', opacity: 0.8, lineHeight: '1.6', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
+                  {lang === 'ar' ? viewingProject.notes_ar : (viewingProject.notes_en || viewingProject.notes_ar)}
                 </p>
               </div>
             )}
@@ -654,8 +666,9 @@ const Alumni = () => {
                     setNewProj({
                       ...project,
                       name: { ar: project.name_ar || project.name?.ar || '', en: project.name_en || project.name?.en || '' },
+                      description: { ar: project.description_ar || '', en: project.description_en || '' },
                       notes: { ar: project.notes_ar || project.notes?.ar || '', en: project.notes_en || project.notes?.en || '' },
-                      students: [...getArray(project.students), '', '', '', '', ''].slice(0, 5),
+                      students: Array.isArray(getArray(project.students)) ? getArray(project.students).join(', ') : '',
                       files: getArray(project.files),
                       images: getArray(project.images)
                     });
@@ -737,6 +750,17 @@ const Alumni = () => {
                       <Plus size={14} /> {lang === 'ar' ? 'إضافة صور (حتى 50)' : 'Add Images (Up to 50)'} 
                       <span style={{ marginLeft: '5px', color: 'var(--accent-color)' }}>({newProj.images.length})</span>
                     </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'وصف المشروع (عربي)' : 'Project Description (AR)'}</label>
+                      <textarea className="glass-panel" style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '80px' }} value={newProj.description.ar} onChange={e => setNewProj({...newProj, description: {...newProj.description, ar: e.target.value}})} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'وصف المشروع (EN)' : 'Project Description (EN)'}</label>
+                      <textarea className="glass-panel" style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '80px' }} value={newProj.description.en} onChange={e => setNewProj({...newProj, description: {...newProj.description, en: e.target.value}})} />
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
