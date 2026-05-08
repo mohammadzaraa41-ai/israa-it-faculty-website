@@ -889,22 +889,49 @@ export const AdminProvider = ({ children }) => {
   };
 
   const addEvent = async (event) => {
-    const newData = { date: event.date, text_ar: event.text.ar, text_en: event.text.en };
-    const legacyData = { date: event.date, text: event.text };
+    const newData = { 
+      date: event.date, 
+      text_ar: event.text.ar, 
+      text_en: event.text.en,
+      title_ar: event.title_ar || '',
+      title_en: event.title_en || '',
+      tag: event.tag || ''
+    };
+    const legacyData = { 
+      date: event.date, 
+      text: event.text,
+      title: event.title_ar || event.text.ar
+    };
     const { data, error } = await robustInsert('events', newData, legacyData);
     if (!error && data) setEvents(prev => [...prev, { ...data[0], text: event.text }]);
   };
+
   const deleteEvent = async (id) => {
     const { error } = await supabase.from('events').delete().eq('id', id);
     if (!error) setEvents(prev => prev.filter(e => e.id !== id));
   };
+
   const updateEvent = async (updatedEvent) => {
-    const newData = { date: updatedEvent.date, text_ar: updatedEvent.text.ar, text_en: updatedEvent.text.en };
+    const newData = { 
+      date: updatedEvent.date, 
+      text_ar: updatedEvent.text.ar, 
+      text_en: updatedEvent.text.en,
+      title_ar: updatedEvent.title_ar || '',
+      title_en: updatedEvent.title_en || '',
+      tag: updatedEvent.tag || ''
+    };
+    
     let { error } = await supabase.from('events').update(newData).eq('id', updatedEvent.id);
+    
     if (error && (error.message.includes('column') || error.code === '42703')) {
-      error = (await supabase.from('events').update({ date: updatedEvent.date, text: updatedEvent.text }).eq('id', updatedEvent.id)).error;
+      // Fallback to legacy structure if new columns missing
+      error = (await supabase.from('events').update({ 
+        date: updatedEvent.date, 
+        text: updatedEvent.text 
+      }).eq('id', updatedEvent.id)).error;
     }
-    if (!error) setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+    
+    if (!error) setEvents(prev => prev.map(e => e.id === updatedEvent.id ? { ...e, ...updatedEvent } : e));
   };
 
   // Courses, Tips, Quests

@@ -439,17 +439,32 @@ const Home = () => {
           )}
 
           <div className="glass-panel sidebar-widget">
-            <h3>{lang === 'ar' ? "الأحداث القادمة" : "Upcoming Events"}</h3>
-            {events.length > 0 ? events.map(event => (
-              <div key={event.id} className="widget-item">
-                <div className="event-date">{event.date}</div>
-                <p>{event.text?.[lang] || event.text?.ar || event.text || ''}</p>
-              </div>
-            )) : (
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Calendar size={20} />
+              {lang === 'ar' ? "الأحداث القادمة" : "Upcoming Events"}
+            </h3>
+            {events.length > 0 ? events.map(event => {
+              const isHackathon = event.tag?.toLowerCase().includes('hackathon') || event.tag?.includes('هاكاثون');
+              const title = event.title_ar || event.title_en ? (lang === 'ar' ? event.title_ar : event.title_en) : (event.title || (typeof event.text === 'object' ? event.text[lang] : event.text));
+              
+              return (
+                <div key={event.id} className="widget-item" onClick={() => navigate('/events')} style={{ cursor: 'pointer' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                    <div className="event-date">{event.date}</div>
+                    {isHackathon && <Trophy size={14} color="var(--accent-color)" />}
+                  </div>
+                  <h4 style={{ margin: '0 0 0.3rem', fontSize: '0.9rem', color: isHackathon ? 'var(--accent-color)' : 'inherit' }}>{title}</h4>
+                  <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>{typeof event.text === 'object' ? event.text[lang] : event.text}</p>
+                </div>
+              );
+            }) : (
               <p style={{ opacity: 0.5, textAlign: 'center' }}>
                 {lang === 'ar' ? "لا توجد أحداث قادمة حالياً" : "No upcoming events"}
               </p>
             )}
+            <button className="btn-outline" style={{ width: '100%', marginTop: '1rem', fontSize: '0.8rem' }} onClick={() => navigate('/events')}>
+              {lang === 'ar' ? 'عرض الكل' : 'View All'}
+            </button>
           </div>
         </aside>
       </div>
@@ -512,13 +527,22 @@ const Home = () => {
                 <h3>{lang === 'ar' ? 'الأحداث القادمة 📅' : 'Upcoming Events 📅'}</h3>
                 <button onClick={closeEventsPopup} className="close-popup-btn">&times;</button>
               </div>
-              <div className="popup-body">
-                {events.map(event => (
-                  <div key={event.id} className="popup-event-item">
-                    <span className="event-date-badge">{event.date}</span>
-                    <p>{event.text?.[lang] || event.text?.ar || event.text || ''}</p>
-                  </div>
-                ))}
+              <div className="popup-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                {events.map(event => {
+                  const isHackathon = event.tag?.toLowerCase().includes('hackathon') || event.tag?.includes('هاكاثون');
+                  const title = event.title_ar || event.title_en ? (lang === 'ar' ? event.title_ar : event.title_en) : (event.title || (typeof event.text === 'object' ? event.text[lang] : event.text));
+                  
+                  return (
+                    <div key={event.id} className="popup-event-item" onClick={() => { closeEventsPopup(); navigate('/events'); }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <span className="event-date-badge">{event.date}</span>
+                        {isHackathon && <Trophy size={16} color="var(--accent-color)" />}
+                      </div>
+                      <h4 style={{ color: isHackathon ? 'var(--accent-color)' : 'var(--primary-light)', marginBottom: '0.3rem' }}>{title}</h4>
+                      <p style={{ fontSize: '0.85rem' }}>{typeof event.text === 'object' ? event.text[lang] : event.text}</p>
+                    </div>
+                  );
+                })}
               </div>
               <button className="btn-primary full-width-btn" onClick={closeEventsPopup} style={{ marginTop: '1rem', width: '100%' }}>
                 {lang === 'ar' ? 'فهمت' : 'Got it'}
