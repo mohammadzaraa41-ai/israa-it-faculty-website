@@ -396,15 +396,19 @@ const Alumni = () => {
       const fileObjects = selectedFiles.map(f => ({ 
         name: f.name, 
         type: f.name.split('.').pop(),
-        url: URL.createObjectURL(f) 
+        url: URL.createObjectURL(f),
+        fileObject: f
       }));
       setNewProj(prev => ({ ...prev, files: [...prev.files, ...fileObjects].slice(0, 7) }));
     };
 
     const handleProjectImagesChange = (e) => {
       const selectedImages = Array.from(e.target.files).slice(0, 50);
-      const imageUrls = selectedImages.map(img => URL.createObjectURL(img));
-      setNewProj(prev => ({ ...prev, images: [...prev.images, ...imageUrls].slice(0, 50) }));
+      const imageObjects = selectedImages.map(img => ({ 
+        url: URL.createObjectURL(img),
+        fileObject: img
+      }));
+      setNewProj(prev => ({ ...prev, images: [...prev.images, ...imageObjects].slice(0, 50) }));
     };
 
     const handleAddProjectClick = (e) => {
@@ -413,11 +417,20 @@ const Alumni = () => {
         alert(lang === 'ar' ? 'يرجى ملء الحقول الإجبارية (اسم المشروع، المشرف، والتقييم)' : 'Please fill mandatory fields (Name, Supervisor, Rating)');
         return;
       }
-      addProject({
+
+      const projectData = {
         ...newProj,
-        students: newProj.students.filter(s => s.trim() !== '')
-      });
+        students: newProj.students.filter(s => s && (typeof s === 'string' ? s.trim() !== '' : true))
+      };
+
+      if (editingProjectId) {
+        editProject({ ...projectData, id: editingProjectId });
+      } else {
+        addProject(projectData);
+      }
+
       setIsAdding(false);
+      setEditingProjectId(null);
       setNewProj({ name: { ar: '', en: '' }, students: ['', '', '', '', ''], supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
     };
 
@@ -524,6 +537,17 @@ const Alumni = () => {
                 </div>
               </div>
             )}
+
+            {getLoc(viewingProject, 'notes') && (
+              <div style={{ marginTop: '3rem' }}>
+                <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                  {lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}
+                </h4>
+                <p style={{ fontSize: '1rem', opacity: 0.9, lineHeight: '1.8', whiteSpace: 'pre-wrap', background: 'rgba(255,255,255,0.02)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                  {getLoc(viewingProject, 'notes')}
+                </p>
+              </div>
+            )}
           </div>
         </motion.div>
       );
@@ -596,8 +620,11 @@ const Alumni = () => {
                     e.stopPropagation();
                     setNewProj({
                       ...project,
-                      name: { ar: project.name_ar || project.name?.ar, en: project.name_en || project.name?.en },
-                      notes: { ar: project.notes_ar || project.notes?.ar, en: project.notes_en || project.notes?.en }
+                      name: { ar: project.name_ar || project.name?.ar || '', en: project.name_en || project.name?.en || '' },
+                      notes: { ar: project.notes_ar || project.notes?.ar || '', en: project.notes_en || project.notes?.en || '' },
+                      students: [...getArray(project.students), '', '', '', '', ''].slice(0, 5),
+                      files: getArray(project.files),
+                      images: getArray(project.images)
                     });
                     setEditingProjectId(project.id);
                     setIsAdding(true);
@@ -681,9 +708,15 @@ const Alumni = () => {
                     </button>
                   </div>
 
-                  <div>
-                    <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'ملاحظات المشرف (AR)' : 'Supervisor Notes (AR)'}</label>
-                    <textarea className="glass-panel" style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '80px' }} value={newProj.notes.ar} onChange={e => setNewProj({...newProj, notes: {...newProj.notes, ar: e.target.value}})} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'ملاحظات المشرف (AR)' : 'Supervisor Notes (AR)'}</label>
+                      <textarea className="glass-panel" style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '80px' }} value={newProj.notes.ar} onChange={e => setNewProj({...newProj, notes: {...newProj.notes, ar: e.target.value}})} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'ملاحظات المشرف (EN)' : 'Supervisor Notes (EN)'}</label>
+                      <textarea className="glass-panel" style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '80px' }} value={newProj.notes.en} onChange={e => setNewProj({...newProj, notes: {...newProj.notes, en: e.target.value}})} />
+                    </div>
                   </div>
 
                   <button type="submit" className="btn-primary" style={{ width: '100%', padding: '1rem', marginTop: '1rem' }}>

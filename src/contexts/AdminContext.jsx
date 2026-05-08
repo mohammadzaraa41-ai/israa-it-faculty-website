@@ -1053,6 +1053,32 @@ export const AdminProvider = ({ children }) => {
   };
 
   const editProject = async (p) => {
+    addToast(lang === 'ar' ? 'جاري الحفظ' : 'Saving', lang === 'ar' ? 'جاري رفع الملفات وتحديث البيانات...' : 'Uploading files and updating data...', 'info');
+    
+    // 1. Upload files
+    const uploadedFiles = [];
+    for (const f of p.files || []) {
+      if (f.fileObject) {
+        const url = await uploadFile(f.fileObject, 'faculty_uploads');
+        if (url) uploadedFiles.push({ name: f.name, url });
+      } else {
+        uploadedFiles.push(f);
+      }
+    }
+
+    // 2. Upload images
+    const uploadedImages = [];
+    for (const img of p.images || []) {
+      if (img.fileObject) {
+        const url = await uploadFile(img.fileObject, 'faculty_uploads');
+        if (url) uploadedImages.push(url);
+      } else if (typeof img === 'string') {
+        uploadedImages.push(img);
+      } else if (img.url) {
+        uploadedImages.push(img.url);
+      }
+    }
+
     const dbData = {
       name_ar: p.name_ar || p.name?.ar,
       name_en: p.name_en || p.name?.en,
@@ -1062,9 +1088,10 @@ export const AdminProvider = ({ children }) => {
       rating: p.rating,
       notes_ar: p.notes_ar || p.notes?.ar,
       notes_en: p.notes_en || p.notes?.en,
-      files: p.files,
-      images: p.images
+      files: uploadedFiles,
+      images: uploadedImages
     };
+    
     let { error } = await supabase.from('project_bank').update(dbData).eq('id', p.id);
     
     if (error && error.message.includes('supervisor')) {
@@ -1072,6 +1099,7 @@ export const AdminProvider = ({ children }) => {
       const fallback = await supabase.from('project_bank').update(fallbackData).eq('id', p.id);
       error = fallback.error;
     }
+    
     if (!error) {
       setProjectBank(prev => prev.map(oldP => oldP.id === p.id ? { ...oldP, ...dbData } : oldP));
       addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', lang === 'ar' ? 'تم تعديل المشروع بنجاح' : 'Project updated', 'success');
@@ -1082,14 +1110,50 @@ export const AdminProvider = ({ children }) => {
 
   // Final verified project insertion logic - 3-level fallback
   const addProject = async (p) => {
+    addToast(lang === 'ar' ? 'جاري الرفع' : 'Uploading', lang === 'ar' ? 'جاري رفع الملفات والصور...' : 'Uploading files and images...', 'info');
+    
+    // 1. Upload files
+    const uploadedFiles = [];
+    for (const f of p.files || []) {
+      if (f.fileObject) {
+        const url = await uploadFile(f.fileObject, 'faculty_uploads');
+        if (url) uploadedFiles.push({ name: f.name, url });
+      } else {
+        uploadedFiles.push(f);
+      }
+    }
+
+    // 2. Upload images
+    const uploadedImages = [];
+    for (const img of p.images || []) {
+      if (img.fileObject) {
+        const url = await uploadFile(img.fileObject, 'faculty_uploads');
+        if (url) uploadedImages.push(url);
+      } else if (typeof img === 'string') {
+        uploadedImages.push(img);
+      } else if (img.url) {
+        uploadedImages.push(img.url);
+      }
+    }
+
     const newData = {
-      name_ar: p.name.ar, name_en: p.name.en, students: p.students,
-      supervisor: p.supervisor, rating: p.rating,
-      notes_ar: p.notes.ar, notes_en: p.notes.en, files: p.files, images: p.images
+      name_ar: p.name.ar, 
+      name_en: p.name.en, 
+      students: p.students,
+      supervisor: p.supervisor, 
+      rating: p.rating,
+      notes_ar: p.notes.ar, 
+      notes_en: p.notes.en, 
+      files: uploadedFiles, 
+      images: uploadedImages,
+      link: p.link
     };
+
     // L2 fallback: extreme minimum
     const minimalData = {
-      name_ar: p.name.ar, rating: p.rating, notes_ar: p.notes.ar
+      name_ar: p.name.ar, 
+      rating: p.rating, 
+      notes_ar: p.notes.ar
     };
 
     let { data, error } = await supabase.from('project_bank').insert([newData]).select();
