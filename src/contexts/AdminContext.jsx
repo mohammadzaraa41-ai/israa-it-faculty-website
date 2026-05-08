@@ -32,7 +32,6 @@ export const AdminProvider = ({ children }) => {
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [activities, setActivities] = useState([]);
   const [honorRoll, setHonorRoll] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [roadmapCourses, setRoadmapCourses] = useState(() => {
