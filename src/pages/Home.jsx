@@ -14,7 +14,7 @@ const Home = () => {
   const { lang, t } = useLocale();
   const { addToast } = useToast();
   const { user, toggleLogin, users, pendingUsers, alumniRequests } = useAuth();
-  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, homeEvents, loading, pendingPosts } = useAdmin();
+  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
   const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
   const [showCommentForm, setShowCommentForm] = useState(null);
@@ -32,11 +32,11 @@ const Home = () => {
     const isMobile = window.innerWidth <= 992;
     const hasSeen = sessionStorage.getItem('hasSeenEventsPopup');
 
-    if (isMobile && !hasSeen && homeEvents.length > 0) {
+    if (isMobile && !hasSeen && events.length > 0) {
       const timer = setTimeout(() => setShowEventsPopup(true), 1500); // Small delay for effect
       return () => clearTimeout(timer);
     }
-  }, [homeEvents]);
+  }, [events]);
 
   const closeEventsPopup = () => {
     setShowEventsPopup(false);
@@ -443,7 +443,7 @@ const Home = () => {
               <Calendar size={20} />
               {lang === 'ar' ? "الأحداث القادمة" : "Upcoming Events"}
             </h3>
-            {homeEvents.length > 0 ? homeEvents.map(event => (
+            {events.length > 0 ? events.map(event => (
               <div key={event.id} className="widget-item">
                 <div className="event-date">{event.date}</div>
                 <p style={{ fontSize: '0.85rem' }}>{event.text?.[lang] || event.text?.ar || event.text || ''}</p>
@@ -516,7 +516,7 @@ const Home = () => {
                 <button onClick={closeEventsPopup} className="close-popup-btn">&times;</button>
               </div>
               <div className="popup-body">
-                {homeEvents.map(event => (
+                {events.map(event => (
                   <div key={event.id} className="popup-event-item">
                     <span className="event-date-badge">{event.date}</span>
                     <p>{event.text?.[lang] || event.text?.ar || event.text || ''}</p>

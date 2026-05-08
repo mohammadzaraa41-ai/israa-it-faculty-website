@@ -31,7 +31,7 @@ export const AdminProvider = ({ children }) => {
   const [pendingPosts, setPendingPosts] = useState([]);
   const [announcements, setAnnouncements] = useState([]);
   const [events, setEvents] = useState([]);
-  const [homeEvents, setHomeEvents] = useState([]);
+  const [activities, setActivities] = useState([]);
   const [activities, setActivities] = useState([]);
   const [honorRoll, setHonorRoll] = useState([]);
   const [achievements, setAchievements] = useState([]);
@@ -96,10 +96,10 @@ export const AdminProvider = ({ children }) => {
       }
       
       try {
-        const [annRes, eventsRes, homeEventsRes, postsRes, coursesRes] = await Promise.all([
+        const [annRes, eventsRes, activitiesRes, postsRes, coursesRes] = await Promise.all([
           supabase.from('announcements').select('*').limit(10),
-          supabase.from('events').select('*').limit(20),
-          supabase.from('home_events').select('*').limit(10),
+          supabase.from('events').select('*').limit(10),
+          supabase.from('activities').select('*').limit(20),
           supabase.from('posts').select('*, comments(*)').eq('status', 'APPROVED').order('created_at', { ascending: false }).limit(10),
           supabase.from('courses').select('*')
         ]);
@@ -116,15 +116,22 @@ export const AdminProvider = ({ children }) => {
           try { localStorage.setItem('site_ann_v3', JSON.stringify(normalizedAnn)); } catch(e){}
         }
         if (eventsRes.data) {
-          const normalized = eventsRes.data.map(ev => ({
+          const normalizedEvents = eventsRes.data.map(ev => ({
             ...ev,
-            title: { ar: ev.title_ar || '', en: ev.title_en || '' },
-            text: { ar: ev.text_ar || '', en: ev.text_en || '' }
+            text: {
+              ar: ev.text_ar || ev.text?.ar || ev.text || '',
+              en: ev.text_en || ev.text?.en || ev.text || ''
+            }
           }));
-          setEvents(normalized);
+          setEvents(normalizedEvents);
         }
-        if (homeEventsRes.data) {
-          setHomeEvents(homeEventsRes.data);
+        if (activitiesRes.data) {
+          const normalized = activitiesRes.data.map(act => ({
+            ...act,
+            title: { ar: act.title_ar || '', en: act.title_en || '' },
+            text: { ar: act.text_ar || '', en: act.text_en || '' }
+          }));
+          setActivities(normalized);
         }
         if (coursesRes.data) {
           setRoadmapCourses(coursesRes.data);
@@ -891,45 +898,57 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  const addEvent = async (ev) => {
-    const newData = { 
-      title_ar: ev.title_ar, title_en: ev.title_en, 
-      text_ar: ev.text?.ar || ev.text_ar, text_en: ev.text?.en || ev.text_en,
-      date: ev.date, tag: ev.tag, image_url: ev.image_url 
-    };
+  const addEvent = async (event) => {
+    const newData = { date: event.date, text_ar: event.text_ar || event.text?.ar || event.text || '', text_en: event.text_en || event.text?.en || event.text || '' };
     const { data, error } = await supabase.from('events').insert([newData]).select();
+    if (!error && data) setEvents(prev => [...prev, data[0]]);
+  };
+
+  const deleteEvent = async (id) => {
+    const { error } = await supabase.from('events').delete().eq('id', id);
+    if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+  };
+
+  const updateEvent = async (updatedEvent) => {
+    const newData = { date: updatedEvent.date, text_ar: updatedEvent.text_ar || updatedEvent.text?.ar || updatedEvent.text || '', text_en: updatedEvent.text_en || updatedEvent.text?.en || updatedEvent.text || '' };
+    await supabase.from('events').update(newData).eq('id', updatedEvent.id);
+    setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
+  };
+
+  // Activities (Hackathons & Events Page)
+  const addActivity = async (act) => {
+    const newData = { 
+      title_ar: act.title_ar, title_en: act.title_en, 
+      text_ar: act.text?.ar || act.text_ar, text_en: act.text?.en || act.text_en,
+      date: act.date, tag: act.tag, image_url: act.image_url 
+    };
+    const { data, error } = await supabase.from('activities').insert([newData]).select();
     if (!error && data) {
-      setEvents(prev => [...prev, { ...data[0], title: { ar: ev.title_ar, en: ev.title_en }, text: ev.text }]);
-      addToast(lang === 'ar' ? 'تمت إضافة الفعالية' : 'Event Added', '', 'success');
+      setActivities(prev => [...prev, { ...data[0], title: { ar: act.title_ar, en: act.title_en }, text: act.text }]);
+      addToast(lang === 'ar' ? 'تمت إضافة الفعالية' : 'Activity Added', '', 'success');
       return { success: true };
     }
     return { success: false, error };
   };
 
-  const updateEvent = async (ev) => {
+  const updateActivity = async (act) => {
     const newData = { 
-      title_ar: ev.title_ar, title_en: ev.title_en, 
-      text_ar: ev.text?.ar || ev.text_ar, text_en: ev.text?.en || ev.text_en,
-      date: ev.date, tag: ev.tag, image_url: ev.image_url 
+      title_ar: act.title_ar, title_en: act.title_en, 
+      text_ar: act.text?.ar || act.text_ar, text_en: act.text?.en || act.text_en,
+      date: act.date, tag: act.tag, image_url: act.image_url 
     };
-    const { error } = await supabase.from('events').update(newData).eq('id', ev.id);
+    const { error } = await supabase.from('activities').update(newData).eq('id', act.id);
     if (!error) {
-      setEvents(prev => prev.map(a => a.id === ev.id ? { ...a, ...ev } : a));
+      setActivities(prev => prev.map(a => a.id === act.id ? { ...a, ...act } : a));
       addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', '', 'success');
       return { success: true };
     }
     return { success: false, error };
   };
 
-  const deleteEvent = async (id) => {
-    const { error } = await supabase.from('events').delete().eq('id', id);
-    if (!error) setEvents(prev => prev.filter(a => a.id !== id));
-  };
-
-  // Home Side Events
-  const addHomeEvent = async (ev) => {
-    const { data, error } = await supabase.from('home_events').insert([ev]).select();
-    if (!error && data) setHomeEvents(prev => [...prev, data[0]]);
+  const deleteActivity = async (id) => {
+    const { error } = await supabase.from('activities').delete().eq('id', id);
+    if (!error) setActivities(prev => prev.filter(a => a.id !== id));
   };
 
   // Courses, Tips, Quests
@@ -1755,7 +1774,7 @@ export const AdminProvider = ({ children }) => {
       addComment, deleteComment, editComment, likeComment, pendingPosts,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
-      homeEvents, addHomeEvent,
+      activities, addActivity, updateActivity, deleteActivity,
       liveLabs, addLab, editLab, deleteLab,
       honorRoll, addHonorStudent, deleteHonorStudent, editHonorStudent,
       achievements, addAchievement, deleteAchievement, editAchievement,
