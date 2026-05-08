@@ -411,27 +411,34 @@ const Alumni = () => {
       setNewProj(prev => ({ ...prev, images: [...prev.images, ...imageObjects].slice(0, 50) }));
     };
 
-    const handleAddProjectClick = (e) => {
+    const handleAddProjectClick = async (e) => {
       e.preventDefault();
       if (!getLoc(newProj, 'name') || !newProj.supervisor || newProj.rating === 0) {
         alert(lang === 'ar' ? 'يرجى ملء الحقول الإجبارية (اسم المشروع، المشرف، والتقييم)' : 'Please fill mandatory fields (Name, Supervisor, Rating)');
         return;
       }
 
+      setIsSubmitting(true);
+
       const projectData = {
         ...newProj,
         students: newProj.students.filter(s => s && (typeof s === 'string' ? s.trim() !== '' : true))
       };
 
-      if (editingProjectId) {
-        editProject({ ...projectData, id: editingProjectId });
-      } else {
-        addProject(projectData);
+      try {
+        if (editingProjectId) {
+          await editProject({ ...projectData, id: editingProjectId });
+        } else {
+          await addProject(projectData);
+        }
+        setIsAdding(false);
+        setEditingProjectId(null);
+        setNewProj({ name: { ar: '', en: '' }, students: ['', '', '', '', ''], supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
+      } catch (err) {
+        console.error("Save error:", err);
+      } finally {
+        setIsSubmitting(false);
       }
-
-      setIsAdding(false);
-      setEditingProjectId(null);
-      setNewProj({ name: { ar: '', en: '' }, students: ['', '', '', '', ''], supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
     };
 
     if (viewingProject) {
