@@ -914,20 +914,27 @@ export const AdminProvider = ({ children }) => {
     setEvents(prev => prev.map(e => e.id === updatedEvent.id ? updatedEvent : e));
   };
 
-  // Activities (Hackathons & Events Page)
   const addActivity = async (act) => {
     const newData = { 
       title_ar: act.title_ar, title_en: act.title_en, 
       text_ar: act.text?.ar || act.text_ar, text_en: act.text?.en || act.text_en,
       date: act.date, tag: act.tag, image_url: act.image_url 
     };
+    
     const { data, error } = await supabase.from('activities').insert([newData]).select();
-    if (!error && data) {
+    
+    if (error) {
+      console.error("Supabase Activity Error:", error);
+      addToast(lang === 'ar' ? 'فشل الحفظ' : 'Save Failed', error.message, 'error');
+      return { success: false, error };
+    }
+
+    if (data) {
       setActivities(prev => [...prev, { ...data[0], title: { ar: act.title_ar, en: act.title_en }, text: act.text }]);
       addToast(lang === 'ar' ? 'تمت إضافة الفعالية' : 'Activity Added', '', 'success');
       return { success: true };
     }
-    return { success: false, error };
+    return { success: false };
   };
 
   const updateActivity = async (act) => {
@@ -937,12 +944,13 @@ export const AdminProvider = ({ children }) => {
       date: act.date, tag: act.tag, image_url: act.image_url 
     };
     const { error } = await supabase.from('activities').update(newData).eq('id', act.id);
-    if (!error) {
-      setActivities(prev => prev.map(a => a.id === act.id ? { ...a, ...act } : a));
-      addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', '', 'success');
-      return { success: true };
+    if (error) {
+      addToast(lang === 'ar' ? 'فشل التعديل' : 'Update Failed', error.message, 'error');
+      return { success: false, error };
     }
-    return { success: false, error };
+    setActivities(prev => prev.map(a => a.id === act.id ? { ...a, ...act } : a));
+    addToast(lang === 'ar' ? 'تم التعديل' : 'Updated', '', 'success');
+    return { success: true };
   };
 
   const deleteActivity = async (id) => {
