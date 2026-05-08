@@ -375,14 +375,34 @@ const Alumni = () => {
 
   const ProjectSection = () => {
     const [viewingProject, setViewingProject] = useState(null);
+    const [activeImageIndex, setActiveImageIndex] = useState(null);
     const [isAdding, setIsAdding] = useState(false);
     const [editingProjectId, setEditingProjectId] = useState(null);
     const projectFilesRef = React.useRef(null);
     const projectImagesRef = React.useRef(null);
+
+    const handleViewFile = (url) => {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    };
+
+    const handleDownload = async (url, filename) => {
+      try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename || 'download';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        window.open(url, '_blank');
+      }
+    };
     
     const [newProj, setNewProj] = useState({
       name: { ar: '', en: '' },
-      students: '',
+      students: ['', '', '', '', ''],
       supervisor: '',
       link: '',
       rating: 0,
@@ -423,21 +443,8 @@ const Alumni = () => {
 
       const projectData = {
         ...newProj,
-        students: typeof newProj.students === 'string' 
-          ? newProj.students.split(',').map(s => s.trim()).filter(s => s !== '')
-          : newProj.students.filter(s => s && (typeof s === 'string' ? s.trim() !== '' : true))
+        students: newProj.students.filter(s => s && s.trim() !== '')
       };
-
-      // DEBUG ALERT
-      const summary = `
-        Saving Project:
-        Name: ${projectData.name.ar}
-        Supervisor: ${projectData.supervisor}
-        Students Count: ${projectData.students.length}
-        Files Count: ${projectData.files.length}
-        Images Count: ${projectData.images.length}
-      `;
-      alert(lang === 'ar' ? `سيتم حفظ البيانات التالية:\n${summary}` : `Sending data:\n${summary}`);
 
       try {
         if (editingProjectId) {
@@ -447,7 +454,7 @@ const Alumni = () => {
         }
         setIsAdding(false);
         setEditingProjectId(null);
-        setNewProj({ name: { ar: '', en: '' }, students: '', supervisor: '', link: '', rating: 0, notes: { ar: '', en: '' }, files: [], images: [] });
+        setNewProj({ name: { ar: '', en: '' }, students: ['', '', '', '', ''], supervisor: '', link: '', rating: 0, description: { ar: '', en: '' }, notes: { ar: '', en: '' }, files: [], images: [] });
       } catch (err) {
         console.error("Save error:", err);
       } finally {
@@ -540,7 +547,7 @@ const Alumni = () => {
             </div>
 
             {getArray(viewingProject.images).length > 0 && (
-              <div>
+              <div style={{ marginTop: '2rem' }}>
                 <h4 style={{ fontWeight: 'bold', marginBottom: '1.5rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
                   {lang === 'ar' ? 'معرض صور المشروع' : 'Project Gallery'}
                 </h4>
@@ -550,7 +557,7 @@ const Alumni = () => {
                       key={i} 
                       src={typeof img === 'string' ? img : img.url} 
                       whileHover={{ scale: 1.05 }}
-                      onClick={() => window.open(img, '_blank')}
+                      onClick={() => setActiveImageIndex(i)}
                       style={{ width: '100%', height: '140px', objectFit: 'cover', borderRadius: '12px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.1)' }} 
                       alt={`Project ${i}`} 
                     />
@@ -580,19 +587,75 @@ const Alumni = () => {
                 </p>
               </div>
             )}
+          </div>
 
-            {isAdmin && (
-              <div style={{ marginTop: '4rem', padding: '1rem', border: '1px dashed #ff4444', borderRadius: '8px', opacity: 0.5 }}>
-                <p style={{ color: '#ff4444', fontSize: '0.8rem', marginBottom: '0.5rem' }}>Debug Mode: Raw Data & Schema Discovery</p>
-                <div style={{ marginBottom: '1rem', padding: '0.5rem', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>
-                  <p style={{ fontSize: '0.7rem', color: 'var(--accent-color)' }}>Detected Columns in Table:</p>
-                  <code style={{ fontSize: '0.7rem' }}>{Object.keys(viewingProject).filter(k => !['name', 'notes'].includes(k)).join(', ')}</code>
+          <AnimatePresence>
+            {activeImageIndex !== null && (
+              <motion.div 
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.95)', zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}
+                onClick={() => setActiveImageIndex(null)}
+              >
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setActiveImageIndex(null); }}
+                  style={{ position: 'absolute', top: '2rem', right: '2rem', color: 'white', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                >
+                  ✕
+                </button>
+
+                <div style={{ position: 'relative', width: '100%', maxWidth: '1000px', height: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      const imgs = getArray(viewingProject.images);
+                      setActiveImageIndex(prev => (prev > 0 ? prev - 1 : imgs.length - 1));
+                    }}
+                    style={{ position: 'absolute', left: '-5rem', color: 'white', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    ‹
+                  </button>
+
+                  <motion.img 
+                    key={activeImageIndex}
+                    initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                    animate={{ opacity: 1, scale: 1, x: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, x: -20 }}
+                    src={typeof getArray(viewingProject.images)[activeImageIndex] === 'string' ? getArray(viewingProject.images)[activeImageIndex] : getArray(viewingProject.images)[activeImageIndex].url} 
+                    alt="" 
+                    style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '8px', boxShadow: '0 20px 50px rgba(0,0,0,0.5)' }} 
+                    onClick={(e) => e.stopPropagation()}
+                  />
+
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      const imgs = getArray(viewingProject.images);
+                      setActiveImageIndex(prev => (prev < imgs.length - 1 ? prev + 1 : 0));
+                    }}
+                    style={{ position: 'absolute', right: '-5rem', color: 'white', background: 'rgba(255,255,255,0.1)', border: 'none', borderRadius: '50%', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                  >
+                    ›
+                  </button>
                 </div>
-                <pre style={{ fontSize: '0.7rem', overflow: 'auto', maxHeight: '200px' }}>
-                  {JSON.stringify(viewingProject, null, 2)}
-                </pre>
+
+                <div style={{ position: 'absolute', bottom: '2rem', color: 'rgba(255,255,255,0.6)', fontSize: '1rem' }}>
+                  {activeImageIndex + 1} / {getArray(viewingProject.images).length}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      );
+    }Top: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '12px', border: '1px solid rgba(255,100,100,0.1)', borderLeft: '4px solid var(--accent-color)' }}>
+                <h4 style={{ fontWeight: 'bold', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                  {lang === 'ar' ? 'ملاحظات المشرف' : 'Supervisor Notes'}
+                </h4>
+                <p style={{ fontSize: '0.95rem', opacity: 0.8, lineHeight: '1.6', whiteSpace: 'pre-wrap', fontStyle: 'italic' }}>
+                  {lang === 'ar' ? viewingProject.notes_ar : (viewingProject.notes_en || viewingProject.notes_ar)}
+                </p>
               </div>
             )}
+
           </div>
         </motion.div>
       );
@@ -668,7 +731,7 @@ const Alumni = () => {
                       name: { ar: project.name_ar || project.name?.ar || '', en: project.name_en || project.name?.en || '' },
                       description: { ar: project.description_ar || '', en: project.description_en || '' },
                       notes: { ar: project.notes_ar || project.notes?.ar || '', en: project.notes_en || project.notes?.en || '' },
-                      students: Array.isArray(getArray(project.students)) ? getArray(project.students).join(', ') : '',
+                      students: [...getArray(project.students), '', '', '', '', ''].slice(0, 5),
                       files: getArray(project.files),
                       images: getArray(project.images)
                     });
@@ -710,14 +773,16 @@ const Alumni = () => {
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'أسماء الطلاب (افصل بينهم بفاصلة ,)' : 'Student Names (separate by comma ,)'}</label>
-                    <textarea 
-                      placeholder={lang === 'ar' ? 'مثال: أحمد علي, سارة محمد, ...' : 'Example: Ahmed Ali, Sara Mohamed, ...'}
-                      className="glass-panel" 
-                      style={{ width: '100%', padding: '0.75rem', background: 'rgba(255,255,255,0.05)', minHeight: '60px', fontSize: '0.85rem' }} 
-                      value={typeof newProj.students === 'string' ? newProj.students : newProj.students.join(', ')} 
-                      onChange={e => setNewProj({...newProj, students: e.target.value})} 
-                    />
+                    <label style={{ fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>{lang === 'ar' ? 'أسماء الطلاب (حتى 5 طلاب)' : 'Students (up to 5)'}</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
+                      {newProj.students.map((s, i) => (
+                        <input key={i} type="text" placeholder={`${lang === 'ar' ? 'طالب' : 'Student'} ${i+1}`} className="glass-panel" style={{ width: '100%', padding: '0.5rem', background: 'rgba(255,255,255,0.03)', fontSize: '0.8rem' }} value={s} onChange={e => {
+                          const updated = [...newProj.students];
+                          updated[i] = e.target.value;
+                          setNewProj({...newProj, students: updated});
+                        }} />
+                      ))}
+                    </div>
                   </div>
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
