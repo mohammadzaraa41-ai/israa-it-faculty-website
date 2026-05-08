@@ -1131,23 +1131,40 @@ export const AdminProvider = ({ children }) => {
     const payload3 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl, file_name: t.file };
     const payload4 = { name_ar: t.name.ar, name_en: t.name.en, url: finalUrl };
     const payload5 = { name_ar: t.name.ar, url: finalUrl };
+    const payload6 = { title_ar: t.name.ar, title_en: t.name.en, url: finalUrl };
+    const payload7 = { title_ar: t.name.ar, url: finalUrl };
+
+    console.log('[addCvTemplate] Starting insertion fallbacks...');
 
     let result = await supabase.from('cv_templates').insert([payload1]).select();
     
     if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload2');
       result = await supabase.from('cv_templates').insert([payload2]).select();
     }
     if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload3');
       result = await supabase.from('cv_templates').insert([payload3]).select();
     }
     if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload4');
       result = await supabase.from('cv_templates').insert([payload4]).select();
     }
     if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload5');
       result = await supabase.from('cv_templates').insert([payload5]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload6');
+      result = await supabase.from('cv_templates').insert([payload6]).select();
+    }
+    if (result.error && (result.error.message.includes('column') || result.error.code === '42703')) {
+      console.log('[addCvTemplate] Fallback to payload7');
+      result = await supabase.from('cv_templates').insert([payload7]).select();
     }
 
     const { data, error } = result;
+    console.log('[addCvTemplate] Final result:', { data, error });
 
     if (!error && data) {
       setCvTemplates(prev => [...prev, { ...data[0], name: t.name }]);
