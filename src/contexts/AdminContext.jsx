@@ -572,7 +572,10 @@ export const AdminProvider = ({ children }) => {
       if (postsResRaw.data) {
         const mapPost = (p) => ({
           ...p,
-          author: typeof p.author === 'object' ? p.author : { name: p.author_name || p.author_username || 'User', role: p.author_role || 'STUDENT' },
+          author: typeof p.author === 'object' ? p.author : { 
+            name: (p.author_name && p.author_name !== "مستخدم جديد") ? p.author_name : p.author_username, 
+            role: p.author_role || 'STUDENT' 
+          },
           date: new Date(p.created_at).toLocaleDateString('en-GB'),
           comments: (p.comments || []).map(c => ({
             id: c.id,
@@ -802,7 +805,7 @@ export const AdminProvider = ({ children }) => {
       content: postData.content,
       image: imageValue,
       author_username: user.username,
-      author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
+      author_name: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
       author_role: user?.role || 'STUDENT',
       status: isAdmin ? 'APPROVED' : 'PENDING'
     }]).select();
@@ -887,7 +890,7 @@ export const AdminProvider = ({ children }) => {
     const { data, error } = await supabase.from('comments').insert([{
       post_id: postId,
       content: commentData.text,
-      author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
+      author_name: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
       author_role: user?.role || 'STUDENT',
       parent_id: commentData.parent_id || null
     }]).select();
@@ -895,7 +898,7 @@ export const AdminProvider = ({ children }) => {
     if (!error && data?.length > 0) {
       const newComment = {
         id: data[0].id,
-        author: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
+        author: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
         username: user.username,
         avatar_url: user.avatar_url || null,
         text: data[0].content,

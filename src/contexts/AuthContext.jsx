@@ -61,8 +61,8 @@ export const AuthProvider = ({ children }) => {
         const fallbackProfile = {
           id: supabaseUser.id,
           username: supabaseUser.email?.split('@')[0] || supabaseUser.id.substring(0, 8),
-          name_ar: "مستخدم جديد",
-          name_en: "New User",
+          name_ar: "", 
+          name_en: "",
           role: 'STUDENT',
           department_id: 'cs',
           phone: '0000000000'

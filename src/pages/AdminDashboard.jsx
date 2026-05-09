@@ -1034,7 +1034,8 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
         {filteredUsers.map(u => {
           const badge = getRoleBadgeStyle(u.role);
-          const userName = u.name_ar || (typeof u.name === 'object' ? (u.name[lang] || u.name.ar) : u.name) || u.username;
+          const isGeneric = !u.name_ar || u.name_ar === "مستخدم جديد";
+          const userName = isGeneric ? u.username : u.name_ar;
           const userPhone = u.phone_number || u.phone || '---';
           
           return (
