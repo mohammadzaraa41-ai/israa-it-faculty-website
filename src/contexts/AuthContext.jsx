@@ -55,7 +55,34 @@ export const AuthProvider = ({ children }) => {
             : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
         };
       } else {
-        console.warn("No profile record found in 'users' table for this auth user.");
+        console.warn("No profile record found. Attempting to create fallback profile...");
+        // Auto-create a basic profile if missing
+        const fallbackProfile = {
+          id: authUser.id,
+          username: authUser.email?.split('@')[0] || authUser.id.substring(0, 8),
+          name_ar: "مستخدم جديد",
+          name_en: "New User",
+          role: 'STUDENT',
+          created_at: new Date()
+        };
+        
+        const { data: newProfile, error: insertError } = await supabase
+          .from('users')
+          .insert([fallbackProfile])
+          .select()
+          .maybeSingle();
+          
+        if (insertError) {
+          console.error("Failed to create fallback profile:", insertError);
+          return null;
+        }
+
+        return {
+          ...newProfile,
+          name: { ar: newProfile.name_ar, en: newProfile.name_en },
+          departmentId: newProfile.department_id,
+          permissions: ['VIEW_PORTAL', 'ACCESS_RESOURCES']
+        };
       }
     } catch (err) {
       console.error("Fetch profile exception:", err);
