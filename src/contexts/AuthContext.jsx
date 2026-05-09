@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         // 2. Listen for auth changes
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (session?.user) {
             const profile = await fetchUserProfile(session.user);
             setUser(profile);
@@ -101,6 +101,29 @@ export const AuthProvider = ({ children }) => {
           fetchPendingUsers(),
           fetchAlumniRequests()
         ]);
+
+        // 4. Setup Realtime Listeners for immediate updates
+        const pendingSub = supabase
+          .channel('public:pending_users')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'pending_users' }, payload => {
+            console.log('Realtime Pending Users:', payload);
+            fetchPendingUsers(); // Re-fetch for consistency
+          })
+          .subscribe();
+
+        const alumniSub = supabase
+          .channel('public:alumni_requests')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'alumni_requests' }, payload => {
+            console.log('Realtime Alumni Requests:', payload);
+            fetchAlumniRequests(); // Re-fetch for consistency
+          })
+          .subscribe();
+
+        return () => {
+          authSub.unsubscribe();
+          supabase.removeChannel(pendingSub);
+          supabase.removeChannel(alumniSub);
+        };
 
       } catch (err) {
         console.error("Auth Init Error:", err);
