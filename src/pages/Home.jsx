@@ -197,8 +197,15 @@ const Home = () => {
   const showUserInfo = (username) => {
     if (!isAdmin) return;
     const found = users?.find(u => u.username === username);
-    if (found) setSelectedUser(found);
-    else alert(lang === 'ar' ? 'لم يتم العثور على معلومات المستخدم' : 'User info not found');
+    if (found) {
+      setSelectedUser(found);
+    } else {
+      addToast(
+        lang === 'ar' ? 'تنبيه' : 'Notice',
+        lang === 'ar' ? 'بيانات المستخدم غير محملة بالكامل حالياً' : 'User data is not fully loaded yet',
+        'info'
+      );
+    }
   };
 
   return (
@@ -474,7 +481,7 @@ const Home = () => {
               <div className="modal-body">
                 <div className="info-row">
                   <strong>{lang === 'ar' ? 'الاسم:' : 'Name:'}</strong>
-                  <span>{selectedUser.name?.ar || selectedUser.name}</span>
+                  <span>{selectedUser.name_ar || (selectedUser.name?.ar || selectedUser.name) || '---'}</span>
                 </div>
                 <div className="info-row">
                   <strong>{lang === 'ar' ? 'اسم المستخدم / الرقم:' : 'Username / ID:'}</strong>
@@ -486,11 +493,15 @@ const Home = () => {
                 </div>
                 <div className="info-row">
                   <strong>{lang === 'ar' ? 'القسم:' : 'Department:'}</strong>
-                  <span>{selectedUser.departmentId || 'N/A'}</span>
+                  <span>{(() => {
+                    const deptId = selectedUser.department_id || selectedUser.departmentId;
+                    const dept = (DB_SCHEMA.departments || []).find(d => d.id === deptId);
+                    return dept ? (dept.name?.[lang] || dept.name?.ar) : (deptId || '---');
+                  })()}</span>
                 </div>
                 <div className="info-row">
                   <strong>{lang === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</strong>
-                  <span>{selectedUser.phone || '---'}</span>
+                  <span>{selectedUser.phone_number || selectedUser.phone || '---'}</span>
                 </div>
                 <div className="info-row">
                   <strong>{lang === 'ar' ? 'كلمة المرور:' : 'Password:'}</strong>
