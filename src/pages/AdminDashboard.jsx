@@ -395,8 +395,8 @@ const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang, fetchPe
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 
                 onClick={async () => {
-                  const success = await approveUser(reg.id);
-                  if (success) {
+                  const result = await approveUser(reg.id);
+                  if (result.success) {
                     addToast(
                       lang === 'ar' ? 'تمت الموافقة' : 'Approved',
                       lang === 'ar' ? `تم تفعيل حساب ${reg.fullName} بنجاح` : `Account for ${reg.fullName} activated.`,
@@ -405,7 +405,7 @@ const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang, fetchPe
                   } else {
                     addToast(
                       lang === 'ar' ? 'خطأ' : 'Error',
-                      lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user',
+                      result.message || (lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user'),
                       'error'
                     );
                   }

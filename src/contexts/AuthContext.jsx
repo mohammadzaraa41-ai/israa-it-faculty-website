@@ -280,33 +280,41 @@ export const AuthProvider = ({ children }) => {
       await fetchAllUsers();
       return { success: true };
     } catch (err) {
-      return { success: false, message: err.message };
+      console.error("Direct Registration Error:", err);
+      return { success: false, message: err.message || "حدث خطأ أثناء إنشاء الحساب" };
     }
   };
 
   const approveUser = async (pendingId) => {
-    const userToApprove = pendingUsers.find(u => u.id === pendingId);
-    if (!userToApprove) return false;
+    try {
+      const userToApprove = pendingUsers.find(u => u.id === pendingId);
+      if (!userToApprove) return { success: false, message: "لم يتم العثور على بيانات الطلب" };
 
-    const result = await registerUserDirectly({
-      username: userToApprove.universityId,
-      password: userToApprove.password,
-      role: 'STUDENT',
-      nameAr: userToApprove.fullName,
-      departmentId: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
-      phone: userToApprove.phone,
-      dob: userToApprove.dob,
-      major: userToApprove.major,
-      yearSem: userToApprove.year_sem,
-      hours: userToApprove.hours
-    });
+      console.log("Approving user:", userToApprove.universityId);
 
-    if (result.success) {
-      await supabase.from('pending_users').delete().eq('id', pendingId);
-      setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
-      return true;
+      const result = await registerUserDirectly({
+        username: userToApprove.universityId,
+        password: userToApprove.password,
+        role: 'STUDENT',
+        nameAr: userToApprove.fullName,
+        departmentId: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
+        phone: userToApprove.phone,
+        dob: userToApprove.dob,
+        major: userToApprove.major,
+        yearSem: userToApprove.year_sem,
+        hours: userToApprove.hours
+      });
+
+      if (result.success) {
+        await supabase.from('pending_users').delete().eq('id', pendingId);
+        setPendingUsers(prev => prev.filter(u => u.id !== pendingId));
+        return { success: true };
+      }
+      return result;
+    } catch (err) {
+      console.error("Approve error:", err);
+      return { success: false, message: err.message };
     }
-    return false;
   };
 
   const registerRequest = async (userData) => {
