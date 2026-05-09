@@ -51,7 +51,7 @@ export const AuthProvider = ({ children }) => {
           name: { ar: profile.name_ar, en: profile.name_en },
           departmentId: profile.department_id,
           permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)
-            ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
+            ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS', 'MANAGE_CONTENT', 'APPROVE_REQUESTS'] 
             : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
         };
       } else {
@@ -480,7 +480,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) { return { success: false, message: error.message }; }
   };
 
-  const hasPermission = (permission) => user?.permissions?.includes(permission) || user?.role === 'SUPER_ADMIN';
+  const hasPermission = (permission) => {
+    if (!user) return false;
+    const adminRoles = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'];
+    return adminRoles.includes(user.role) || user.permissions?.includes(permission);
+  };
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const toggleLogin = (val) => setIsLoginOpen(val !== undefined ? val : !isLoginOpen);
