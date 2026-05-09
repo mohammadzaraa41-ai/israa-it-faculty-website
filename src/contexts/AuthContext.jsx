@@ -99,6 +99,80 @@ export const AuthProvider = ({ children }) => {
     return [];
   };
 
+  const fetchAllUsers = async () => {
+    const { data, error } = await supabase.from('users').select('*');
+    if (error) return [];
+    if (data) {
+      const mapped = data.map(({ password, ...u }) => ({
+        ...u,
+        name: { ar: u.name_ar, en: u.name_en },
+        departmentId: u.department_id
+      }));
+      setUsers(mapped);
+      return mapped;
+    }
+    return [];
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+  };
+
+  const login = async (username, password) => {
+    try {
+      const email = `${username.trim()}@israa.local`;
+      const cleanPassword = password.trim();
+      
+      // 1. Try normal Supabase Auth login
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password: cleanPassword,
+      });
+
+      if (error) {
+        // 2. If Auth login fails, check if this is a legacy user (Migration path)
+        if (error.message.includes('Invalid login credentials')) {
+          const { data: legacyUser, error: legacyError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username.trim())
+            .maybeSingle();
+
+          if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
+            // Found a match in legacy table! Migrate them now
+            console.log("Migrating legacy user:", username);
+            
+            // Use a temporary client for migration signup to avoid logging out the current user if any
+            const { data: newData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password: cleanPassword,
+            });
+
+            if (!signUpError && newData.user) {
+              // Successfully signed up, update their record in public.users to link them
+              await supabase.from('users').update({ id: newData.user.id }).eq('username', username.trim());
+              const profile = await fetchUserProfile(newData.user);
+              setUser(profile);
+              return { success: true, user: profile, message: 'تم تحديث حسابك بنجاح ونقله للنظام الجديد' };
+            }
+          }
+        }
+
+        let msg = 'خطأ في تسجيل الدخول';
+        if (error.message.includes('Invalid login credentials')) msg = 'اسم المستخدم أو كلمة مور غير صحيحة';
+        return { success: false, message: msg };
+      }
+
+      const profile = await fetchUserProfile(data.user);
+      setUser(profile);
+      return { success: true, user: profile, message: 'تم تسجيل الدخول بنجاح' };
+    } catch (err) {
+      console.error("Login catch:", err);
+      return { success: false, message: 'حدث خطأ تقني' };
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -211,79 +285,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, [user?.id, logout]);
 
-  const fetchAllUsers = async () => {
-    const { data, error } = await supabase.from('users').select('*');
-    if (error) return [];
-    if (data) {
-      const mapped = data.map(({ password, ...u }) => ({
-        ...u,
-        name: { ar: u.name_ar, en: u.name_en },
-        departmentId: u.department_id
-      }));
-      setUsers(mapped);
-      return mapped;
-    }
-    return [];
-  };
 
-  const login = async (username, password) => {
-    try {
-      const email = `${username.trim()}@israa.local`;
-      const cleanPassword = password.trim();
-      
-      // 1. Try normal Supabase Auth login
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: cleanPassword,
-      });
-
-      if (error) {
-        // 2. If Auth login fails, check if this is a legacy user (Migration path)
-        if (error.message.includes('Invalid login credentials')) {
-          const { data: legacyUser, error: legacyError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('username', username.trim())
-            .maybeSingle();
-
-          if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
-            // Found a match in legacy table! Migrate them now
-            console.log("Migrating legacy user:", username);
-            
-            // Use a temporary client for migration signup to avoid logging out the current user if any
-            const { data: newData, error: signUpError } = await supabase.auth.signUp({
-              email,
-              password: cleanPassword,
-            });
-
-            if (!signUpError && newData.user) {
-              // Successfully signed up, update their record in public.users to link them
-              await supabase.from('users').update({ id: newData.user.id }).eq('username', username.trim());
-              const profile = await fetchUserProfile(newData.user);
-              setUser(profile);
-              return { success: true, user: profile, message: 'تم تحديث حسابك بنجاح ونقله للنظام الجديد' };
-            }
-          }
-        }
-
-        let msg = 'خطأ في تسجيل الدخول';
-        if (error.message.includes('Invalid login credentials')) msg = 'اسم المستخدم أو كلمة المرور غير صحيحة';
-        return { success: false, message: msg };
-      }
-
-      const profile = await fetchUserProfile(data.user);
-      setUser(profile);
-      return { success: true, user: profile, message: 'تم تسجيل الدخول بنجاح' };
-    } catch (err) {
-      console.error("Login catch:", err);
-      return { success: false, message: 'حدث خطأ تقني' };
-    }
-  };
-
-  const logout = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-  };
 
   const registerUserDirectly = async (userData) => {
     try {
