@@ -319,12 +319,12 @@ export const AuthProvider = ({ children }) => {
       const profileData = {
         id: authData.user.id,
         username: userData.username,
-        name_ar: userData.name?.ar || userData.nameAr || "",
+        name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
         name_en: userData.name?.en || userData.nameEn || "",
         role: userData.role || 'STUDENT',
         department_id: userData.departmentId || 'cs',
         phone: userData.phone,
-        phone_number: userData.phone, // Try both column names for compatibility
+        phone_number: userData.phone,
         dob: userData.dob,
         major: userData.major,
         year_sem: userData.yearSem,
@@ -335,23 +335,30 @@ export const AuthProvider = ({ children }) => {
       
       if (profileError) {
         console.warn("Full profile creation failed, trying minimal profile:", profileError.message);
-        // Fallback: try to insert only the most essential columns that are known to exist
+        // Fallback: try to insert only the most essential columns
         const minimalProfile = {
           id: authData.user.id,
           username: userData.username,
           name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
           role: userData.role || 'STUDENT',
-          department_id: userData.departmentId || 'cs',
-          phone: userData.phone
+          department_id: userData.departmentId || 'cs'
         };
+        
         const { error: minimalError } = await supabase.from('users').insert([minimalProfile]);
         if (minimalError) {
-          console.error("Minimal profile creation also failed:", minimalError);
+          console.error("Critical: Minimal profile creation failed:", minimalError);
+          return { success: false, message: `فشل إنشاء ملف المستخدم: ${minimalError.message}` };
+        }
+        
+        // If minimal succeeded, try to update with phone separately (it might be the cause of failure)
+        if (userData.phone) {
+          await supabase.from('users').update({ phone: userData.phone }).eq('id', authData.user.id);
+          await supabase.from('users').update({ phone_number: userData.phone }).eq('id', authData.user.id);
         }
       }
 
       await fetchAllUsers();
-      return { success: true };
+      return { success: true, user: authData.user };
     } catch (err) {
       console.error("Direct Registration Error:", err);
       return { success: false, message: err.message || "حدث خطأ أثناء إنشاء الحساب" };
