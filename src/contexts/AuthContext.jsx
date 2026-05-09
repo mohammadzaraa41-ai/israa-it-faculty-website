@@ -44,6 +44,37 @@ export const AuthProvider = ({ children }) => {
     return null;
   };
 
+  const fetchPendingUsers = async () => {
+    const { data, error } = await supabase.from('pending_users').select('*').in('status', ['pending', 'PENDING']);
+    if (!error && data) {
+      const mapped = data.map(p => ({ 
+        ...p, 
+        fullName: p.full_name, 
+        universityId: p.university_id, 
+        yearSem: p.year_sem 
+      }));
+      setPendingUsers(mapped);
+      return mapped;
+    }
+    return [];
+  };
+
+  const fetchAlumniRequests = async () => {
+    const { data, error } = await supabase.from('alumni_requests').select('*').in('status', ['pending', 'rejected']);
+    if (!error && data) {
+      const mapped = data.map(a => ({ 
+        ...a, 
+        fullName: a.full_name, 
+        universityId: a.university_id, 
+        userId: a.user_id, 
+        scheduleImage: a.schedule_image 
+      }));
+      setAlumniRequests(mapped);
+      return mapped;
+    }
+    return [];
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -65,17 +96,11 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         });
 
-        // 3. Fetch other shared data
-        const [
-          { data: pendingData },
-          { data: alumniData }
-        ] = await Promise.all([
-          supabase.from('pending_users').select('*').in('status', ['pending', 'PENDING']),
-          supabase.from('alumni_requests').select('*').in('status', ['pending', 'rejected'])
+        // 3. Fetch initial data
+        await Promise.all([
+          fetchPendingUsers(),
+          fetchAlumniRequests()
         ]);
-
-        if (pendingData) setPendingUsers(pendingData.map(p => ({ ...p, fullName: p.full_name, universityId: p.university_id, yearSem: p.year_sem })));
-        if (alumniData) setAlumniRequests(alumniData.map(a => ({ ...a, fullName: a.full_name, universityId: a.university_id, userId: a.user_id, scheduleImage: a.schedule_image })));
 
       } catch (err) {
         console.error("Auth Init Error:", err);
@@ -349,7 +374,7 @@ export const AuthProvider = ({ children }) => {
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
       registerUserDirectly, deleteUser, updateUserRole, updateUser,
       updateUserProfile, changePassword, hasPermission, role: user?.role, isLoginOpen, toggleLogin,
-      fetchAllUsers
+      fetchAllUsers, fetchPendingUsers, fetchAlumniRequests
     }}>
       {children}
     </AuthContext.Provider>
