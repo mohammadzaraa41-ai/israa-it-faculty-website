@@ -25,6 +25,12 @@ const Navbar = () => {
   const [isShowcaseOpen, setIsShowcaseOpen] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   
+  React.useEffect(() => {
+    if (user) {
+      toggleLogin(false);
+    }
+  }, [user, toggleLogin]);
+
   const navigate = useNavigate();
   const [expandedSections, setExpandedSections] = useState({
     academics: false,
@@ -154,16 +160,14 @@ const Navbar = () => {
         { to: '/profile', label: lang === 'ar' ? 'الملف الشخصي' : 'Profile Settings' },
         { to: '#', label: lang === 'ar' ? 'تسجيل الخروج' : 'Logout', onClick: () => { logout(); navigate('/'); } }
       ]
-    }] : [
-      {
-        id: 'auth',
-        title: lang === 'ar' ? 'نظام التسجيل' : 'Registration System',
-        links: [
-          { to: '#', label: lang === 'ar' ? 'إنشاء حساب جديد' : 'Create Account', onClick: () => { setActiveTab('register'); toggleLogin(true); } },
-          { to: '#', label: lang === 'ar' ? 'تسجيل الدخول' : 'Sign In', onClick: () => { setActiveTab('login'); toggleLogin(true); } }
-        ]
-      }
-    ])
+    ...(user ? [] : [{
+      id: 'auth',
+      title: lang === 'ar' ? 'نظام التسجيل' : 'Registration System',
+      links: [
+        { to: '#', label: lang === 'ar' ? 'إنشاء حساب جديد' : 'Create Account', onClick: () => { setActiveTab('register'); toggleLogin(true); } },
+        { to: '#', label: lang === 'ar' ? 'تسجيل الدخول' : 'Sign In', onClick: () => { setActiveTab('login'); toggleLogin(true); } }
+      ]
+    }])
   ], [t, lang, toggleLogin, user, logout, navigate]);
 
   return (
