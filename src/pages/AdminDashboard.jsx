@@ -859,7 +859,9 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
                 style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }}
               >
                 <option value="STUDENT">{lang === 'ar' ? 'طالب' : 'Student'}</option>
-                <option value="DEAN">{lang === 'ar' ? 'عضو هيئة تدريس' : 'Faculty Member'}</option>
+                <option value="DOCTOR">{lang === 'ar' ? 'دكتور / مدرس' : 'Doctor / Instructor'}</option>
+                <option value="HOD">{lang === 'ar' ? 'رئيس قسم' : 'Head of Department'}</option>
+                <option value="DEAN">{lang === 'ar' ? 'العميد' : 'Dean'}</option>
                 <option value="SUPER_ADMIN">{lang === 'ar' ? 'مدير نظام' : 'Super Admin'}</option>
               </select>
             </div>
@@ -1076,6 +1078,8 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
                   style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)', fontSize: '0.8rem' }}
                 >
                   <option value="STUDENT">Student</option>
+                  <option value="DOCTOR">Doctor</option>
+                  <option value="HOD">Head of Dept (HOD)</option>
                   <option value="DEAN">Dean</option>
                   <option value="SUPER_ADMIN">Admin</option>
                 </select>
