@@ -64,9 +64,8 @@ export const AuthProvider = ({ children }) => {
           name_ar: "مستخدم جديد",
           name_en: "New User",
           role: 'STUDENT',
-          department_id: 'cs', // Default department
-          phone: '0000000000',
-          created_at: new Date()
+          department_id: 'cs',
+          phone: '0000000000'
         };
         
         const { data: newProfile, error: insertError } = await supabase
