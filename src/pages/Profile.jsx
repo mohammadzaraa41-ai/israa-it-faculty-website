@@ -112,7 +112,7 @@ const Profile = () => {
               <h1>{lang === 'ar' ? formData.name_ar : formData.name_en}</h1>
               <div className="role-badge">
                 <Shield size={14} />
-                <span>{user.role}</span>
+                <span>{user?.role}</span>
               </div>
             </div>
           </div>

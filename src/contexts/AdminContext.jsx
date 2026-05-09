@@ -735,7 +735,8 @@ export const AdminProvider = ({ children }) => {
 
   const addPost = async (postData, user) => {
     if (!user) return { status: 'ERROR' };
-    const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role);
+    if (!user) return { success: false, message: 'Please login first' };
+    const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
     
     // 1. CREATE OPTIMISTIC POST (Instantly displayed to the user)
     const optimisticId = 'temp-' + Date.now();
@@ -747,7 +748,7 @@ export const AdminProvider = ({ children }) => {
       author: {
         username: user.username,
         name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
-        role: user.role,
+        role: user?.role,
         avatar_url: user.avatar_url || null
       },
       date: new Date().toLocaleDateString('en-GB'),
@@ -802,7 +803,7 @@ export const AdminProvider = ({ children }) => {
       image: imageValue,
       author_username: user.username,
       author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
-      author_role: user.role,
+      author_role: user?.role || 'STUDENT',
       status: isAdmin ? 'APPROVED' : 'PENDING'
     }]).select();
 
@@ -887,7 +888,7 @@ export const AdminProvider = ({ children }) => {
       post_id: postId,
       content: commentData.text,
       author_name: user.name?.ar || user.name_ar || user.name?.en || user.name_en || user.username,
-      author_role: user.role,
+      author_role: user?.role || 'STUDENT',
       parent_id: commentData.parent_id || null
     }]).select();
 

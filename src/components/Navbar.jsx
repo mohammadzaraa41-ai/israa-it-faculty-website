@@ -61,7 +61,7 @@ const Navbar = () => {
         'success'
       );
       toggleLogin(false);
-      if (result.user.role === 'SUPER_ADMIN' || result.user.role === 'DEAN') {
+      if (result.user?.role === 'SUPER_ADMIN' || result.user?.role === 'DEAN' || result.user?.role === 'HOD' || result.user?.role === 'DOCTOR') {
         navigate('/admin-dashboard');
       } else {
         navigate('/profile'); // Redirect to profile after student login for better confirmation
@@ -250,7 +250,7 @@ const Navbar = () => {
                     className="user-badge"
                   >
                     <User size={12} />
-                    <span>{user.role}</span>
+                    <span>{user?.role}</span>
                   </motion.div>
                 )}
               </div>

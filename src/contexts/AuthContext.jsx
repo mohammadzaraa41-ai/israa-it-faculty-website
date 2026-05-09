@@ -481,9 +481,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   const hasPermission = (permission) => {
-    if (!user) return false;
+    if (!user?.role) return false;
     const adminRoles = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'];
-    return adminRoles.includes(user.role) || user.permissions?.includes(permission);
+    return adminRoles.includes(user.role) || (user.permissions && user.permissions.includes(permission));
   };
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
