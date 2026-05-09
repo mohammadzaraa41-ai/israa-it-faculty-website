@@ -1077,8 +1077,21 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
                 <button 
                   onClick={async (e) => {
                     e.stopPropagation();
-                    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا الحساب؟' : 'Are you sure you want to delete this account?')) {
-                      await deleteUser(u.id);
+                    if (window.confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا الحساب نهائياً من الموقع ونظام الدخول؟' : 'Are you sure you want to delete this account permanently from the site and Auth system?')) {
+                      const result = await deleteUser(u.id);
+                      if (result.success) {
+                        addToast(
+                          lang === 'ar' ? 'تم الحذف' : 'Deleted',
+                          lang === 'ar' ? 'تم حذف المستخدم وحسابه بنجاح' : 'User and auth account deleted successfully',
+                          'success'
+                        );
+                      } else {
+                        addToast(
+                          lang === 'ar' ? 'خطأ' : 'Error',
+                          result.message || (lang === 'ar' ? 'فشل حذف المستخدم' : 'Failed to delete user'),
+                          'error'
+                        );
+                      }
                     }
                   }}
                   className="btn-outline" 
