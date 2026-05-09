@@ -77,6 +77,11 @@ const Navbar = () => {
       alert(lang === 'ar' ? 'كلمات المرور غير متطابقة' : 'Passwords do not match');
       return;
     }
+
+    if (regData.password.length < 6) {
+      alert(lang === 'ar' ? 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters');
+      return;
+    }
     
     const yearSemLabel = lang === 'ar' ? `سنة ${regData.year} - فصل ${regData.semester}` : `Year ${regData.year} - Sem ${regData.semester}`;
 
@@ -522,7 +527,7 @@ const Navbar = () => {
                     <div className="input-group">
                       <label><Lock size={18} /> {lang === 'ar' ? 'كلمة المرور' : 'Password'}</label>
                       <div className="password-input">
-                        <input type={showPassword ? "text" : "password"} value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} placeholder="••••••••" required />
+                        <input type={showPassword ? "text" : "password"} value={regData.password} onChange={e => setRegData({...regData, password: e.target.value})} placeholder="••••••••" required minLength="6" />
                         <button type="button" className="eye-btn" onClick={() => setShowPassword(!showPassword)}>
                           {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
@@ -532,7 +537,7 @@ const Navbar = () => {
                     <div className="input-group">
                       <label><Lock size={18} /> {lang === 'ar' ? 'تأكيد كلمة المرور' : 'Confirm Password'}</label>
                       <div className="password-input">
-                        <input type={showConfirmPassword ? "text" : "password"} value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})} placeholder="••••••••" required />
+                        <input type={showConfirmPassword ? "text" : "password"} value={regData.confirmPassword} onChange={e => setRegData({...regData, confirmPassword: e.target.value})} placeholder="••••••••" required minLength="6" />
                         <button type="button" className="eye-btn" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                           {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>

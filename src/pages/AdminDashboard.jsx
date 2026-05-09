@@ -809,6 +809,14 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.password.length < 6) {
+      addToast(
+        lang === 'ar' ? 'كلمة المرور قصيرة' : 'Short Password',
+        lang === 'ar' ? 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters',
+        'error'
+      );
+      return;
+    }
     try {
       const yearSemLabel = lang === 'ar' ? `سنة ${formData.year} - فصل ${formData.semester}` : `Year ${formData.year} - Sem ${formData.semester}`;
       
@@ -898,6 +906,7 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
                 required type="password" autoComplete="new-password" 
                 value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} 
                 style={{ width: '100%', padding: '1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)' }} 
+                minLength="6"
               />
             </div>
             <div>
