@@ -187,7 +187,7 @@ export const AuthProvider = ({ children }) => {
             .from('users')
             .select('*')
             .eq('username', username.trim())
-            .single();
+            .maybeSingle();
 
           if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
             // Found a match in legacy table! Migrate them now
@@ -311,25 +311,25 @@ export const AuthProvider = ({ children }) => {
 
   const registerRequest = async (userData) => {
     try {
-      // 1. Check if user already exists in users table
-      const { data: existingUser } = await supabase
+      // 1. Check if user already exists in users table (Using list check for 406 safety)
+      const { data: usersFound } = await supabase
         .from('users')
         .select('username')
         .eq('username', userData.universityId)
-        .single();
+        .limit(1);
 
-      if (existingUser) {
+      if (usersFound && usersFound.length > 0) {
         return { success: false, message: 'هذا الرقم الجامعي مسجل بالفعل في النظام' };
       }
 
       // 2. Check if there's already a pending request
-      const { data: existingRequest } = await supabase
+      const { data: requestsFound } = await supabase
         .from('pending_users')
         .select('university_id')
         .eq('university_id', userData.universityId)
-        .single();
+        .limit(1);
 
-      if (existingRequest) {
+      if (requestsFound && requestsFound.length > 0) {
         return { success: false, message: 'لديك طلب تسجيل معلق بالفعل، يرجى انتظار موافقة الأدمن' };
       }
 
