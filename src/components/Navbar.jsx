@@ -70,7 +70,7 @@ const Navbar = () => {
       if (result.user?.role === 'SUPER_ADMIN' || result.user?.role === 'DEAN' || result.user?.role === 'HOD' || result.user?.role === 'DOCTOR') {
         window.location.href = '/admin-dashboard';
       } else {
-        window.location.href = '/profile';
+        window.location.href = '/';
       }
     } else {
       setLoginError(result.message);
