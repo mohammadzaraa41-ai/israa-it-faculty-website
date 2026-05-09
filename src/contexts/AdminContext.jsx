@@ -168,37 +168,20 @@ export const AdminProvider = ({ children }) => {
     initializePublicData();
 
     // 4. Setup Realtime Listeners for Public Data
+    // --- REALTIME SUBSCRIPTIONS ---
+    console.log("Setting up Realtime listeners...");
+
     const postsSub = supabase
-      .channel('public:posts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, payload => {
-        console.log('Realtime Posts Update:', payload);
-        // Refresh posts on change
-        const fetchLatestPosts = async () => {
-          const { data } = await supabase.from('posts').select('*, comments(*)').eq('status', 'APPROVED').order('created_at', { ascending: false }).limit(10);
-          if (data) {
-            setPosts(data.map(p => ({
-              ...p,
-              author: typeof p.author === 'object' ? p.author : { name: p.author_name || p.author_username || 'User', role: p.author_role || 'STUDENT' },
-              date: new Date(p.created_at).toLocaleDateString('en-GB'),
-              comments: (p.comments || []).map(c => ({
-                id: c.id,
-                author: c.author_name,
-                username: c.author_username,
-                text: c.content,
-                likes: c.likes || [],
-                parent_id: c.parent_id || null
-              }))
-            })));
-          }
-        };
-        fetchLatestPosts();
+      .channel('public-posts')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, (payload) => {
+        console.log("Realtime Post update:", payload);
+        fetchPosts();
       })
-      .subscribe();
+      .subscribe((status) => console.log("Posts channel status:", status));
 
     const annSub = supabase
-      .channel('public:announcements')
+      .channel('public-announcements')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
-        supabase.from('announcements').select('*').limit(10).then(({ data }) => {
         console.log("Realtime Announcement update");
         fetchAnnouncements();
       })
@@ -208,12 +191,7 @@ export const AdminProvider = ({ children }) => {
       .channel('public-events')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
         console.log("Realtime Event update");
-        supabase.from('events').select('*').limit(10).then(({ data }) => {
-          if (data) setEvents(data.map(ev => ({
-            ...ev,
-            text: { ar: ev.text_ar || '', en: ev.text_en || '' }
-          })));
-        });
+        fetchAdminDashboardData(); // Refresh everything for safety
       })
       .subscribe((status) => console.log("Events channel status:", status));
 
