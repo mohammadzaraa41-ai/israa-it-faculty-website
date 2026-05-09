@@ -130,12 +130,41 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const email = `${username.trim()}@israa.local`;
+      const cleanPassword = password.trim();
+      
+      // 1. Try normal Supabase Auth login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password: password.trim(),
+        password: cleanPassword,
       });
 
       if (error) {
+        // 2. If Auth login fails, check if this is a legacy user (Migration path)
+        if (error.message.includes('Invalid login credentials')) {
+          const { data: legacyUser, error: legacyError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username.trim())
+            .single();
+
+          if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
+            // Found a match in legacy table! Migrate them now
+            console.log("Migrating legacy user:", username);
+            const { data: newData, error: signUpError } = await supabase.auth.signUp({
+              email,
+              password: cleanPassword,
+            });
+
+            if (!signUpError && newData.user) {
+              // Successfully signed up, update their record in public.users to link them
+              await supabase.from('users').update({ id: newData.user.id }).eq('username', username.trim());
+              const profile = await fetchUserProfile(newData.user);
+              setUser(profile);
+              return { success: true, user: profile, message: 'تم تحديث حسابك بنجاح' };
+            }
+          }
+        }
+
         let msg = 'خطأ في تسجيل الدخول';
         if (error.message.includes('Invalid login credentials')) msg = 'اسم المستخدم أو كلمة المرور غير صحيحة';
         return { success: false, message: msg };
@@ -145,6 +174,7 @@ export const AuthProvider = ({ children }) => {
       setUser(profile);
       return { success: true, user: profile };
     } catch (err) {
+      console.error("Login catch:", err);
       return { success: false, message: 'حدث خطأ تقني' };
     }
   };
@@ -226,24 +256,50 @@ export const AuthProvider = ({ children }) => {
   };
 
   const registerRequest = async (userData) => {
-    const newUserRequest = {
-      full_name: userData.fullName,
-      phone: userData.phone,
-      university_id: userData.universityId,
-      dob: userData.dob,
-      major: userData.major,
-      year_sem: userData.yearSem,
-      hours: userData.hours,
-      password: userData.password,
-      status: 'PENDING'
-    };
-    
-    const { data, error } = await supabase.from('pending_users').insert([newUserRequest]).select();
-    if (!error && data) {
-      setPendingUsers(prev => [...prev, { ...data[0], fullName: data[0].full_name, universityId: data[0].university_id, yearSem: data[0].year_sem }]);
-      return { success: true };
+    try {
+      // 1. Check if user already exists in users table
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('username')
+        .eq('username', userData.universityId)
+        .single();
+
+      if (existingUser) {
+        return { success: false, message: 'هذا الرقم الجامعي مسجل بالفعل في النظام' };
+      }
+
+      // 2. Check if there's already a pending request
+      const { data: existingRequest } = await supabase
+        .from('pending_users')
+        .select('university_id')
+        .eq('university_id', userData.universityId)
+        .single();
+
+      if (existingRequest) {
+        return { success: false, message: 'لديك طلب تسجيل معلق بالفعل، يرجى انتظار موافقة الأدمن' };
+      }
+
+      const newUserRequest = {
+        full_name: userData.fullName,
+        phone: userData.phone,
+        university_id: userData.universityId,
+        dob: userData.dob,
+        major: userData.major,
+        year_sem: userData.yearSem,
+        hours: userData.hours,
+        password: userData.password,
+        status: 'PENDING'
+      };
+      
+      const { data, error } = await supabase.from('pending_users').insert([newUserRequest]).select();
+      if (!error && data) {
+        setPendingUsers(prev => [...prev, { ...data[0], fullName: data[0].full_name, universityId: data[0].university_id, yearSem: data[0].year_sem }]);
+        return { success: true };
+      }
+      return { success: false, message: error?.message || 'Unknown error' };
+    } catch (err) {
+      return { success: false, message: 'حدث خطأ أثناء إرسال الطلب' };
     }
-    return { success: false, message: error?.message || 'Unknown error' };
   };
 
   const submitAlumniRequest = async (userId, data) => {
