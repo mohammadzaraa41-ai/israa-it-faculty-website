@@ -535,8 +535,6 @@ export const AuthProvider = ({ children }) => {
 
   const deleteUser = async (userId) => {
     try {
-  const deleteUser = async (userId) => {
-    try {
       if (supabaseAdmin) {
         // Use admin client to delete from auth.users (cascades to public.users automatically)
         const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
