@@ -160,6 +160,7 @@ const Navbar = () => {
         { to: '/profile', label: lang === 'ar' ? 'الملف الشخصي' : 'Profile Settings' },
         { to: '#', label: lang === 'ar' ? 'تسجيل الخروج' : 'Logout', onClick: () => { logout(); navigate('/'); } }
       ]
+    }] : []),
     ...(user ? [] : [{
       id: 'auth',
       title: lang === 'ar' ? 'نظام التسجيل' : 'Registration System',
