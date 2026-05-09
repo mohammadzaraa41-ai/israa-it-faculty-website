@@ -26,8 +26,20 @@ const Profile = () => {
 
   const fileInputRef = useRef(null);
 
+  // Sync formData whenever user data is loaded or changes
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        name_ar: user?.name?.ar || user?.name_ar || '',
+        name_en: user?.name?.en || user?.name_en || '',
+        phone: user?.phone || user?.phone_number || '',
+        avatar_url: user?.avatar_url || ''
+      });
+    }
+  }, [user]);
+
   const [showError, setShowError] = useState(false);
-  const { lastError } = useAuth(); // We'll add this to AuthContext
+  const { lastError } = useAuth();
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
