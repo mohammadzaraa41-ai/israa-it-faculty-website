@@ -212,6 +212,11 @@ const AdminDashboard = () => {
             updateUser={updateUser}
             departments={departments || []}
             setSelectedUser={setSelectedUser}
+            onRefresh={async () => {
+              localStorage.clear();
+              await fetchAllUsers();
+              addToast(lang === 'ar' ? 'تم التحديث' : 'Refreshed', lang === 'ar' ? 'تم تحديث قائمة المستخدمين من قاعدة البيانات' : 'User list refreshed from database', 'success');
+            }}
           />
         )}
         {activeTab === 'register' && (
@@ -971,7 +976,7 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
   );
 };
 
-const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [], setSelectedUser }) => {
+const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [], setSelectedUser, onRefresh }) => {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -998,6 +1003,14 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
         <h3 style={{ color: 'var(--primary-light)', fontSize: '1.5rem' }}>
           {lang === 'ar' ? 'إدارة حسابات المستخدمين' : 'User Accounts Management'}
         </h3>
+        {onRefresh && (
+          <button
+            onClick={onRefresh}
+            style={{ padding: '0.6rem 1.2rem', background: 'rgba(52, 152, 219, 0.15)', color: '#3498db', border: '1px solid #3498db', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', fontSize: '0.9rem' }}
+          >
+            🔄 {lang === 'ar' ? 'تحديث القائمة' : 'Refresh List'}
+          </button>
+        )}
         
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', width: '100%', maxWidth: '800px' }}>
 
