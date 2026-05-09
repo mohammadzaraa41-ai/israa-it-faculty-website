@@ -549,6 +549,7 @@ export const AdminProvider = ({ children }) => {
         setFacultyMembers(facultyRes.map(m => ({
           ...m,
           name: typeof m.name === 'object' ? m.name : { ar: m.name_ar || m.name || 'No Name', en: m.name_en || m.name_ar || m.name || 'No Name' },
+          departmentId: m.department_id || m.departmentId || m.department || m.dept_id || '',
           specialization: m.specialization_ar || m.specialization || '',
           office: m.office_location || m.office || '',
           officeHours: m.office_hours || m.officeHours || ''

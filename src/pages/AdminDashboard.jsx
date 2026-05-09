@@ -493,7 +493,8 @@ const FacultyManagement = ({
       
     setFormData({
       ...member,
-      name: nameStr
+      name: nameStr,
+      departmentId: member.departmentId || member.department_id || member.department || member.dept_id || (departments[0]?.id || '')
     });
   };
 
