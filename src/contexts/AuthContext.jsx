@@ -63,12 +63,14 @@ export const AuthProvider = ({ children }) => {
           name_ar: "مستخدم جديد",
           name_en: "New User",
           role: 'STUDENT',
+          department_id: 'cs', // Default department
+          phone: '0000000000',
           created_at: new Date()
         };
         
         const { data: newProfile, error: insertError } = await supabase
           .from('users')
-          .insert([fallbackProfile])
+          .upsert([fallbackProfile])
           .select()
           .maybeSingle();
           
@@ -76,6 +78,9 @@ export const AuthProvider = ({ children }) => {
           console.error("Failed to create fallback profile:", insertError);
           return null;
         }
+
+        console.log("Fallback profile created successfully");
+        await fetchAllUsers(); // Refresh the global list for the admin
 
         return {
           ...newProfile,

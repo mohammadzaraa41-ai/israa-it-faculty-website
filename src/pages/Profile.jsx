@@ -26,17 +26,38 @@ const Profile = () => {
 
   const fileInputRef = useRef(null);
 
+  const [showError, setShowError] = useState(false);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!user) setShowError(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [user]);
+
   if (!user) {
     return (
-      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
-        <div className="loading-spinner">
-          <motion.div 
-            animate={{ rotate: 360 }} 
-            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
-            style={{ width: '50px', height: '50px', border: '3px solid var(--primary-color)', borderTopColor: 'transparent', borderRadius: '50%' }}
-          />
-          <p style={{ marginTop: '1rem', opacity: 0.7 }}>{lang === 'ar' ? 'جاري تحميل الملف الشخصي...' : 'Loading profile...'}</p>
-        </div>
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'var(--bg-color)', color: 'var(--text-primary)', padding: '2rem', textAlign: 'center' }}>
+        {!showError ? (
+          <div className="loading-spinner">
+            <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+              style={{ width: '50px', height: '50px', border: '3px solid var(--primary-color)', borderTopColor: 'transparent', borderRadius: '50%', margin: '0 auto' }}
+            />
+            <p style={{ marginTop: '1rem', opacity: 0.7 }}>{lang === 'ar' ? 'جاري تحميل الملف الشخصي...' : 'Loading profile...'}</p>
+          </div>
+        ) : (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <Shield size={64} color="#e74c3c" style={{ marginBottom: '1rem' }} />
+            <h2 style={{ marginBottom: '1rem' }}>{lang === 'ar' ? 'عذراً، لم نتمكن من العثور على ملفك الشخصي' : 'Sorry, we couldn\'t find your profile'}</h2>
+            <p style={{ marginBottom: '2rem', opacity: 0.8 }}>{lang === 'ar' ? 'قد يكون هناك تأخير في مزامنة البيانات أو أن حسابك غير مكتمل.' : 'There might be a sync delay or your account is incomplete.'}</p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <button className="btn-primary" onClick={() => window.location.reload()}>{lang === 'ar' ? 'إعادة المحاولة' : 'Retry'}</button>
+              <button className="btn-outline" onClick={() => { logout(); window.location.href = '/'; }}>{lang === 'ar' ? 'تسجيل الخروج' : 'Logout'}</button>
+            </div>
+          </motion.div>
+        )}
       </div>
     );
   }
