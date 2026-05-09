@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 
 const AuthContext = createContext();
 
@@ -15,10 +15,10 @@ export const AuthProvider = ({ children }) => {
   // Fetch full user profile from the public.users table
   const fetchUserProfile = async (supabaseUser) => {
     if (!supabaseUser) return null;
-    
+
     try {
       console.log("Fetching profile for:", supabaseUser.id, supabaseUser.email);
-      
+
       // 1. Try fetching by ID first (Most reliable)
       let { data: profile, error } = await supabase
         .from('users')
@@ -53,7 +53,7 @@ export const AuthProvider = ({ children }) => {
           departmentId: profile.department_id || profile.departmentId || 'cs',
           phone: profile.phone || profile.phone_number || '---',
           permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)
-            ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS', 'MANAGE_CONTENT', 'APPROVE_REQUESTS'] 
+            ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS', 'MANAGE_CONTENT', 'APPROVE_REQUESTS']
             : ['VIEW_PORTAL', 'ACCESS_RESOURCES'],
           isAdminRole: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role),
           isStudent: profile.role === 'STUDENT'
@@ -71,11 +71,11 @@ export const AuthProvider = ({ children }) => {
   const fetchPendingUsers = async () => {
     const { data, error } = await supabase.from('pending_users').select('*').in('status', ['pending', 'PENDING']);
     if (!error && data) {
-      const mapped = data.map(p => ({ 
-        ...p, 
-        fullName: p.full_name, 
-        universityId: p.university_id, 
-        yearSem: p.year_sem 
+      const mapped = data.map(p => ({
+        ...p,
+        fullName: p.full_name,
+        universityId: p.university_id,
+        yearSem: p.year_sem
       }));
       setPendingUsers(mapped);
       return mapped;
@@ -86,12 +86,12 @@ export const AuthProvider = ({ children }) => {
   const fetchAlumniRequests = async () => {
     const { data, error } = await supabase.from('alumni_requests').select('*').in('status', ['pending', 'rejected']);
     if (!error && data) {
-      const mapped = data.map(a => ({ 
-        ...a, 
-        fullName: a.full_name, 
-        universityId: a.university_id, 
-        userId: a.user_id, 
-        scheduleImage: a.schedule_image 
+      const mapped = data.map(a => ({
+        ...a,
+        fullName: a.full_name,
+        universityId: a.university_id,
+        userId: a.user_id,
+        scheduleImage: a.schedule_image
       }));
       setAlumniRequests(mapped);
       return mapped;
@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const email = `${username.trim()}@israa.local`;
       const cleanPassword = password.trim();
-      
+
       // 1. Try normal Supabase Auth login
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -144,7 +144,7 @@ export const AuthProvider = ({ children }) => {
           if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
             // Found a match in legacy table! Migrate them now
             console.log("Migrating legacy user:", username);
-            
+
             // Use a temporary client for migration signup to avoid logging out the current user if any
             const { data: newData, error: signUpError } = await supabase.auth.signUp({
               email,
@@ -270,11 +270,11 @@ export const AuthProvider = ({ children }) => {
 
     const killSwitch = supabase
       .channel(`kill-switch-${user.id}`)
-      .on('postgres_changes', { 
-        event: 'DELETE', 
-        schema: 'public', 
-        table: 'users', 
-        filter: `id=eq.${user.id}` 
+      .on('postgres_changes', {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'users',
+        filter: `id=eq.${user.id}`
       }, () => {
         console.warn("Account deleted by admin. Logging out...");
         logout();
@@ -296,7 +296,7 @@ export const AuthProvider = ({ children }) => {
 
     while (attempt < maxAttempts) {
       const { data, error } = await supabase.from('users').insert([currentData]).select();
-      
+
       if (!error) return { data, error: null };
 
       // If the error is about a missing column (42703), remove it and try again
@@ -322,13 +322,13 @@ export const AuthProvider = ({ children }) => {
   const registerUserDirectly = async (userData) => {
     try {
       const email = `${userData.username.trim()}@israa.local`;
-      
+
       // IMPORTANT: To prevent logging out the Admin when they create a user,
       // we need to use a secondary Supabase client with 'persistSession: false'
       const { createClient } = await import('@supabase/supabase-js');
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
+
       const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
         auth: { persistSession: false }
       });
@@ -352,7 +352,7 @@ export const AuthProvider = ({ children }) => {
           email,
           password: userData.password,
         });
-        
+
         if (!signInError) {
           authData = signInData;
           authError = null;
@@ -384,7 +384,7 @@ export const AuthProvider = ({ children }) => {
       };
 
       const { error: profileError } = await robustProfileInsert(profileData);
-      
+
       if (profileError) {
         console.error("Critical: Profile creation failed after robust attempts:", profileError);
         return { success: false, message: `فشل إنشاء ملف المستخدم: ${profileError.message}` };
@@ -465,7 +465,7 @@ export const AuthProvider = ({ children }) => {
         password: userData.password,
         status: 'PENDING'
       };
-      
+
       const { data, error } = await supabase.from('pending_users').insert([newUserRequest]).select();
       if (!error && data) {
         setPendingUsers(prev => [...prev, { ...data[0], fullName: data[0].full_name, universityId: data[0].university_id, yearSem: data[0].year_sem }]);
@@ -535,17 +535,16 @@ export const AuthProvider = ({ children }) => {
 
   const deleteUser = async (userId) => {
     try {
-      const { error, count } = await supabase
-        .from('users')
-        .delete({ count: 'exact' })
-        .eq('id', userId);
-        
-      if (error) throw error;
-      
-      // If no error but count is 0, it might be a legacy user or wrong ID
-      if (count === 0) {
-        console.warn("No user found with ID:", userId);
-        return { success: false, message: "لم يتم العثور على المستخدم في قاعدة البيانات" };
+  const deleteUser = async (userId) => {
+    try {
+      if (supabaseAdmin) {
+        // Use admin client to delete from auth.users (cascades to public.users automatically)
+        const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
+        if (error) throw error;
+      } else {
+        // Fallback: delete from public.users table only
+        const { error } = await supabase.from('users').delete().eq('id', userId);
+        if (error) throw error;
       }
 
       setUsers(prev => prev.filter(u => u.id !== userId));
@@ -583,7 +582,7 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = async (updates) => {
     try {
       if (!user) return { success: false, message: 'No user logged in' };
-      
+
       const dbData = {
         name_ar: updates.name_ar,
         name_en: updates.name_en,
@@ -596,10 +595,10 @@ export const AuthProvider = ({ children }) => {
       let currentData = { ...dbData };
       let finalData = null;
       let attempt = 0;
-      
+
       while (attempt < 5) {
         const { data, error } = await supabase.from('users').update(currentData).eq('id', user.id).select();
-        
+
         if (!error) {
           finalData = data[0];
           break;
@@ -619,21 +618,21 @@ export const AuthProvider = ({ children }) => {
       }
 
       if (finalData) {
-        const updatedUser = { 
-          ...user, 
-          ...finalData, 
-          name: { 
-            ar: finalData.name_ar || finalData.full_name || (typeof user.name === 'object' ? user.name.ar : user.name), 
-            en: finalData.name_en || (typeof user.name === 'object' ? user.name.en : user.name) 
-          } 
+        const updatedUser = {
+          ...user,
+          ...finalData,
+          name: {
+            ar: finalData.name_ar || finalData.full_name || (typeof user.name === 'object' ? user.name.ar : user.name),
+            en: finalData.name_en || (typeof user.name === 'object' ? user.name.en : user.name)
+          }
         };
         setUser(updatedUser);
         return { success: true };
       }
       return { success: false, message: 'Update failed' };
-    } catch (error) { 
+    } catch (error) {
       console.error("Profile Update Error:", error);
-      return { success: false, message: error.message }; 
+      return { success: false, message: error.message };
     }
   };
 
@@ -655,7 +654,7 @@ export const AuthProvider = ({ children }) => {
   const toggleLogin = (val) => setIsLoginOpen(val !== undefined ? val : !isLoginOpen);
 
   return (
-    <AuthContext.Provider value={{ 
+    <AuthContext.Provider value={{
       user, users, pendingUsers, alumniRequests, loading,
       login, logout, registerRequest, approveUser, rejectUser,
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
