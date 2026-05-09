@@ -219,10 +219,52 @@ export const AdminProvider = ({ children }) => {
       })
       .subscribe();
 
+    const facultySub = supabase
+      .channel('public:faculty_members')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'faculty_members' }, () => fetchFaculty())
+      .subscribe();
+
+    const achSub = supabase
+      .channel('public:achievements')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'achievements' }, () => fetchAchievements())
+      .subscribe();
+
+    const honorSub = supabase
+      .channel('public:honor_roll')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'honor_roll' }, () => {
+        supabase.from('honor_roll').select('*').then(({ data }) => {
+          if (data) setHonorRoll(data);
+        });
+      })
+      .subscribe();
+
+    const labsSub = supabase
+      .channel('public:live_labs')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'live_labs' }, () => fetchLiveLabs())
+      .subscribe();
+
+    const projectsSub = supabase
+      .channel('public:project_bank')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'project_bank' }, () => {
+        supabase.from('project_bank').select('*').then(({ data }) => {
+          if (data) setProjectBank(data.map(p => ({
+            ...p,
+            name_ar: p.name_ar || p.name?.ar || 'مشروع',
+            name_en: p.name_en || p.name?.en || 'Project'
+          })));
+        });
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(postsSub);
       supabase.removeChannel(annSub);
       supabase.removeChannel(eventsSub);
+      supabase.removeChannel(facultySub);
+      supabase.removeChannel(achSub);
+      supabase.removeChannel(honorSub);
+      supabase.removeChannel(labsSub);
+      supabase.removeChannel(projectsSub);
     };
   }, [user?.id]);
 
