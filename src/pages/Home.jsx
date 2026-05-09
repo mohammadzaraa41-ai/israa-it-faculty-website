@@ -14,7 +14,7 @@ const Home = () => {
   const navigate = useNavigate();
   const { lang, t } = useLocale();
   const { addToast } = useToast();
-  const { user, toggleLogin, users, pendingUsers, alumniRequests } = useAuth();
+  const { user, toggleLogin, users, pendingUsers, alumniRequests, fetchAllUsers } = useAuth();
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
   const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
@@ -28,6 +28,8 @@ const Home = () => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const fileInputRef = React.useRef(null);
 
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+
   React.useEffect(() => {
     // Show events popup only for mobile users who haven't seen it in this session
     const isMobile = window.innerWidth <= 992;
@@ -39,12 +41,17 @@ const Home = () => {
     }
   }, [events]);
 
+  React.useEffect(() => {
+    // If admin, ensure we have the full users list loaded for the modal
+    if (isAdmin && fetchAllUsers && (!users || users.length === 0)) {
+      fetchAllUsers();
+    }
+  }, [isAdmin, fetchAllUsers, users?.length]);
+
   const closeEventsPopup = () => {
     setShowEventsPopup(false);
     sessionStorage.setItem('hasSeenEventsPopup', 'true');
   };
-
-  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
