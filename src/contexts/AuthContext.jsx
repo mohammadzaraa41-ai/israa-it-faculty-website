@@ -604,16 +604,18 @@ export const AuthProvider = ({ children }) => {
         avatar_url: updates.avatar_url
       };
 
-      // Use a robust update logic to handle potential missing columns (like avatar_url)
+      // Remove undefined values
+      Object.keys(dbData).forEach(k => dbData[k] === undefined && delete dbData[k]);
+
       let currentData = { ...dbData };
-      let finalData = null;
       let attempt = 0;
+      let succeeded = false;
 
       while (attempt < 5) {
-        const { data, error } = await supabase.from('users').update(currentData).eq('id', user.id).select();
+        const { error } = await supabase.from('users').update(currentData).eq('id', user.id);
 
         if (!error) {
-          finalData = data[0];
+          succeeded = true;
           break;
         }
 
@@ -630,19 +632,20 @@ export const AuthProvider = ({ children }) => {
         throw error;
       }
 
-      if (finalData) {
+      if (succeeded) {
+        // Update local state directly from form data (don't wait for DB response)
         const updatedUser = {
           ...user,
-          ...finalData,
+          ...currentData,
           name: {
-            ar: finalData.name_ar || finalData.full_name || (typeof user.name === 'object' ? user.name.ar : user.name),
-            en: finalData.name_en || (typeof user.name === 'object' ? user.name.en : user.name)
+            ar: currentData.name_ar || (typeof user.name === 'object' ? user.name.ar : user.name),
+            en: currentData.name_en || (typeof user.name === 'object' ? user.name.en : user.name)
           }
         };
         setUser(updatedUser);
         return { success: true };
       }
-      return { success: false, message: 'Update failed' };
+      return { success: false, message: 'فشل التحديث' };
     } catch (error) {
       console.error("Profile Update Error:", error);
       return { success: false, message: error.message };
