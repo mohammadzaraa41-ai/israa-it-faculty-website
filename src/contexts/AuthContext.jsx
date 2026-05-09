@@ -301,7 +301,9 @@ export const AuthProvider = ({ children }) => {
     const maxAttempts = 5;
 
     while (attempt < maxAttempts) {
-      const { data, error } = await supabase.from('users').insert([currentData]).select();
+      // Use admin client to bypass RLS during profile creation (if available)
+      const client = supabaseAdmin || supabase;
+      const { data, error } = await client.from('users').insert([currentData]).select();
 
       if (!error) return { data, error: null };
 
