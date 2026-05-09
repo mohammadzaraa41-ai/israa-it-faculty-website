@@ -583,20 +583,58 @@ export const AuthProvider = ({ children }) => {
   const updateUserProfile = async (updates) => {
     try {
       if (!user) return { success: false, message: 'No user logged in' };
-      const { data, error } = await supabase.from('users').update({
+      
+      const dbData = {
         name_ar: updates.name_ar,
         name_en: updates.name_en,
         phone: updates.phone,
+        phone_number: updates.phone,
         avatar_url: updates.avatar_url
-      }).eq('id', user.id).select();
+      };
 
-      if (error) throw error;
-      if (data?.length > 0) {
-        const updatedUser = { ...user, ...data[0], name: { ar: data[0].name_ar, en: data[0].name_en } };
+      // Use a robust update logic to handle potential missing columns (like avatar_url)
+      let currentData = { ...dbData };
+      let finalData = null;
+      let attempt = 0;
+      
+      while (attempt < 5) {
+        const { data, error } = await supabase.from('users').update(currentData).eq('id', user.id).select();
+        
+        if (!error) {
+          finalData = data[0];
+          break;
+        }
+
+        if (error.code === '42703' || error.message.includes('column')) {
+          const match = error.message.match(/['"]([^'"]+)['"]/);
+          const missingColumn = match ? match[1] : null;
+          if (missingColumn && currentData[missingColumn] !== undefined) {
+            console.warn(`[Profile] Removing missing column '${missingColumn}' and retrying...`);
+            delete currentData[missingColumn];
+            attempt++;
+            continue;
+          }
+        }
+        throw error;
+      }
+
+      if (finalData) {
+        const updatedUser = { 
+          ...user, 
+          ...finalData, 
+          name: { 
+            ar: finalData.name_ar || finalData.full_name || (typeof user.name === 'object' ? user.name.ar : user.name), 
+            en: finalData.name_en || (typeof user.name === 'object' ? user.name.en : user.name) 
+          } 
+        };
         setUser(updatedUser);
         return { success: true };
       }
-    } catch (error) { return { success: false, message: error.message }; }
+      return { success: false, message: 'Update failed' };
+    } catch (error) { 
+      console.error("Profile Update Error:", error);
+      return { success: false, message: error.message }; 
+    }
   };
 
   const changePassword = async (oldPassword, newPassword) => {
