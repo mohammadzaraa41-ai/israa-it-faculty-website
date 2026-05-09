@@ -7,7 +7,7 @@ import { User, Mail, Camera, Save, LogOut, Shield, BookOpen, Calendar, Phone, Ch
 import './Profile.css';
 
 const Profile = () => {
-  const { user, logout, updateUserProfile, changePassword } = useAuth();
+  const { user, logout, loading: authLoading, updateUserProfile, changePassword } = useAuth();
   const { lang, t } = useLocale();
   const { addToast } = useToast();
   
@@ -36,10 +36,10 @@ const Profile = () => {
     return () => clearTimeout(timer);
   }, [user]);
 
-  if (!user) {
+  if (authLoading || !user) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', background: 'var(--bg-color)', color: 'var(--text-primary)', padding: '2rem', textAlign: 'center' }}>
-        {!showError ? (
+        {authLoading || !showError ? (
           <div className="loading-spinner">
             <motion.div 
               animate={{ rotate: 360 }} 

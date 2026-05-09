@@ -15,7 +15,7 @@ const AdminDashboard = () => {
   const { lang, t } = useLocale();
   const { addToast } = useToast();
   const { 
-    user, logout, 
+    user, logout, loading: authLoading,
     users,
     pendingUsers, approveUser, rejectUser,
     alumniRequests, approveAlumniRequest, rejectAlumniRequest,
@@ -65,12 +65,12 @@ const AdminDashboard = () => {
   const isAdminRole = user?.role ? ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role) : false;
 
   useEffect(() => {
-    if (!user || !isAdminRole) {
+    if (!authLoading && (!user || !isAdminRole)) {
       navigate('/');
     }
-  }, [user, isAdminRole, navigate]);
+  }, [user, isAdminRole, authLoading, navigate]);
 
-  if (!user || !isAdminRole) {
+  if (authLoading || !user || !isAdminRole) {
     return (
       <div className="flex-center-vh">
         <div className="loader-spinner" />
