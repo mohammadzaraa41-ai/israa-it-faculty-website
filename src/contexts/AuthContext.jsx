@@ -75,7 +75,12 @@ export const AuthProvider = ({ children }) => {
           .maybeSingle();
           
         if (insertError) {
-          console.error("Failed to create fallback profile:", insertError);
+          console.error("CRITICAL: Failed to auto-create profile. Error details:", {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint
+          });
           return null;
         }
 
