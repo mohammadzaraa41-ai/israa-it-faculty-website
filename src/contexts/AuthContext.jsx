@@ -301,9 +301,12 @@ export const AuthProvider = ({ children }) => {
 
       // If the error is about a missing column (42703), remove it and try again
       if (error.code === '42703' || error.message.includes('column')) {
-        const missingColumn = error.message.split('"')[1];
+        // Regex to find content inside single or double quotes
+        const match = error.message.match(/['"]([^'"]+)['"]/);
+        const missingColumn = match ? match[1] : null;
+
         if (missingColumn && currentData[missingColumn] !== undefined) {
-          console.warn(`[Auth] Removing missing column '${missingColumn}' and retrying...`);
+          console.warn(`[Auth] Detected missing column '${missingColumn}'. Removing and retrying (Attempt ${attempt + 1})...`);
           delete currentData[missingColumn];
           attempt++;
           continue;
