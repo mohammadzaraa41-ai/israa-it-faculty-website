@@ -347,7 +347,7 @@ const Home = () => {
                       <div>
                         <h4
                           className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
-                          onClick={() => isAdmin && showUserInfo(post.author.username)}
+                          onClick={() => isAdmin && showUserInfo(post.author.username, post.author)}
                         >
                           {post.author.name}
                         </h4>
@@ -646,7 +646,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
           <div className="comment-header-row">
             <h5
               className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-              onClick={() => isAdmin && showUserInfo(comment.username)}
+              onClick={() => isAdmin && showUserInfo(comment.username, comment)}
             >
               {comment.author}
               {isReply && <span className="reply-mention-tag"> ↩ رد</span>}
