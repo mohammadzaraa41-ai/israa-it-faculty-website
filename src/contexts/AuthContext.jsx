@@ -10,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [pendingUsers, setPendingUsers] = useState([]);
   const [alumniRequests, setAlumniRequests] = useState([]);
+  const [lastError, setLastError] = useState(null);
 
   // Fetch full user profile from the public.users table
   const fetchUserProfile = async (supabaseUser) => {
@@ -75,16 +76,13 @@ export const AuthProvider = ({ children }) => {
           .maybeSingle();
           
         if (insertError) {
-          console.error("CRITICAL: Failed to auto-create profile. Error details:", {
-            code: insertError.code,
-            message: insertError.message,
-            details: insertError.details,
-            hint: insertError.hint
-          });
+          console.error("CRITICAL: Failed to auto-create profile. Error details:", insertError);
+          setLastError(`DB Error [${insertError.code}]: ${insertError.message}`);
           return null;
         }
 
         console.log("Fallback profile created successfully");
+        setLastError(null);
         await fetchAllUsers(); // Refresh the global list for the admin
 
         return {
@@ -533,7 +531,7 @@ export const AuthProvider = ({ children }) => {
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
       registerUserDirectly, deleteUser, updateUserRole, updateUser,
       updateUserProfile, changePassword, hasPermission, role: user?.role, isLoginOpen, toggleLogin,
-      fetchAllUsers, fetchPendingUsers, fetchAlumniRequests
+      fetchAllUsers, fetchPendingUsers, fetchAlumniRequests, lastError
     }}>
       {children}
     </AuthContext.Provider>

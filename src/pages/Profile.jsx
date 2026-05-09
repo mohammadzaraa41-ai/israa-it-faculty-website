@@ -27,6 +27,7 @@ const Profile = () => {
   const fileInputRef = useRef(null);
 
   const [showError, setShowError] = useState(false);
+  const { lastError } = useAuth(); // We'll add this to AuthContext
 
   React.useEffect(() => {
     const timer = setTimeout(() => {
@@ -48,9 +49,18 @@ const Profile = () => {
             <p style={{ marginTop: '1rem', opacity: 0.7 }}>{lang === 'ar' ? 'جاري تحميل الملف الشخصي...' : 'Loading profile...'}</p>
           </div>
         ) : (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ maxWidth: '600px' }}>
             <Shield size={64} color="#e74c3c" style={{ marginBottom: '1rem' }} />
             <h2 style={{ marginBottom: '1rem' }}>{lang === 'ar' ? 'عذراً، لم نتمكن من العثور على ملفك الشخصي' : 'Sorry, we couldn\'t find your profile'}</h2>
+            
+            {lastError && (
+              <div style={{ background: 'rgba(231, 76, 60, 0.1)', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', border: '1px solid rgba(231, 76, 60, 0.2)' }}>
+                <p style={{ color: '#e74c3c', fontSize: '0.9rem', fontFamily: 'monospace', margin: 0 }}>
+                  <strong>Error Details:</strong> {lastError}
+                </p>
+              </div>
+            )}
+
             <p style={{ marginBottom: '2rem', opacity: 0.8 }}>{lang === 'ar' ? 'قد يكون هناك تأخير في مزامنة البيانات أو أن حسابك غير مكتمل.' : 'There might be a sync delay or your account is incomplete.'}</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
               <button className="btn-primary" onClick={() => window.location.reload()}>{lang === 'ar' ? 'إعادة المحاولة' : 'Retry'}</button>
