@@ -50,10 +50,13 @@ export const AuthProvider = ({ children }) => {
         return {
           ...profile,
           name: { ar: profile.name_ar, en: profile.name_en },
-          departmentId: profile.department_id,
+          departmentId: profile.department_id || profile.departmentId || 'cs',
+          phone: profile.phone || profile.phone_number || '---',
           permissions: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)
             ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS', 'MANAGE_CONTENT', 'APPROVE_REQUESTS'] 
-            : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
+            : ['VIEW_PORTAL', 'ACCESS_RESOURCES'],
+          isAdminRole: ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role),
+          isStudent: profile.role === 'STUDENT'
         };
       } else {
         console.warn("No profile record found. Attempting to create fallback profile...");
@@ -313,13 +316,14 @@ export const AuthProvider = ({ children }) => {
 
       // 2. Create Profile in public.users
       const profileData = {
-        id: authData.user.id, // Link to auth user
+        id: authData.user.id,
         username: userData.username,
-        name_ar: userData.name?.ar || userData.nameAr,
-        name_en: userData.name?.en || userData.nameEn,
-        role: userData.role,
-        department_id: userData.departmentId,
+        name_ar: userData.name?.ar || userData.nameAr || "",
+        name_en: userData.name?.en || userData.nameEn || "",
+        role: userData.role || 'STUDENT',
+        department_id: userData.departmentId || 'cs',
         phone: userData.phone,
+        phone_number: userData.phone, // Try both column names for compatibility
         dob: userData.dob,
         major: userData.major,
         year_sem: userData.yearSem,
@@ -327,9 +331,22 @@ export const AuthProvider = ({ children }) => {
       };
 
       const { error: profileError } = await supabase.from('users').insert([profileData]);
+      
       if (profileError) {
-        // Fallback or retry logic if needed
-        console.error("Profile creation error:", profileError);
+        console.warn("Full profile creation failed, trying minimal profile:", profileError.message);
+        // Fallback: try to insert only the most essential columns that are known to exist
+        const minimalProfile = {
+          id: authData.user.id,
+          username: userData.username,
+          name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
+          role: userData.role || 'STUDENT',
+          department_id: userData.departmentId || 'cs',
+          phone: userData.phone
+        };
+        const { error: minimalError } = await supabase.from('users').insert([minimalProfile]);
+        if (minimalError) {
+          console.error("Minimal profile creation also failed:", minimalError);
+        }
       }
 
       await fetchAllUsers();
@@ -348,15 +365,15 @@ export const AuthProvider = ({ children }) => {
       console.log("Approving user:", userToApprove.universityId);
 
       const result = await registerUserDirectly({
-        username: userToApprove.universityId,
+        username: userToApprove.universityId || userToApprove.university_id,
         password: userToApprove.password,
         role: 'STUDENT',
-        nameAr: userToApprove.fullName,
-        departmentId: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : 'cs',
+        nameAr: userToApprove.fullName || userToApprove.full_name,
+        departmentId: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : (userToApprove.major || 'cs'),
         phone: userToApprove.phone,
         dob: userToApprove.dob,
         major: userToApprove.major,
-        yearSem: userToApprove.year_sem,
+        yearSem: userToApprove.yearSem || userToApprove.year_sem,
         hours: userToApprove.hours
       });
 
@@ -476,12 +493,26 @@ export const AuthProvider = ({ children }) => {
   };
 
   const deleteUser = async (userId) => {
-    const { error } = await supabase.from('users').delete().eq('id', userId);
-    if (!error) {
+    try {
+      const { error, count } = await supabase
+        .from('users')
+        .delete({ count: 'exact' })
+        .eq('id', userId);
+        
+      if (error) throw error;
+      
+      // If no error but count is 0, it might be a legacy user or wrong ID
+      if (count === 0) {
+        console.warn("No user found with ID:", userId);
+        return { success: false, message: "لم يتم العثور على المستخدم في قاعدة البيانات" };
+      }
+
       setUsers(prev => prev.filter(u => u.id !== userId));
       return { success: true };
+    } catch (err) {
+      console.error("Delete user error:", err);
+      return { success: false, message: err.message || "حدث خطأ أثناء الحذف" };
     }
-    return { success: false, message: error.message };
   };
 
   const updateUserRole = async (userId, newRole) => {

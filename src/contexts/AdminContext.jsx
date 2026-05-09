@@ -715,8 +715,16 @@ export const AdminProvider = ({ children }) => {
   };
 
   const deleteFaculty = async (id) => {
-    const { error } = await supabase.from('faculty_members').delete().eq('id', id);
-    if (!error) setFacultyMembers(prev => prev.filter(m => m.id !== id));
+    try {
+      const { error } = await supabase.from('faculty_members').delete().eq('id', id);
+      if (error) throw error;
+      
+      setFacultyMembers(prev => prev.filter(m => m.id !== id));
+      return { success: true };
+    } catch (err) {
+      console.error("Delete faculty error:", err);
+      return { success: false, error: err.message };
+    }
   };
 
   // Departments CRUD
@@ -855,8 +863,17 @@ export const AdminProvider = ({ children }) => {
   };
 
   const deletePost = async (postId) => {
-    const { error } = await supabase.from('posts').delete().eq('id', postId);
-    if (!error) setPosts(posts.filter(p => p.id !== postId));
+    try {
+      const { error } = await supabase.from('posts').delete().eq('id', postId);
+      if (error) throw error;
+      
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      setPendingPosts(prev => prev.filter(p => p.id !== postId));
+      return { success: true };
+    } catch (err) {
+      console.error("Delete post error:", err);
+      return { success: false, error: err.message };
+    }
   };
 
   const editPost = async (postId, updatedData) => {
@@ -1616,6 +1633,8 @@ export const AdminProvider = ({ children }) => {
       addToast(lang === 'ar' ? 'خطأ في قاعدة البيانات' : 'DB Error', errorMsg + (lang === 'ar' ? ' (تم الحفظ محلياً)' : ' (Saved locally)'), 'error');
     }
   };
+
+
 
   const deleteLab = async (id) => {
     const { error } = await supabase.from('live_labs').delete().eq('id', id);
