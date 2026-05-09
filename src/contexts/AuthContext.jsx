@@ -59,45 +59,13 @@ export const AuthProvider = ({ children }) => {
           isStudent: profile.role === 'STUDENT'
         };
       } else {
-        console.warn("No profile record found. Attempting to create fallback profile...");
-        // Auto-create a basic profile if missing
-        const fallbackProfile = {
-          id: supabaseUser.id,
-          username: supabaseUser.email?.split('@')[0] || supabaseUser.id.substring(0, 8),
-          name_ar: "", 
-          name_en: "",
-          role: 'STUDENT',
-          department_id: 'cs',
-          phone: '0000000000'
-        };
-        
-        const { data: newProfile, error: insertError } = await supabase
-          .from('users')
-          .upsert([fallbackProfile])
-          .select()
-          .maybeSingle();
-          
-        if (insertError) {
-          console.error("CRITICAL: Failed to auto-create profile. Error details:", insertError);
-          setLastError(`DB Error [${insertError.code}]: ${insertError.message}`);
-          return null;
-        }
-
-        console.log("Fallback profile created successfully");
-        setLastError(null);
-        await fetchAllUsers(); // Refresh the global list for the admin
-
-        return {
-          ...newProfile,
-          name: { ar: newProfile.name_ar, en: newProfile.name_en },
-          departmentId: newProfile.department_id,
-          permissions: ['VIEW_PORTAL', 'ACCESS_RESOURCES']
-        };
+        console.warn("No profile record found in 'users' table for this Auth user.");
+        return null;
       }
     } catch (err) {
-      console.error("Fetch profile exception:", err);
+      console.error("Critical Profile Fetch Error:", err);
+      return null;
     }
-    return null;
   };
 
   const fetchPendingUsers = async () => {
@@ -138,11 +106,16 @@ export const AuthProvider = ({ children }) => {
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           const profile = await fetchUserProfile(session.user);
-          setUser(profile);
-          
-          // If admin, fetch all users automatically
-          if (profile && ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
-            fetchAllUsers();
+          if (profile) {
+            setUser(profile);
+            // If admin, fetch all users automatically
+            if (['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
+              fetchAllUsers();
+            }
+          } else {
+            // Profile deleted or missing -> Kill session
+            await supabase.auth.signOut();
+            setUser(null);
           }
         }
 
@@ -150,11 +123,15 @@ export const AuthProvider = ({ children }) => {
         const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange(async (event, session) => {
           if (session?.user) {
             const profile = await fetchUserProfile(session.user);
-            setUser(profile);
-            
-            // If admin, fetch all users automatically
-            if (profile && ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
-              fetchAllUsers();
+            if (profile) {
+              setUser(profile);
+              // If admin, fetch all users automatically
+              if (['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
+                fetchAllUsers();
+              }
+            } else {
+              await supabase.auth.signOut();
+              setUser(null);
             }
           } else {
             setUser(null);
@@ -204,13 +181,35 @@ export const AuthProvider = ({ children }) => {
 
       } catch (err) {
         console.error("Auth Init Error:", err);
-      } finally {
         setLoading(false);
       }
     };
 
     initializeAuth();
   }, []);
+
+  // Kill Switch: Kick user out if their profile is deleted in real-time
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const killSwitch = supabase
+      .channel(`kill-switch-${user.id}`)
+      .on('postgres_changes', { 
+        event: 'DELETE', 
+        schema: 'public', 
+        table: 'users', 
+        filter: `id=eq.${user.id}` 
+      }, () => {
+        console.warn("Account deleted by admin. Logging out...");
+        logout();
+        window.location.href = '/';
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(killSwitch);
+    };
+  }, [user?.id, logout]);
 
   const fetchAllUsers = async () => {
     const { data, error } = await supabase.from('users').select('*');
