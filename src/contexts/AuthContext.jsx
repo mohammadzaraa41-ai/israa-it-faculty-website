@@ -535,20 +535,36 @@ export const AuthProvider = ({ children }) => {
 
   const deleteUser = async (userId) => {
     try {
+      let deleted = false;
+
+      // Strategy 1: Use admin client (requires SERVICE_ROLE_KEY)
       if (supabaseAdmin) {
-        // Use admin client to delete from auth.users (cascades to public.users automatically)
         const { error } = await supabaseAdmin.auth.admin.deleteUser(userId);
-        if (error) throw error;
-      } else {
-        // Fallback: delete from public.users table only
+        if (!error) {
+          deleted = true;
+          console.log("Deleted via admin auth client.");
+        } else {
+          console.warn("Admin auth delete failed:", error.message);
+        }
+      }
+
+      // Strategy 2: Delete from public.users table directly
+      if (!deleted) {
         const { error } = await supabase.from('users').delete().eq('id', userId);
-        if (error) throw error;
+        if (!error) {
+          deleted = true;
+          console.log("Deleted from public.users table.");
+        } else {
+          console.error("Table delete failed:", error.message);
+          throw new Error(error.message);
+        }
       }
 
       setUsers(prev => prev.filter(u => u.id !== userId));
       return { success: true };
     } catch (err) {
       console.error("Delete user error:", err);
+      // Revert UI if deletion failed
       return { success: false, message: err.message || "حدث خطأ أثناء الحذف" };
     }
   };
