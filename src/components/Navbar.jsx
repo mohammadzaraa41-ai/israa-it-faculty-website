@@ -416,7 +416,18 @@ const Navbar = () => {
                   </button>
 
                   <div className="login-help">
-                    <a href="#">{lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}</a>
+                    <button 
+                      type="button" 
+                      className="text-btn" 
+                      onClick={() => addToast(
+                        lang === 'ar' ? 'استعادة كلمة المرور' : 'Password Recovery',
+                        lang === 'ar' ? 'يرجى مراجعة سكرتاريا كلية تكنولوجيا المعلومات لاستعادة كلمة المرور الخاصة بك.' : 'Please visit the IT Faculty office to reset your password.',
+                        'info'
+                      )}
+                      style={{ background: 'none', border: 'none', color: 'var(--primary-color)', cursor: 'pointer', fontSize: '0.85rem' }}
+                    >
+                      {lang === 'ar' ? 'نسيت كلمة المرور؟' : 'Forgot Password?'}
+                    </button>
                   </div>
                 </form>
               ) : registrationSuccess ? (
