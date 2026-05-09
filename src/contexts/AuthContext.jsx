@@ -59,8 +59,8 @@ export const AuthProvider = ({ children }) => {
         console.warn("No profile record found. Attempting to create fallback profile...");
         // Auto-create a basic profile if missing
         const fallbackProfile = {
-          id: authUser.id,
-          username: authUser.email?.split('@')[0] || authUser.id.substring(0, 8),
+          id: supabaseUser.id,
+          username: supabaseUser.email?.split('@')[0] || supabaseUser.id.substring(0, 8),
           name_ar: "مستخدم جديد",
           name_en: "New User",
           role: 'STUDENT',
