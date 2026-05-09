@@ -26,7 +26,20 @@ const Profile = () => {
 
   const fileInputRef = useRef(null);
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-color)', color: 'var(--text-primary)' }}>
+        <div className="loading-spinner">
+          <motion.div 
+            animate={{ rotate: 360 }} 
+            transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+            style={{ width: '50px', height: '50px', border: '3px solid var(--primary-color)', borderTopColor: 'transparent', borderRadius: '50%' }}
+          />
+          <p style={{ marginTop: '1rem', opacity: 0.7 }}>{lang === 'ar' ? 'جاري تحميل الملف الشخصي...' : 'Loading profile...'}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];

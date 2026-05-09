@@ -62,9 +62,9 @@ const Navbar = () => {
       );
       toggleLogin(false);
       if (result.user?.role === 'SUPER_ADMIN' || result.user?.role === 'DEAN' || result.user?.role === 'HOD' || result.user?.role === 'DOCTOR') {
-        navigate('/admin-dashboard');
+        window.location.href = '/admin-dashboard';
       } else {
-        navigate('/profile'); // Redirect to profile after student login for better confirmation
+        window.location.href = '/profile';
       }
     } else {
       setLoginError(result.message);
