@@ -194,19 +194,30 @@ const Home = () => {
     setNewComment('');
   };
 
-  const showUserInfo = (username) => {
+  const showUserInfo = (username, postAuthorData = null) => {
     if (!isAdmin) return;
+    
+    // First try to find full user data from the users list
     const found = users?.find(u => u.username === username);
     if (found) {
       setSelectedUser(found);
-    } else {
-      addToast(
-        lang === 'ar' ? 'تنبيه' : 'Notice',
-        lang === 'ar' ? 'بيانات المستخدم غير محملة بالكامل حالياً' : 'User data is not fully loaded yet',
-        'info'
-      );
+      return;
+    }
+
+    // If not found in users list, show whatever data we have from the post
+    if (postAuthorData || username) {
+      setSelectedUser({
+        username: username,
+        name_ar: postAuthorData?.author || postAuthorData?.name?.ar || username,
+        name_en: postAuthorData?.name?.en || username,
+        role: postAuthorData?.role || 'STUDENT',
+        department_id: postAuthorData?.departmentId || '---',
+        phone: postAuthorData?.phone || '---',
+        created_at: postAuthorData?.created_at || null
+      });
     }
   };
+
 
   return (
     <div className="home-container">
@@ -468,49 +479,55 @@ const Home = () => {
         {selectedUser && (
           <div className="login-modal-overlay" onClick={() => setSelectedUser(null)}>
             <motion.div
-              className="glass-panel user-info-modal"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              className="glass-panel"
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={e => e.stopPropagation()}
+              style={{ padding: '2rem', maxWidth: '520px', width: '90%', borderRadius: '20px', position: 'relative', maxHeight: '85vh', overflowY: 'auto' }}
             >
-              <div className="modal-header">
-                <h3>{lang === 'ar' ? 'معلومات المستخدم الكاملة' : 'Full User Info'}</h3>
-                <button onClick={() => setSelectedUser(null)} className="close-modal-btn">&times;</button>
+              {/* Close Button */}
+              <button onClick={() => setSelectedUser(null)} style={{ position: 'absolute', top: '1rem', left: lang === 'ar' ? '1rem' : 'auto', right: lang === 'ar' ? 'auto' : '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
+
+              {/* Header */}
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '1.8rem', fontWeight: 'bold', color: 'white' }}>
+                  {(selectedUser.name_ar || selectedUser.name?.ar || selectedUser.username || '?')[0]}
+                </div>
+                <h3 style={{ margin: '0 0 0.3rem', color: 'var(--text-primary)', fontSize: '1.3rem' }}>
+                  {selectedUser.name_ar || selectedUser.name?.ar || selectedUser.full_name || selectedUser.username}
+                </h3>
+                <span style={{ padding: '0.2rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: selectedUser.role === 'SUPER_ADMIN' ? 'rgba(231,76,60,0.2)' : 'rgba(46,204,113,0.2)', color: selectedUser.role === 'SUPER_ADMIN' ? '#e74c3c' : '#2ecc71' }}>
+                  {selectedUser.role || 'STUDENT'}
+                </span>
               </div>
-              <div className="modal-body">
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'الاسم:' : 'Name:'}</strong>
-                  <span>{selectedUser.name_ar || (selectedUser.name?.ar || selectedUser.name) || '---'}</span>
-                </div>
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'اسم المستخدم / الرقم:' : 'Username / ID:'}</strong>
-                  <span>{selectedUser.username}</span>
-                </div>
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'الرتبة:' : 'Role:'}</strong>
-                  <span>{selectedUser.role}</span>
-                </div>
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'القسم:' : 'Department:'}</strong>
-                  <span>{(() => {
-                    const deptId = selectedUser.department_id || selectedUser.departmentId;
-                    const dept = (DB_SCHEMA.departments || []).find(d => d.id === deptId);
-                    return dept ? (dept.name?.[lang] || dept.name?.ar) : (deptId || '---');
-                  })()}</span>
-                </div>
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</strong>
-                  <span>{selectedUser.phone_number || selectedUser.phone || '---'}</span>
-                </div>
-                <div className="info-row">
-                  <strong>{lang === 'ar' ? 'كلمة المرور:' : 'Password:'}</strong>
-                  <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>********</span>
-                </div>
+
+              {/* Info Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
+                {[
+                  { label: lang === 'ar' ? 'الرقم الجامعي' : 'University ID', value: selectedUser.username || selectedUser.university_id, icon: '🎓' },
+                  { label: lang === 'ar' ? 'الاسم بالعربي' : 'Name (Arabic)', value: selectedUser.name_ar || selectedUser.name?.ar, icon: '👤' },
+                  { label: lang === 'ar' ? 'الاسم بالإنجليزي' : 'Name (English)', value: selectedUser.name_en || selectedUser.name?.en, icon: '👤' },
+                  { label: lang === 'ar' ? 'القسم' : 'Department', value: (() => { const deptId = selectedUser.department_id || selectedUser.departmentId; const dept = (DB_SCHEMA.departments || []).find(d => d.id === deptId); return dept ? (dept.name?.[lang] || dept.name?.ar) : deptId; })(), icon: '🏛️' },
+                  { label: lang === 'ar' ? 'التخصص' : 'Major', value: selectedUser.major, icon: '📚' },
+                  { label: lang === 'ar' ? 'السنة الدراسية' : 'Academic Year', value: selectedUser.year_sem || selectedUser.yearSem, icon: '📅' },
+                  { label: lang === 'ar' ? 'الساعات المقطوعة' : 'Completed Hours', value: selectedUser.hours, icon: '⏱️' },
+                  { label: lang === 'ar' ? 'رقم الهاتف' : 'Phone', value: selectedUser.phone || selectedUser.phone_number, icon: '📞' },
+                  { label: lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date', value: selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : null, icon: '🗓️' },
+                  { label: lang === 'ar' ? 'البريد الإلكتروني' : 'Email', value: selectedUser.email, icon: '✉️' },
+                ].map((item, i) => (
+                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{item.icon} {item.label}</div>
+                    <div style={{ fontWeight: 'bold', color: item.value ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '0.9rem', opacity: item.value ? 1 : 0.5 }}>
+                      {item.value || (lang === 'ar' ? 'لم يدخل بعد' : 'Not entered yet')}
+                    </div>
+                  </div>
+                ))}
               </div>
             </motion.div>
           </div>
         )}
+
       </AnimatePresence>
       <AnimatePresence>
         {showEventsPopup && (
