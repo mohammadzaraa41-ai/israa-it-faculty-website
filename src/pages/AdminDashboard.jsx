@@ -142,6 +142,7 @@ const AdminDashboard = () => {
             rejectUser={rejectUser} 
             lang={lang}
             fetchPendingUsers={fetchPendingUsers}
+            addToast={addToast}
           />
         )}
         {activeTab === 'social' && (
@@ -341,7 +342,7 @@ const AlumniRequests = ({ alumniRequests, approveAlumniRequest, rejectAlumniRequ
   );
 };
 
-const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang, fetchPendingUsers }) => {
+const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang, fetchPendingUsers, addToast }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
@@ -395,19 +396,23 @@ const PendingApprovals = ({ pendingUsers, approveUser, rejectUser, lang, fetchPe
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 
                 onClick={async () => {
-                  const result = await approveUser(reg.id);
-                  if (result.success) {
-                    addToast(
-                      lang === 'ar' ? 'تمت الموافقة' : 'Approved',
-                      lang === 'ar' ? `تم تفعيل حساب ${reg.fullName} بنجاح` : `Account for ${reg.fullName} activated.`,
-                      'success'
-                    );
-                  } else {
-                    addToast(
-                      lang === 'ar' ? 'خطأ' : 'Error',
-                      result.message || (lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user'),
-                      'error'
-                    );
+                  try {
+                    const result = await approveUser(reg.id);
+                    if (result.success) {
+                      addToast(
+                        lang === 'ar' ? 'تمت الموافقة' : 'Approved',
+                        lang === 'ar' ? `تم تفعيل حساب ${reg.fullName} بنجاح` : `Account for ${reg.fullName} activated.`,
+                        'success'
+                      );
+                    } else {
+                      addToast(
+                        lang === 'ar' ? 'خطأ' : 'Error',
+                        result.message || (lang === 'ar' ? 'فشل قبول المستخدم' : 'Failed to approve user'),
+                        'error'
+                      );
+                    }
+                  } catch (err) {
+                    console.error("Approval click error:", err);
                   }
                 }}
                 style={{ padding: '0.5rem 1rem', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold' }}
