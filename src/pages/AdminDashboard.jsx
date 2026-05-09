@@ -62,7 +62,7 @@ const AdminDashboard = () => {
     }
   }, [location.state?.tab]);
 
-  const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+  const isAdminRole = user?.role ? ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user.role) : false;
 
   useEffect(() => {
     if (!user || !isAdminRole) {
