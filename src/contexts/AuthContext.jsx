@@ -105,8 +105,10 @@ export const AuthProvider = ({ children }) => {
     if (data) {
       const mapped = data.map(({ password, ...u }) => ({
         ...u,
-        name: { ar: u.name_ar, en: u.name_en },
-        departmentId: u.department_id
+        name: { ar: u.name_ar || u.fullName || u.full_name, en: u.name_en || u.name_ar || u.fullName || u.full_name },
+        fullName: u.fullName || u.full_name || u.name_ar,
+        universityId: u.universityId || u.university_id || u.username,
+        departmentId: u.department_id || u.departmentId
       }));
       setUsers(mapped);
       return mapped;
@@ -319,8 +321,10 @@ export const AuthProvider = ({ children }) => {
       const profileData = {
         id: authData.user.id,
         username: userData.username,
+        university_id: userData.username, // Set both for compatibility
         name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
         name_en: userData.name?.en || userData.nameEn || "",
+        full_name: userData.name?.ar || userData.nameAr, // Some tables use full_name
         role: userData.role || 'STUDENT',
         department_id: userData.departmentId || 'cs',
         phone: userData.phone,
@@ -339,6 +343,7 @@ export const AuthProvider = ({ children }) => {
         const minimalProfile = {
           id: authData.user.id,
           username: userData.username,
+          university_id: userData.username,
           name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
           role: userData.role || 'STUDENT',
           department_id: userData.departmentId || 'cs'
