@@ -17,11 +17,27 @@ export const AuthProvider = ({ children }) => {
     
     try {
       console.log("Fetching profile for:", supabaseUser.id, supabaseUser.email);
-      const { data: profile, error } = await supabase
+      
+      // 1. Try fetching by ID first (Most reliable)
+      let { data: profile, error } = await supabase
         .from('users')
         .select('*')
-        .or(`id.eq.${supabaseUser.id},username.eq.${supabaseUser.email.split('@')[0]}`)
-        .single();
+        .eq('id', supabaseUser.id)
+        .maybeSingle();
+
+      // 2. If not found by ID, try by Username (Legacy fallback)
+      if (!profile && !error) {
+        const username = supabaseUser.email?.split('@')[0];
+        if (username) {
+          const { data: legacyProfile, error: legacyError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle();
+          profile = legacyProfile;
+          error = legacyError;
+        }
+      }
 
       if (error) {
         console.error("Profile fetch error details:", error);
