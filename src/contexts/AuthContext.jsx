@@ -16,7 +16,7 @@ export const AuthProvider = ({ children }) => {
     if (!supabaseUser) return null;
     
     try {
-      // Try fetching by id (preferred) or email/username
+      console.log("Fetching profile for:", supabaseUser.id, supabaseUser.email);
       const { data: profile, error } = await supabase
         .from('users')
         .select('*')
@@ -24,11 +24,12 @@ export const AuthProvider = ({ children }) => {
         .single();
 
       if (error) {
-        console.error("Profile fetch error:", error);
+        console.error("Profile fetch error details:", error);
         return null;
       }
 
       if (profile) {
+        console.log("Profile found:", profile.username, "Role:", profile.role);
         return {
           ...profile,
           name: { ar: profile.name_ar, en: profile.name_en },
@@ -37,9 +38,11 @@ export const AuthProvider = ({ children }) => {
             ? ['EDIT_ALL', 'MANAGE_USERS', 'VIEW_ANALYTICS'] 
             : ['VIEW_PORTAL', 'ACCESS_RESOURCES']
         };
+      } else {
+        console.warn("No profile record found in 'users' table for this auth user.");
       }
     } catch (err) {
-      console.error("Fetch profile catch:", err);
+      console.error("Fetch profile exception:", err);
     }
     return null;
   };
