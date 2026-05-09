@@ -136,6 +136,11 @@ export const AuthProvider = ({ children }) => {
         if (session?.user) {
           const profile = await fetchUserProfile(session.user);
           setUser(profile);
+          
+          // If admin, fetch all users automatically
+          if (profile && ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
+            fetchAllUsers();
+          }
         }
 
         // 2. Listen for auth changes
@@ -143,6 +148,11 @@ export const AuthProvider = ({ children }) => {
           if (session?.user) {
             const profile = await fetchUserProfile(session.user);
             setUser(profile);
+            
+            // If admin, fetch all users automatically
+            if (profile && ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(profile.role)) {
+              fetchAllUsers();
+            }
           } else {
             setUser(null);
           }
@@ -172,10 +182,21 @@ export const AuthProvider = ({ children }) => {
           })
           .subscribe();
 
+        const usersSub = supabase
+          .channel('public:users')
+          .on('postgres_changes', { event: '*', schema: 'public', table: 'users' }, payload => {
+            console.log('Realtime Users Update:', payload);
+            if (['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role)) {
+              fetchAllUsers();
+            }
+          })
+          .subscribe();
+
         return () => {
           authSub.unsubscribe();
           supabase.removeChannel(pendingSub);
           supabase.removeChannel(alumniSub);
+          supabase.removeChannel(usersSub);
         };
 
       } catch (err) {

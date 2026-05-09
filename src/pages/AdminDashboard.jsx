@@ -1518,7 +1518,8 @@ const AnalyticsDashboard = ({ users = [], pendingUsers = [], alumniRequests = []
   }
 
   const stats = {
-    total: studentUsers.length,
+    totalUsers: users.length,
+    totalStudents: studentUsers.length,
     pending: pendingUsers.length,
     alumni: alumniRequests.length,
     byDept
@@ -1530,7 +1531,7 @@ const AnalyticsDashboard = ({ users = [], pendingUsers = [], alumniRequests = []
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem', marginBottom: '1rem' }}>
         {[
-          { label: lang === 'ar' ? 'إجمالي المستخدمين' : 'Total Users', value: stats.total, color: 'var(--primary-color)', icon: <Users size={28} />, detail: lang === 'ar' ? 'حسابات نشطة' : 'Active accounts' },
+          { label: lang === 'ar' ? 'إجمالي الحسابات' : 'Total Accounts', value: stats.totalUsers, color: 'var(--primary-color)', icon: <Users size={28} />, detail: lang === 'ar' ? 'جميع الرتب' : 'All roles' },
           { label: lang === 'ar' ? 'طلبات معلقة' : 'Pending Approvals', value: stats.pending, color: '#f1c40f', icon: <Clock size={28} />, detail: lang === 'ar' ? 'بانتظار المراجعة' : 'Awaiting review' },
           { label: lang === 'ar' ? 'طلبات الخريجين' : 'Alumni Requests', value: stats.alumni, color: 'var(--accent-color)', icon: <GraduationCap size={28} />, detail: lang === 'ar' ? 'بوابة الخريجين' : 'Alumni portal' }
         ].map((item, idx) => (
@@ -1572,7 +1573,7 @@ const AnalyticsDashboard = ({ users = [], pendingUsers = [], alumniRequests = []
           </div>
           <div style={{ textAlign: 'center', background: 'var(--surface-color)', padding: '1rem 2rem', borderRadius: '20px', border: '1px solid var(--surface-border)' }}>
              <div style={{ fontSize: '0.8rem', color: 'var(--accent-color)', fontWeight: 'bold', textTransform: 'uppercase' }}>{lang === 'ar' ? 'إجمالي الطلاب' : 'Total Students'}</div>
-             <div style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)' }}>{stats.total}</div>
+             <div style={{ fontSize: '2rem', fontWeight: '900', color: 'var(--text-primary)' }}>{stats.totalStudents}</div>
           </div>
         </div>
         
@@ -1581,7 +1582,7 @@ const AnalyticsDashboard = ({ users = [], pendingUsers = [], alumniRequests = []
             .filter(([_, count]) => count > 0) // Only show departments with students
             .sort((a, b) => b[1] - a[1]) // Sort by most students
             .map(([deptId, count], index) => {
-              const percentage = stats.total > 0 ? (count / stats.total) * 100 : 0;
+              const percentage = stats.totalStudents > 0 ? (count / stats.totalStudents) * 100 : 0;
               const dept = departments.find(d => d.id === deptId);
               const label = deptId === 'unassigned' 
                 ? (lang === 'ar' ? 'تخصص غير محدد' : 'Unassigned Specialization')
