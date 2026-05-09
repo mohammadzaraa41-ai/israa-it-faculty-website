@@ -213,7 +213,6 @@ const AdminDashboard = () => {
             departments={departments || []}
             setSelectedUser={setSelectedUser}
             onRefresh={async () => {
-              localStorage.clear();
               await fetchAllUsers();
               addToast(lang === 'ar' ? 'تم التحديث' : 'Refreshed', lang === 'ar' ? 'تم تحديث قائمة المستخدمين من قاعدة البيانات' : 'User list refreshed from database', 'success');
             }}
