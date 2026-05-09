@@ -648,6 +648,38 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  const robustFacultyOp = async (operation, data, id = null) => {
+    let currentData = { ...data };
+    let attempt = 0;
+    const maxAttempts = 8;
+
+    while (attempt < maxAttempts) {
+      let result;
+      if (operation === 'insert') {
+        result = await supabase.from('faculty_members').insert([currentData]).select();
+      } else {
+        result = await supabase.from('faculty_members').update(currentData).eq('id', id).select();
+      }
+
+      if (!result.error) return result;
+
+      // Handle missing column error (42703)
+      if (result.error.code === '42703' || result.error.message.includes('column')) {
+        const match = result.error.message.match(/['"]([^'"]+)['"]/);
+        const missingColumn = match ? match[1] : null;
+
+        if (missingColumn && currentData[missingColumn] !== undefined) {
+          console.warn(`[Admin] Detected missing faculty column '${missingColumn}'. Removing and retrying...`);
+          delete currentData[missingColumn];
+          attempt++;
+          continue;
+        }
+      }
+      return result;
+    }
+    return { data: null, error: { message: "Max retries reached in robustFacultyOp" } };
+  };
+
   const addFaculty = async (member) => {
     try {
       const cleanMember = {
@@ -661,7 +693,7 @@ export const AdminProvider = ({ children }) => {
         office_hours: member.officeHours || member.office_hours
       };
 
-      const { data, error } = await supabase.from('faculty_members').insert([cleanMember]).select();
+      const { data, error } = await robustFacultyOp('insert', cleanMember);
       
       if (!error && data) {
         const normalized = {
@@ -686,17 +718,20 @@ export const AdminProvider = ({ children }) => {
   const editFaculty = async (updatedMember) => {
     try {
       const dbData = {
+        name: updatedMember.name, // Try generic name column
         name_ar: typeof updatedMember.name === 'object' ? (updatedMember.name.ar || updatedMember.name.en) : updatedMember.name,
         name_en: typeof updatedMember.name === 'object' ? (updatedMember.name.en || updatedMember.name.ar) : updatedMember.name,
         department_id: updatedMember.departmentId || updatedMember.department_id,
+        departmentId: updatedMember.departmentId || updatedMember.department_id,
         role: updatedMember.role,
         specialization: updatedMember.specialization,
+        specialization_ar: updatedMember.specialization,
         office_location: updatedMember.office || updatedMember.office_location,
         office_hours: updatedMember.officeHours || updatedMember.office_hours,
         courses: Array.isArray(updatedMember.courses) ? updatedMember.courses.join(', ') : updatedMember.courses
       };
 
-      const { error } = await supabase.from('faculty_members').update(dbData).eq('id', updatedMember.id);
+      const { data, error } = await robustFacultyOp('update', dbData, updatedMember.id);
       
       if (!error) {
         setFacultyMembers(prev => prev.map(m => m.id === updatedMember.id ? { 
