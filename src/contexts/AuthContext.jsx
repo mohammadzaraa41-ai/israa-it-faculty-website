@@ -101,7 +101,11 @@ export const AuthProvider = ({ children }) => {
 
   const fetchAllUsers = async () => {
     const { data, error } = await supabase.from('users').select('*');
-    if (error) return [];
+    if (error) {
+      console.error("fetchAllUsers error:", error.message);
+      setUsers([]); // Reset to empty on error - prevents ghost accounts
+      return [];
+    }
     if (data) {
       const mapped = data.map(({ password, ...u }) => ({
         ...u,
@@ -113,8 +117,10 @@ export const AuthProvider = ({ children }) => {
       setUsers(mapped);
       return mapped;
     }
+    setUsers([]);
     return [];
   };
+
 
   const logout = async () => {
     await supabase.auth.signOut();
