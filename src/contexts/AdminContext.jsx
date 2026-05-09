@@ -199,17 +199,15 @@ export const AdminProvider = ({ children }) => {
       .channel('public:announcements')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
         supabase.from('announcements').select('*').limit(10).then(({ data }) => {
-          if (data) setAnnouncements(data.map(ann => ({
-            ...ann,
-            text: { ar: ann.text_ar || '', en: ann.text_en || '' }
-          })));
-        });
+        console.log("Realtime Announcement update");
+        fetchAnnouncements();
       })
-      .subscribe();
+      .subscribe((status) => console.log("Announcements channel status:", status));
 
     const eventsSub = supabase
-      .channel('public:events')
+      .channel('public-events')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'events' }, () => {
+        console.log("Realtime Event update");
         supabase.from('events').select('*').limit(10).then(({ data }) => {
           if (data) setEvents(data.map(ev => ({
             ...ev,
@@ -217,34 +215,34 @@ export const AdminProvider = ({ children }) => {
           })));
         });
       })
-      .subscribe();
+      .subscribe((status) => console.log("Events channel status:", status));
 
     const facultySub = supabase
-      .channel('public:faculty_members')
+      .channel('public-faculty')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'faculty_members' }, () => fetchFaculty())
-      .subscribe();
+      .subscribe((status) => console.log("Faculty channel status:", status));
 
     const achSub = supabase
-      .channel('public:achievements')
+      .channel('public-achievements')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'achievements' }, () => fetchAchievements())
-      .subscribe();
+      .subscribe((status) => console.log("Achievements channel status:", status));
 
     const honorSub = supabase
-      .channel('public:honor_roll')
+      .channel('public-honor')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'honor_roll' }, () => {
         supabase.from('honor_roll').select('*').then(({ data }) => {
           if (data) setHonorRoll(data);
         });
       })
-      .subscribe();
+      .subscribe((status) => console.log("Honor Roll channel status:", status));
 
     const labsSub = supabase
-      .channel('public:live_labs')
+      .channel('public-labs')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'live_labs' }, () => fetchLiveLabs())
-      .subscribe();
+      .subscribe((status) => console.log("Labs channel status:", status));
 
     const projectsSub = supabase
-      .channel('public:project_bank')
+      .channel('public-projects')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'project_bank' }, () => {
         supabase.from('project_bank').select('*').then(({ data }) => {
           if (data) setProjectBank(data.map(p => ({
@@ -254,9 +252,10 @@ export const AdminProvider = ({ children }) => {
           })));
         });
       })
-      .subscribe();
+      .subscribe((status) => console.log("Projects channel status:", status));
 
     return () => {
+      console.log("Cleaning up Realtime listeners...");
       supabase.removeChannel(postsSub);
       supabase.removeChannel(annSub);
       supabase.removeChannel(eventsSub);
