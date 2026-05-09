@@ -254,14 +254,15 @@ const AdminDashboard = () => {
             <div style={{ display: 'grid', gap: '1rem' }}>
               <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الرتبة' : 'Role'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.role}</div>
+                <div style={{ fontWeight: 'bold' }}>{selectedUser.role || 'STUDENT'}</div>
               </div>
               <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'القسم' : 'Department'}</label>
                 <div style={{ fontWeight: 'bold' }}>
                   {(() => {
-                    const dept = (departments || []).find(d => d.id === selectedUser.departmentId);
-                    return dept ? (dept.name?.[lang] || dept.name?.ar) : selectedUser.departmentId;
+                    const deptId = selectedUser.department_id || selectedUser.departmentId;
+                    const dept = (departments || []).find(d => d.id === deptId);
+                    return dept ? (dept.name?.[lang] || dept.name?.ar) : (deptId || '---');
                   })()}
                 </div>
               </div>
@@ -270,10 +271,6 @@ const AdminDashboard = () => {
                 <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Phone size={16} /> {selectedUser.phone_number || selectedUser.phone || '---'}
                 </div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الساعات المقطوعة' : 'Hours Completed'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.hours || 0}</div>
               </div>
               <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
                 <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date'}</label>
