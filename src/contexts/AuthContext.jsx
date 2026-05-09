@@ -173,6 +173,8 @@ export const AuthProvider = ({ children }) => {
           if (!legacyError && legacyUser && legacyUser.password === cleanPassword) {
             // Found a match in legacy table! Migrate them now
             console.log("Migrating legacy user:", username);
+            
+            // Use a temporary client for migration signup to avoid logging out the current user if any
             const { data: newData, error: signUpError } = await supabase.auth.signUp({
               email,
               password: cleanPassword,
@@ -183,7 +185,7 @@ export const AuthProvider = ({ children }) => {
               await supabase.from('users').update({ id: newData.user.id }).eq('username', username.trim());
               const profile = await fetchUserProfile(newData.user);
               setUser(profile);
-              return { success: true, user: profile, message: 'تم تحديث حسابك بنجاح' };
+              return { success: true, user: profile, message: 'تم تحديث حسابك بنجاح ونقله للنظام الجديد' };
             }
           }
         }
@@ -195,7 +197,7 @@ export const AuthProvider = ({ children }) => {
 
       const profile = await fetchUserProfile(data.user);
       setUser(profile);
-      return { success: true, user: profile };
+      return { success: true, user: profile, message: 'تم تسجيل الدخول بنجاح' };
     } catch (err) {
       console.error("Login catch:", err);
       return { success: false, message: 'حدث خطأ تقني' };
@@ -211,8 +213,18 @@ export const AuthProvider = ({ children }) => {
     try {
       const email = `${userData.username.trim()}@israa.local`;
       
-      // 1. Create Auth User
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // IMPORTANT: To prevent logging out the Admin when they create a user,
+      // we need to use a secondary Supabase client with 'persistSession: false'
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false }
+      });
+
+      // 1. Create Auth User using the temporary client
+      const { data: authData, error: authError } = await tempClient.auth.signUp({
         email,
         password: userData.password,
         options: {

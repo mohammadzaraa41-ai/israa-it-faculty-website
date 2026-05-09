@@ -10,10 +10,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import './Navbar.css';
 import MajorsShowcase from './MajorsShowcase';
 import NotificationDropdown from './NotificationDropdown';
+import { useToast } from '../contexts/ToastContext';
 
 const Navbar = () => {
   const { isDark, toggleTheme } = useTheme();
   const { lang, toggleLang, t } = useLocale();
+  const { addToast } = useToast();
   const { user, login, logout, registerRequest, isLoginOpen, toggleLogin } = useAuth();
   const { departments } = useAdmin();
   const [activeTab, setActiveTab ] = useState('login'); 
@@ -53,11 +55,16 @@ const Navbar = () => {
     setLoginError('');
     const result = await login(loginId, loginPassword);
     if (result.success) {
+      addToast(
+        lang === 'ar' ? 'تم تسجيل الدخول' : 'Login Successful',
+        result.message || (lang === 'ar' ? `أهلاً بك مجدداً ${result.user.name?.ar || result.user.username}` : `Welcome back ${result.user.name?.en || result.user.username}`),
+        'success'
+      );
       toggleLogin(false);
       if (result.user.role === 'SUPER_ADMIN' || result.user.role === 'DEAN') {
         navigate('/admin-dashboard');
       } else {
-        navigate('/'); 
+        navigate('/profile'); // Redirect to profile after student login for better confirmation
       }
     } else {
       setLoginError(result.message);
