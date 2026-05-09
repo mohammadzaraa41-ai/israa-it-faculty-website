@@ -62,14 +62,15 @@ const AdminDashboard = () => {
     }
   }, [location.state?.tab]);
 
+  const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+
   useEffect(() => {
-    const isAdminRole = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
     if (!user || !isAdminRole) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, isAdminRole, navigate]);
 
-  if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'DEAN')) {
+  if (!user || !isAdminRole) {
     return (
       <div className="flex-center-vh">
         <div className="loader-spinner" />
