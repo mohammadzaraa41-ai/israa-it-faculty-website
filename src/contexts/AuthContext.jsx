@@ -289,6 +289,33 @@ export const AuthProvider = ({ children }) => {
 
 
 
+  const robustProfileInsert = async (profileData) => {
+    let currentData = { ...profileData };
+    let attempt = 0;
+    const maxAttempts = 5;
+
+    while (attempt < maxAttempts) {
+      const { data, error } = await supabase.from('users').insert([currentData]).select();
+      
+      if (!error) return { data, error: null };
+
+      // If the error is about a missing column (42703), remove it and try again
+      if (error.code === '42703' || error.message.includes('column')) {
+        const missingColumn = error.message.split('"')[1];
+        if (missingColumn && currentData[missingColumn] !== undefined) {
+          console.warn(`[Auth] Removing missing column '${missingColumn}' and retrying...`);
+          delete currentData[missingColumn];
+          attempt++;
+          continue;
+        }
+      }
+
+      // Other error or couldn't identify column
+      return { data: null, error };
+    }
+    return { data: null, error: { message: "Maximum retry attempts reached" } };
+  };
+
   const registerUserDirectly = async (userData) => {
     try {
       const email = `${userData.username.trim()}@israa.local`;
@@ -304,7 +331,7 @@ export const AuthProvider = ({ children }) => {
       });
 
       // 1. Create Auth User using the temporary client
-      const { data: authData, error: authError } = await tempClient.auth.signUp({
+      let { data: authData, error: authError } = await tempClient.auth.signUp({
         email,
         password: userData.password,
         options: {
@@ -315,51 +342,49 @@ export const AuthProvider = ({ children }) => {
         }
       });
 
+      // Workaround: If user already exists in Auth but profile is missing, try to sign in to get the ID
+      if (authError && authError.message.includes('already registered')) {
+        console.log("User already in Auth, attempting to retrieve ID via sign-in...");
+        const { data: signInData, error: signInError } = await tempClient.auth.signInWithPassword({
+          email,
+          password: userData.password,
+        });
+        
+        if (!signInError) {
+          authData = signInData;
+          authError = null;
+        }
+      }
+
       if (authError) throw authError;
 
-      // 2. Create Profile in public.users
+      // 2. Create Profile in public.users using robust strategy
       const profileData = {
         id: authData.user.id,
         username: userData.username,
-        university_id: userData.username, // Set both for compatibility
+        university_id: userData.username,
+        universityId: userData.username,
+        full_name: userData.nameAr,
+        fullName: userData.nameAr,
         name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
         name_en: userData.name?.en || userData.nameEn || "",
-        full_name: userData.name?.ar || userData.nameAr, // Some tables use full_name
         role: userData.role || 'STUDENT',
         department_id: userData.departmentId || 'cs',
+        departmentId: userData.departmentId || 'cs',
         phone: userData.phone,
         phone_number: userData.phone,
         dob: userData.dob,
         major: userData.major,
         year_sem: userData.yearSem,
+        yearSem: userData.yearSem,
         hours: userData.hours
       };
 
-      const { error: profileError } = await supabase.from('users').insert([profileData]);
+      const { error: profileError } = await robustProfileInsert(profileData);
       
       if (profileError) {
-        console.warn("Full profile creation failed, trying minimal profile:", profileError.message);
-        // Fallback: try to insert only the most essential columns
-        const minimalProfile = {
-          id: authData.user.id,
-          username: userData.username,
-          university_id: userData.username,
-          name_ar: userData.name?.ar || userData.nameAr || "مستخدم جديد",
-          role: userData.role || 'STUDENT',
-          department_id: userData.departmentId || 'cs'
-        };
-        
-        const { error: minimalError } = await supabase.from('users').insert([minimalProfile]);
-        if (minimalError) {
-          console.error("Critical: Minimal profile creation failed:", minimalError);
-          return { success: false, message: `فشل إنشاء ملف المستخدم: ${minimalError.message}` };
-        }
-        
-        // If minimal succeeded, try to update with phone separately (it might be the cause of failure)
-        if (userData.phone) {
-          await supabase.from('users').update({ phone: userData.phone }).eq('id', authData.user.id);
-          await supabase.from('users').update({ phone_number: userData.phone }).eq('id', authData.user.id);
-        }
+        console.error("Critical: Profile creation failed after robust attempts:", profileError);
+        return { success: false, message: `فشل إنشاء ملف المستخدم: ${profileError.message}` };
       }
 
       await fetchAllUsers();
