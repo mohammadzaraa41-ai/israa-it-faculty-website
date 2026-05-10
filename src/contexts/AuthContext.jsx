@@ -413,15 +413,35 @@ export const AuthProvider = ({ children }) => {
 
       console.log("Approving user:", userToApprove.universityId);
 
+      const rawMajor = (userToApprove.major || '').toLowerCase();
+      let validDeptId = 'cs'; // Default fallback
+      const validIds = ['cis', 'cs', 'cyber', 'mm', 'ns', 'dsai', 'se'];
+      
+      if (validIds.includes(rawMajor)) {
+        validDeptId = rawMajor;
+      } else if (rawMajor.includes('وسائط') || rawMajor.includes('multimedia')) {
+        validDeptId = 'mm';
+      } else if (rawMajor.includes('نظم') || rawMajor.includes('cis')) {
+        validDeptId = 'cis';
+      } else if (rawMajor.includes('هندسة') || rawMajor.includes('software')) {
+        validDeptId = 'se';
+      } else if (rawMajor.includes('أمن') || rawMajor.includes('سيبراني')) {
+        validDeptId = 'cyber';
+      } else if (rawMajor.includes('بيانات') || rawMajor.includes('data')) {
+        validDeptId = 'dsai';
+      } else if (rawMajor.includes('شبكات') || rawMajor.includes('network')) {
+        validDeptId = 'ns';
+      }
+
       const result = await registerUserDirectly({
         username: userToApprove.universityId || userToApprove.university_id,
         password: userToApprove.password,
         role: 'STUDENT',
         nameAr: userToApprove.fullName || userToApprove.full_name,
-        departmentId: (['cs', 'se', 'cyber', 'dsai'].includes(userToApprove.major)) ? userToApprove.major : (userToApprove.major || 'cs'),
+        departmentId: validDeptId,
         phone: userToApprove.phone,
         dob: userToApprove.dob,
-        major: userToApprove.major,
+        major: validDeptId, // Force major to be a valid ID too
         yearSem: userToApprove.yearSem || userToApprove.year_sem,
         hours: userToApprove.hours
       });
