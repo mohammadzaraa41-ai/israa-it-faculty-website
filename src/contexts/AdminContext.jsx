@@ -175,7 +175,7 @@ export const AdminProvider = ({ children }) => {
       .channel('public-posts')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, (payload) => {
         console.log("Realtime Post update:", payload);
-        fetchPosts();
+        fetchAdminDashboardData(); // Refresh everything to ensure consistency
       })
       .subscribe((status) => console.log("Posts channel status:", status));
 
@@ -183,7 +183,7 @@ export const AdminProvider = ({ children }) => {
       .channel('public-announcements')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
         console.log("Realtime Announcement update");
-        fetchAnnouncements();
+        fetchAdminDashboardData();
       })
       .subscribe((status) => console.log("Announcements channel status:", status));
 

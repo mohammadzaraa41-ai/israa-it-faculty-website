@@ -519,10 +519,24 @@ const Alumni = () => {
 
   const handleRequestSubmit = async (e) => {
     e.preventDefault();
+    if (!requestForm.scheduleImage) {
+      alert(lang === 'ar' ? 'يرجى رفع صورة الجدول الدراسي' : 'Please upload schedule image');
+      return;
+    }
     setIsSubmitting(true);
-    const result = await submitAlumniRequest(user.id, { hours: requestForm.hours, scheduleImage: requestForm.scheduleImage, imageFile: requestForm.imageFile });
+    const result = await submitAlumniRequest(user.id, { 
+      hours: requestForm.hours, 
+      scheduleImage: requestForm.scheduleImage, 
+      imageFile: requestForm.imageFile 
+    });
     setIsSubmitting(false);
-    if (result?.success) setRequestSent(true);
+    
+    if (result?.success) {
+      setRequestSent(true);
+      alert(lang === 'ar' ? 'تم إرسال طلبك بنجاح' : 'Request sent successfully');
+    } else {
+      alert(lang === 'ar' ? `فشل الإرسال: ${result?.message || 'خطأ غير معروف'}` : `Submission failed: ${result?.message || 'Unknown error'}`);
+    }
   };
 
   const handleViewFile = (url) => url && window.open(url, '_blank');

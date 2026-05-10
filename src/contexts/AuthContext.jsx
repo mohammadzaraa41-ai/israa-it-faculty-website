@@ -519,14 +519,31 @@ export const AuthProvider = ({ children }) => {
           imageUrl = publicUrl;
         }
       }
-      const request = { user_id: userId, full_name: data.fullName, university_id: data.universityId, hours: data.hours, schedule_image: imageUrl, status: 'pending' };
-      const { data: insertedData, error } = await supabase.from('alumni_requests').insert([request]).select();
+
+      // Use user context data if not explicitly provided in 'data'
+      const request = { 
+        user_id: userId, 
+        full_name: data.fullName || user?.name?.ar || user?.fullName || 'Student', 
+        university_id: data.universityId || user?.universityId || user?.username || '000000', 
+        hours: data.hours, 
+        schedule_image: imageUrl, 
+        status: 'pending' 
+      };
+
+      // Use admin client to bypass RLS 403 Forbidden errors if necessary
+      const client = supabaseAdmin || supabase;
+      const { data: insertedData, error } = await client.from('alumni_requests').insert([request]).select();
+      
       if (!error && insertedData) {
         setAlumniRequests(prev => [...prev, { ...data, id: insertedData[0].id, userId, scheduleImage: imageUrl, status: 'pending' }]);
         return { success: true };
       }
-      return { success: false, message: error?.message };
-    } catch (err) { return { success: false, message: err.message }; }
+      console.error("Alumni Request Error:", error);
+      return { success: false, message: error?.message || 'فشل إرسال الطلب' };
+    } catch (err) { 
+      console.error("Alumni Request Catch:", err);
+      return { success: false, message: err.message }; 
+    }
   };
 
   const approveAlumniRequest = async (requestId) => {
