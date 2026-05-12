@@ -555,7 +555,7 @@ const Home = () => {
                   { label: lang === 'ar' ? 'الساعات المقطوعة' : 'Completed Hours', value: selectedUser.hours, icon: '⏱️' },
                   { label: lang === 'ar' ? 'رقم الهاتف' : 'Phone', value: selectedUser.phone || selectedUser.phone_number, icon: '📞' },
                   { label: lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date', value: selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : null, icon: '🗓️' },
-                  { label: lang === 'ar' ? 'البريد الإلكتروني' : 'Email', value: selectedUser.email, icon: '✉️' },
+                  { label: lang === 'ar' ? 'البريد الإلكتروني' : 'Email', value: selectedUser.email || (selectedUser.username ? `${selectedUser.username.trim()}@iu.edu.jo` : null), icon: '✉️' },
                 ].map((item, i) => (
                   <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
                     <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{item.icon} {item.label}</div>
