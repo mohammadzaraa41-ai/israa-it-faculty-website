@@ -243,8 +243,11 @@ const AdminDashboard = () => {
 
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), var(--accent-color))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '2rem' }}>
-                {(selectedUser.name_ar || selectedUser.full_name || selectedUser.username || '?')[0]}
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', background: 'linear-gradient(135deg, var(--primary-color), var(--accent-color))', border: '3px solid var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '2rem', color: 'white' }}>
+                {selectedUser.avatar_url 
+                  ? <img src={selectedUser.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : (selectedUser.name_ar || selectedUser.full_name || selectedUser.username || '?')[0]
+                }
               </div>
               <h2 style={{ margin: '0 0 0.25rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>
                 {selectedUser.name_ar || selectedUser.full_name || (typeof selectedUser.name === 'object' ? selectedUser.name.ar : selectedUser.name) || selectedUser.username || '---'}
@@ -289,8 +292,8 @@ const AdminDashboard = () => {
                   value: selectedUser.phone_number || selectedUser.phone || '---' 
                 },
                 { 
-                  label: lang === 'ar' ? '🎂 تاريخ الميلاد' : '🎂 Date of Birth', 
-                  value: selectedUser.dob ? new Date(selectedUser.dob).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'
+                  label: lang === 'ar' ? '✉️ البريد الإلكتروني' : '✉️ Email', 
+                  value: selectedUser.email || (selectedUser.username ? `${selectedUser.username.trim()}@iu.edu.jo` : '---')
                 },
                 { 
                   label: lang === 'ar' ? '📆 تاريخ الانضمام' : '📆 Join Date', 

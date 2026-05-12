@@ -959,9 +959,17 @@ export const AdminProvider = ({ children }) => {
       post_id: postId,
       content: commentData.text,
       author_name: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
+      author_username: user.username,
       author_role: user?.role || 'STUDENT',
+      author_avatar_url: user.avatar_url || null,
       parent_id: commentData.parent_id || null
     }]).select();
+
+    if (error) {
+      console.error("Error adding comment:", error.message, error.details);
+      alert("حدث خطأ أثناء إضافة التعليق: " + error.message);
+      return;
+    }
 
     if (!error && data?.length > 0) {
       const newComment = {
