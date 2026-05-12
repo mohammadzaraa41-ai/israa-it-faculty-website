@@ -455,31 +455,43 @@ const Home = () => {
                     <p>{post.content}</p>
                     {renderPostImages(post.image)}
                     {post.poll_data && (
-                      <div className="post-poll" style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-                        {post.poll_data.question && <h5 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.05rem' }}>{post.poll_data.question}</h5>}
-                        {post.poll_data.options.map((opt) => {
-                          const totalVotes = post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0);
-                          const isVoted = user && opt.votes.includes(user.username);
-                          const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes.length / totalVotes) * 100);
-                          return (
-                            <div 
-                              key={opt.id} 
-                              onClick={() => user ? voteOnPoll(post.id, opt.id) : toggleLogin(true)}
-                              style={{ 
-                                position: 'relative', overflow: 'hidden', padding: '0.8rem 1rem', marginBottom: '0.5rem', 
-                                borderRadius: '8px', border: `1px solid ${isVoted ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}`,
-                                cursor: 'pointer', display: 'flex', justifyContent: 'space-between', zIndex: 1
-                              }}
-                            >
-                              {/* Background progress bar */}
-                              <div style={{ position: 'absolute', left: lang === 'ar' ? 'auto' : 0, right: lang === 'ar' ? 0 : 'auto', top: 0, bottom: 0, width: `${percentage}%`, background: isVoted ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255,255,255,0.05)', zIndex: -1, transition: 'width 0.3s ease' }} />
-                              <span style={{ fontWeight: isVoted ? 'bold' : 'normal', color: 'var(--text-primary)' }}>{opt.text}</span>
-                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{percentage}%</span>
-                            </div>
-                          );
-                        })}
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', textAlign: 'right' }}>
-                          {post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0)} {lang === 'ar' ? 'صوت' : 'votes'}
+                      <div className="post-poll" style={{ marginTop: '1.2rem', background: 'rgba(255,255,255,0.03)', padding: '1.25rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+                        {post.poll_data.question && <h5 style={{ marginTop: 0, marginBottom: '1.25rem', color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: '600' }}>{post.poll_data.question}</h5>}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                          {post.poll_data.options.map((opt) => {
+                            const totalVotes = post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0);
+                            const isVoted = user && opt.votes.includes(user.username);
+                            const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes.length / totalVotes) * 100);
+                            return (
+                              <div 
+                                key={opt.id} 
+                                onClick={() => user ? voteOnPoll(post.id, opt.id) : toggleLogin(true)}
+                                className={`poll-option ${isVoted ? 'voted' : ''}`}
+                                style={{ 
+                                  position: 'relative', overflow: 'hidden', padding: '0.8rem 1.2rem', 
+                                  borderRadius: '12px', border: `1px solid ${isVoted ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}`,
+                                  cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 1,
+                                  background: isVoted ? 'rgba(78, 205, 196, 0.05)' : 'rgba(255,255,255,0.02)',
+                                  transition: 'all 0.2s ease'
+                                }}
+                              >
+                                {/* Background progress bar */}
+                                <div style={{ position: 'absolute', left: lang === 'ar' ? 'auto' : 0, right: lang === 'ar' ? 0 : 'auto', top: 0, bottom: 0, width: `${percentage}%`, background: isVoted ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255,255,255,0.06)', zIndex: -1, transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                                
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                  <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: `2px solid ${isVoted ? 'var(--primary-color)' : 'rgba(255,255,255,0.3)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    {isVoted && <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--primary-color)' }} />}
+                                  </div>
+                                  <span style={{ fontWeight: isVoted ? '600' : '400', color: isVoted ? 'var(--primary-color)' : 'var(--text-primary)', fontSize: '0.95rem' }}>{opt.text}</span>
+                                </div>
+                                <span style={{ color: isVoted ? 'var(--primary-color)' : 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: '500' }}>{percentage}%</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <User size={14} />
+                          <span>{post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0)} {lang === 'ar' ? 'صوت' : 'votes'}</span>
                         </div>
                       </div>
                     )}
