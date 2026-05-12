@@ -15,9 +15,9 @@ const Home = () => {
   const { lang, t } = useLocale();
   const { addToast } = useToast();
   const { user, toggleLogin, users, pendingUsers, alumniRequests, fetchAllUsers } = useAuth();
-  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
+  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, voteOnPoll, announcements, events, loading, pendingPosts } = useAdmin();
 
-  const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
+  const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [], showPoll: false, poll: { question: '', options: ['', ''] } });
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
@@ -64,7 +64,7 @@ const Home = () => {
     const postPayload = { ...newPost };
 
     // 2. Optimistically clear the form instantly to prevent UX blocking
-    setNewPost({ content: '', images: [], imageFiles: [] });
+    setNewPost({ content: '', images: [], imageFiles: [], showPoll: false, poll: { question: '', options: ['', ''] } });
     addToast(
       lang === 'ar' ? 'جاري النشر...' : 'Publishing...',
       lang === 'ar' ? 'يتم الآن رفع الصور والمنشور' : 'Uploading images and post...',
@@ -310,6 +310,56 @@ const Home = () => {
                   </div>
                 </motion.div>
               )}
+              {newPost.showPoll && (
+                <motion.div
+                  className="poll-creator-container"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', marginTop: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h4 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1rem' }}>{lang === 'ar' ? 'إنشاء تصويت' : 'Create Poll'}</h4>
+                    <button onClick={() => setNewPost({ ...newPost, showPoll: false })} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder={lang === 'ar' ? "السؤال (اختياري)..." : "Question (optional)..."}
+                    value={newPost.poll.question}
+                    onChange={(e) => setNewPost({ ...newPost, poll: { ...newPost.poll, question: e.target.value } })}
+                    style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', marginBottom: '1rem' }}
+                  />
+                  {newPost.poll.options.map((opt, idx) => (
+                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                      <input
+                        type="text"
+                        placeholder={`${lang === 'ar' ? 'الخيار' : 'Option'} ${idx + 1}`}
+                        value={opt}
+                        onChange={(e) => {
+                          const newOpts = [...newPost.poll.options];
+                          newOpts[idx] = e.target.value;
+                          setNewPost({ ...newPost, poll: { ...newPost.poll, options: newOpts } });
+                        }}
+                        style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
+                      />
+                      {newPost.poll.options.length > 2 && (
+                        <button onClick={() => {
+                          const newOpts = newPost.poll.options.filter((_, i) => i !== idx);
+                          setNewPost({ ...newPost, poll: { ...newPost.poll, options: newOpts } });
+                        }} style={{ background: 'rgba(231, 76, 60, 0.2)', color: '#e74c3c', border: 'none', borderRadius: '8px', width: '40px', cursor: 'pointer' }}>
+                          <X size={16} style={{ margin: 'auto' }} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {newPost.poll.options.length < 5 && (
+                    <button onClick={() => setNewPost({ ...newPost, poll: { ...newPost.poll, options: [...newPost.poll.options, ''] } })} style={{ background: 'none', border: '1px dashed var(--primary-color)', color: 'var(--primary-color)', padding: '0.5rem', borderRadius: '8px', width: '100%', cursor: 'pointer', marginTop: '0.5rem' }}>
+                      <Plus size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
+                      {lang === 'ar' ? 'إضافة خيار' : 'Add Option'}
+                    </button>
+                  )}
+                </motion.div>
+              )}
             </AnimatePresence>
 
             <div className="post-actions-bar">
@@ -328,6 +378,14 @@ const Home = () => {
                 >
                   <ImageIcon size={20} />
                   <span>{lang === 'ar' ? "صورة" : "Image"}</span>
+                </button>
+                <button
+                  className="tool-btn"
+                  onClick={() => user ? setNewPost({ ...newPost, showPoll: !newPost.showPoll }) : toggleLogin(true)}
+                  style={{ color: newPost.showPoll ? 'var(--primary-color)' : 'inherit' }}
+                >
+                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', border: '2px solid currentColor', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>%</span>
+                  <span>{lang === 'ar' ? "تصويت" : "Poll"}</span>
                 </button>
               </div>
               <button
@@ -396,6 +454,35 @@ const Home = () => {
                   <div className="post-content">
                     <p>{post.content}</p>
                     {renderPostImages(post.image)}
+                    {post.poll_data && (
+                      <div className="post-poll" style={{ marginTop: '1rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                        {post.poll_data.question && <h5 style={{ marginTop: 0, marginBottom: '1rem', color: 'var(--text-primary)', fontSize: '1.05rem' }}>{post.poll_data.question}</h5>}
+                        {post.poll_data.options.map((opt) => {
+                          const totalVotes = post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0);
+                          const isVoted = user && opt.votes.includes(user.username);
+                          const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes.length / totalVotes) * 100);
+                          return (
+                            <div 
+                              key={opt.id} 
+                              onClick={() => user ? voteOnPoll(post.id, opt.id) : toggleLogin(true)}
+                              style={{ 
+                                position: 'relative', overflow: 'hidden', padding: '0.8rem 1rem', marginBottom: '0.5rem', 
+                                borderRadius: '8px', border: `1px solid ${isVoted ? 'var(--primary-color)' : 'rgba(255,255,255,0.1)'}`,
+                                cursor: 'pointer', display: 'flex', justifyContent: 'space-between', zIndex: 1
+                              }}
+                            >
+                              {/* Background progress bar */}
+                              <div style={{ position: 'absolute', left: lang === 'ar' ? 'auto' : 0, right: lang === 'ar' ? 0 : 'auto', top: 0, bottom: 0, width: `${percentage}%`, background: isVoted ? 'rgba(78, 205, 196, 0.2)' : 'rgba(255,255,255,0.05)', zIndex: -1, transition: 'width 0.3s ease' }} />
+                              <span style={{ fontWeight: isVoted ? 'bold' : 'normal', color: 'var(--text-primary)' }}>{opt.text}</span>
+                              <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{percentage}%</span>
+                            </div>
+                          );
+                        })}
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem', textAlign: 'right' }}>
+                          {post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0)} {lang === 'ar' ? 'صوت' : 'votes'}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>

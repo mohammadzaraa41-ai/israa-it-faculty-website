@@ -158,7 +158,8 @@ export const AdminProvider = ({ children }) => {
               likes: c.likes || [],
               parent_id: c.parent_id || null,
               avatar_url: c.author_avatar_url || null
-            }))
+            })),
+            poll_data: p.poll_data || null
           }));
           setPosts(formattedPosts);
           try { localStorage.setItem('site_posts_v2', JSON.stringify(formattedPosts)); } catch(e){}
@@ -599,7 +600,8 @@ export const AdminProvider = ({ children }) => {
             likes: c.likes || [],
             parent_id: c.parent_id || null,
             avatar_url: c.author_avatar_url || null
-          }))
+          })),
+          poll_data: p.poll_data || null
         });
         const postsData = postsResRaw.data;
         setPosts(postsData.filter(p => p.status === 'APPROVED').map(mapPost));
@@ -799,7 +801,20 @@ export const AdminProvider = ({ children }) => {
     if (!user) return { success: false, message: 'Please login first' };
     const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
     
-    // 1. CREATE OPTIMISTIC POST (Instantly displayed to the user)
+    // 1. FORMAT POLL DATA
+    let pollData = null;
+    if (postData.poll && postData.poll.options && postData.poll.options.filter(o => o.trim()).length >= 2) {
+      pollData = {
+        question: postData.poll.question || '',
+        options: postData.poll.options.filter(o => o.trim()).map((opt, i) => ({
+          id: i.toString(),
+          text: opt.trim(),
+          votes: []
+        }))
+      };
+    }
+
+    // 2. CREATE OPTIMISTIC POST (Instantly displayed to the user)
     const optimisticId = 'temp-' + Date.now();
     const optimisticPost = {
       id: optimisticId,
@@ -815,10 +830,11 @@ export const AdminProvider = ({ children }) => {
       date: new Date().toLocaleDateString('en-GB'),
       comments: [],
       likes: [],
+      poll_data: pollData,
       status: isAdmin ? 'APPROVED' : 'PENDING'
     };
 
-    // 2. IMMEDIATELY UPDATE STATE
+    // 3. IMMEDIATELY UPDATE STATE
     if (isAdmin) {
       setPosts(prev => [optimisticPost, ...prev]);
     } else {
@@ -858,7 +874,7 @@ export const AdminProvider = ({ children }) => {
 
     const imageValue = finalImageUrls.length > 0 ? finalImageUrls.join(',') : null;
 
-    // 4. INSERT REAL DATA TO DB
+    // 5. INSERT REAL DATA TO DB
     const { data, error } = await supabase.from('posts').insert([{
       content: postData.content,
       image: imageValue,
@@ -866,6 +882,7 @@ export const AdminProvider = ({ children }) => {
       author_name: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
       author_role: user?.role || 'STUDENT',
       author_avatar_url: user.avatar_url || null,
+      poll_data: pollData,
       status: isAdmin ? 'APPROVED' : 'PENDING'
     }]).select();
 
@@ -995,6 +1012,39 @@ export const AdminProvider = ({ children }) => {
         ? { ...p, comments: p.comments.filter(c => c.id !== commentId) }
         : p
       ));
+    }
+  };
+
+  const voteOnPoll = async (postId, optionId) => {
+    if (!user) return;
+    
+    // Find the post
+    const post = posts.find(p => p.id === postId) || pendingPosts.find(p => p.id === postId);
+    if (!post || !post.poll_data) return;
+
+    // Optimistically update
+    let updatedPollData = JSON.parse(JSON.stringify(post.poll_data));
+    
+    // Remove user from any existing vote
+    updatedPollData.options.forEach(opt => {
+      opt.votes = opt.votes.filter(u => u !== user.username);
+    });
+    
+    // Add user to the new option
+    const optionToVote = updatedPollData.options.find(o => o.id === optionId);
+    if (optionToVote) {
+      optionToVote.votes.push(user.username);
+    }
+
+    // Update state immediately
+    const updateState = (prev) => prev.map(p => p.id === postId ? { ...p, poll_data: updatedPollData } : p);
+    setPosts(updateState);
+    setPendingPosts(updateState);
+
+    // Update DB
+    const { error } = await supabase.from('posts').update({ poll_data: updatedPollData }).eq('id', postId);
+    if (error) {
+      console.error("Error voting on poll:", error);
     }
   };
 
@@ -1937,7 +1987,7 @@ export const AdminProvider = ({ children }) => {
       deleteLinkedinTip,
       departments, addDepartment, deleteDepartment, updateDepartment,
       posts, addPost, approvePost, rejectPost, deletePost, editPost, toggleLike,
-      addComment, deleteComment, editComment, likeComment, pendingPosts,
+      addComment, deleteComment, editComment, likeComment, pendingPosts, voteOnPoll,
       announcements, addAnnouncement, deleteAnnouncement, updateAnnouncement,
       events, addEvent, deleteEvent, updateEvent,
       activities, addActivity, updateActivity, deleteActivity,
