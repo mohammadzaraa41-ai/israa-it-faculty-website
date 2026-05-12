@@ -102,23 +102,34 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchAllUsers = async () => {
-    // Load from cache IMMEDIATELY so UI doesn't flash empty
+    const CACHE_KEY = 'cached_users_v1';
+    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+    // 1. Load from cache IMMEDIATELY so UI never flashes empty
+    let cachedUsers = [];
     try {
-      const cached = localStorage.getItem('cached_users_v1');
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (parsed.length > 0) setUsers(parsed);
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (raw) {
+        const { data: cData, ts } = JSON.parse(raw);
+        if (cData && cData.length > 0) {
+          cachedUsers = cData;
+          setUsers(cData);
+          // If cache is fresh (< 5 min), skip DB fetch
+          if (Date.now() - ts < CACHE_TTL) return cData;
+        }
       }
     } catch {}
 
-    // Then fetch fresh data in background
+    // 2. Fetch fresh data from DB
     const client = supabaseAdmin || supabase;
     const { data, error } = await client.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
-      return [];
+      return cachedUsers; // Return cached data on error, don't clear it
     }
-    if (data && data.length > 0) {
+
+    if (data && data.length >= cachedUsers.length) {
+      // Only update if we got equal or MORE users (prevents RLS partial overwrite)
       const mapped = data.map(({ password, ...u }) => ({
         ...u,
         name: { 
@@ -138,11 +149,12 @@ export const AuthProvider = ({ children }) => {
         yearSem: u.yearSem || u.year_sem,
       }));
       setUsers(mapped);
-      // Save to cache for next navigation
-      try { localStorage.setItem('cached_users_v1', JSON.stringify(mapped)); } catch {}
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: mapped, ts: Date.now() })); } catch {}
       return mapped;
     }
-    return [];
+
+    // DB returned fewer users than cache (RLS restriction) — keep cache
+    return cachedUsers;
   };
 
 
