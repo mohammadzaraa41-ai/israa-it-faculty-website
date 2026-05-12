@@ -13,8 +13,10 @@ const Prospective = () => {
   const isRtl = lang === 'ar';
 
   const [regForm, setRegForm] = useState({ 
-    name: '', phone: '', studentId: '', dob: '', major: 'cs', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' 
+    name: '', nameEn: '', phone: '', studentId: '', dob: '', major: 'cs', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' 
   });
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarPreview, setAvatarPreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [regSuccess, setRegSuccess] = useState(false);
@@ -31,18 +33,22 @@ const Prospective = () => {
 
     const result = await registerRequest({
       fullName: regForm.name,
+      nameEn: regForm.nameEn,
       phone: regForm.phone,
       universityId: regForm.studentId,
       dob: regForm.dob,
       major: regForm.major,
       yearSem: yearSemLabel,
       hours: parseInt(regForm.hours) || 0,
-      password: regForm.password
+      password: regForm.password,
+      avatarFile: avatarFile || null
     });
 
     if (result.success) {
       setRegSuccess(true);
-      setRegForm({ name: '', phone: '', studentId: '', dob: '', major: 'cs', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' });
+      setRegForm({ name: '', nameEn: '', phone: '', studentId: '', dob: '', major: 'cs', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' });
+      setAvatarFile(null);
+      setAvatarPreview(null);
       setTimeout(() => setRegSuccess(false), 5000);
     } else {
       alert(result.message || (lang === 'ar' ? 'فشل إرسال الطلب' : 'Failed to submit application'));
@@ -312,11 +318,51 @@ const Prospective = () => {
 
         <form className="register-form" onSubmit={handleRegister}>
           <div className="form-grid">
-            <div className="input-group full-width">
-              <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم الكامل (من 3 مقاطع)' : 'Full Name (3 segments)'}</label>
+
+            {/* Avatar Upload - Optional */}
+            <div className="input-group full-width" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+              <div 
+                style={{ width: '100px', height: '100px', borderRadius: '50%', border: '2px dashed var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', background: 'rgba(255,255,255,0.05)', position: 'relative' }}
+                onClick={() => document.getElementById('avatar-upload').click()}
+              >
+                {avatarPreview 
+                  ? <img src={avatarPreview} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  : <span style={{ fontSize: '2.5rem' }}>📷</span>
+                }
+              </div>
+              <label style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', cursor: 'pointer' }} onClick={() => document.getElementById('avatar-upload').click()}>
+                {lang === 'ar' ? 'صورة الملف الشخصي (اختياري)' : 'Profile Photo (Optional)'}
+              </label>
               <input 
-                required type="text" placeholder={lang === 'ar' ? 'مثال: أحمد محمد علي' : 'e.g. Ahmed Mohamed Ali'} 
+                id="avatar-upload"
+                type="file" 
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setAvatarFile(file);
+                    setAvatarPreview(URL.createObjectURL(file));
+                  }
+                }}
+              />
+            </div>
+
+            {/* Arabic Name */}
+            <div className="input-group">
+              <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم الكامل بالعربية' : 'Full Name (Arabic)'}</label>
+              <input 
+                required type="text" placeholder={lang === 'ar' ? 'مثال: أحمد محمد علي' : 'e.g. أحمد محمد علي'} 
                 value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})}
+              />
+            </div>
+
+            {/* English Name */}
+            <div className="input-group">
+              <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم الكامل بالإنجليزية' : 'Full Name (English)'}</label>
+              <input 
+                required type="text" placeholder="Ahmed Mohamed Ali"
+                value={regForm.nameEn} onChange={e => setRegForm({...regForm, nameEn: e.target.value})}
               />
             </div>
 

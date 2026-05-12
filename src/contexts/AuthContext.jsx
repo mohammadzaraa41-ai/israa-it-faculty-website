@@ -407,7 +407,8 @@ export const AuthProvider = ({ children }) => {
         major: userData.major,
         year_sem: userData.yearSem,
         yearSem: userData.yearSem,
-        hours: userData.hours
+        hours: userData.hours,
+        avatar_url: userData.avatarUrl || null
       };
 
       const { error: profileError } = await robustProfileInsert(profileData);
@@ -457,12 +458,14 @@ export const AuthProvider = ({ children }) => {
         password: userToApprove.password,
         role: 'STUDENT',
         nameAr: userToApprove.fullName || userToApprove.full_name,
+        nameEn: userToApprove.name_en || userToApprove.nameEn || '',
         departmentId: validDeptId,
         phone: userToApprove.phone,
         dob: userToApprove.dob,
-        major: validDeptId, // Force major to be a valid ID too
+        major: validDeptId,
         yearSem: userToApprove.yearSem || userToApprove.year_sem,
-        hours: userToApprove.hours
+        hours: userToApprove.hours,
+        avatarUrl: userToApprove.avatar_url || null
       });
 
       if (result.success) {
@@ -501,8 +504,22 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: 'لديك طلب تسجيل معلق بالفعل، يرجى انتظار موافقة الأدمن' };
       }
 
+      // Upload avatar if provided
+      let avatarUrl = null;
+      if (userData.avatarFile) {
+        const file = userData.avatarFile;
+        const ext = file.name.split('.').pop();
+        const path = `avatars/${userData.universityId}-${Date.now()}.${ext}`;
+        const { error: uploadErr } = await supabase.storage.from('faculty_uploads').upload(path, file);
+        if (!uploadErr) {
+          const { data: { publicUrl } } = supabase.storage.from('faculty_uploads').getPublicUrl(path);
+          avatarUrl = publicUrl;
+        }
+      }
+
       const newUserRequest = {
         full_name: userData.fullName,
+        name_en: userData.nameEn || null,
         phone: userData.phone,
         university_id: userData.universityId,
         dob: userData.dob,
@@ -510,6 +527,7 @@ export const AuthProvider = ({ children }) => {
         year_sem: userData.yearSem,
         hours: userData.hours,
         password: userData.password,
+        avatar_url: avatarUrl,
         status: 'PENDING'
       };
 
