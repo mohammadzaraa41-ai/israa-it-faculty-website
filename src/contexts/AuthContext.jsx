@@ -105,7 +105,25 @@ export const AuthProvider = ({ children }) => {
     const CACHE_KEY = 'cached_users_v2';
     const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-    // 1. Load from cache immediately so UI never flashes empty
+    const mapUser = ({ password, ...u }) => ({
+      ...u,
+      name: { 
+        ar: u.name_ar || u.full_name || u.username, 
+        en: u.name_en || u.name_ar || u.full_name || u.username 
+      },
+      name_ar: u.name_ar || u.full_name,
+      full_name: u.full_name || u.name_ar,
+      universityId: u.university_id || u.username,
+      university_id: u.university_id || u.username,
+      departmentId: u.department_id,
+      department_id: u.department_id,
+      phone: u.phone || u.phone_number,
+      phone_number: u.phone_number || u.phone,
+      year_sem: u.year_sem || u.yearSem,
+      yearSem: u.yearSem || u.year_sem,
+    });
+
+    // 1. Always load from cache first (instant display)
     let cachedUsers = [];
     try {
       const raw = localStorage.getItem(CACHE_KEY);
@@ -114,37 +132,38 @@ export const AuthProvider = ({ children }) => {
         if (Array.isArray(cData) && cData.length > 0) {
           cachedUsers = cData;
           setUsers(cData);
-          // Skip DB fetch if cache is fresh (< 5 min)
-          if (Date.now() - ts < CACHE_TTL) return cData;
+          // If cache is fresh AND no admin client available → stop here
+          if (Date.now() - ts < CACHE_TTL && !supabaseAdmin) return cData;
+          // If cache is fresh AND admin client available → still refresh in background but don't block
+          if (Date.now() - ts < CACHE_TTL) {
+            // Refresh in background silently
+            supabaseAdmin.from('users').select('*').then(({ data }) => {
+              if (data && data.length > 0) {
+                const mapped = data.map(mapUser);
+                setUsers(mapped);
+                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: mapped, ts: Date.now() })); } catch {}
+              }
+            });
+            return cData;
+          }
         }
       }
     } catch { localStorage.removeItem(CACHE_KEY); }
 
-    // 2. Fetch fresh data from DB (RLS now allows all authenticated users to read)
-    const { data, error } = await supabase.from('users').select('*');
+    // 2. Only fetch from DB using supabaseAdmin (bypasses RLS completely)
+    if (!supabaseAdmin) {
+      // No admin client and no fresh cache → return what we have
+      return cachedUsers;
+    }
+
+    const { data, error } = await supabaseAdmin.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
       return cachedUsers;
     }
 
     if (data && data.length > 0) {
-      const mapped = data.map(({ password, ...u }) => ({
-        ...u,
-        name: { 
-          ar: u.name_ar || u.full_name || u.username, 
-          en: u.name_en || u.name_ar || u.full_name || u.username 
-        },
-        name_ar: u.name_ar || u.full_name,
-        full_name: u.full_name || u.name_ar,
-        universityId: u.university_id || u.username,
-        university_id: u.university_id || u.username,
-        departmentId: u.department_id,
-        department_id: u.department_id,
-        phone: u.phone || u.phone_number,
-        phone_number: u.phone_number || u.phone,
-        year_sem: u.year_sem || u.yearSem,
-        yearSem: u.yearSem || u.year_sem,
-      }));
+      const mapped = data.map(mapUser);
       setUsers(mapped);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: mapped, ts: Date.now() })); } catch {}
       return mapped;
