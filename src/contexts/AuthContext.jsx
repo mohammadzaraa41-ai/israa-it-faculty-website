@@ -102,34 +102,32 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchAllUsers = async () => {
-    const CACHE_KEY = 'cached_users_v1';
+    const CACHE_KEY = 'cached_users_v2';
     const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-    // 1. Load from cache IMMEDIATELY so UI never flashes empty
+    // 1. Load from cache immediately so UI never flashes empty
     let cachedUsers = [];
     try {
       const raw = localStorage.getItem(CACHE_KEY);
       if (raw) {
         const { data: cData, ts } = JSON.parse(raw);
-        if (cData && cData.length > 0) {
+        if (Array.isArray(cData) && cData.length > 0) {
           cachedUsers = cData;
           setUsers(cData);
-          // If cache is fresh (< 5 min), skip DB fetch
+          // Skip DB fetch if cache is fresh (< 5 min)
           if (Date.now() - ts < CACHE_TTL) return cData;
         }
       }
-    } catch {}
+    } catch { localStorage.removeItem(CACHE_KEY); }
 
-    // 2. Fetch fresh data from DB
-    const client = supabaseAdmin || supabase;
-    const { data, error } = await client.from('users').select('*');
+    // 2. Fetch fresh data from DB (RLS now allows all authenticated users to read)
+    const { data, error } = await supabase.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
-      return cachedUsers; // Return cached data on error, don't clear it
+      return cachedUsers;
     }
 
-    if (data && data.length >= cachedUsers.length) {
-      // Only update if we got equal or MORE users (prevents RLS partial overwrite)
+    if (data && data.length > 0) {
       const mapped = data.map(({ password, ...u }) => ({
         ...u,
         name: { 
@@ -138,7 +136,6 @@ export const AuthProvider = ({ children }) => {
         },
         name_ar: u.name_ar || u.full_name,
         full_name: u.full_name || u.name_ar,
-        fullName: u.fullName || u.full_name || u.name_ar,
         universityId: u.university_id || u.username,
         university_id: u.university_id || u.username,
         departmentId: u.department_id,
@@ -153,7 +150,6 @@ export const AuthProvider = ({ children }) => {
       return mapped;
     }
 
-    // DB returned fewer users than cache (RLS restriction) — keep cache
     return cachedUsers;
   };
 
