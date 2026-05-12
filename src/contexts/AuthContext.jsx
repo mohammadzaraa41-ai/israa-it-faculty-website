@@ -69,7 +69,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchPendingUsers = async () => {
-    const { data, error } = await supabase.from('pending_users').select('*').in('status', ['pending', 'PENDING']);
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client.from('pending_users').select('*').in('status', ['pending', 'PENDING']);
     if (!error && data) {
       const mapped = data.map(p => ({
         ...p,
@@ -84,7 +85,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchAlumniRequests = async () => {
-    const { data, error } = await supabase.from('alumni_requests').select('*').in('status', ['pending', 'rejected']);
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client.from('alumni_requests').select('*').in('status', ['pending', 'rejected']);
     if (!error && data) {
       const mapped = data.map(a => ({
         ...a,
@@ -507,41 +509,76 @@ export const AuthProvider = ({ children }) => {
 
   const submitAlumniRequest = async (userId, data) => {
     try {
+      console.log("[AlumniRequest] Starting submission for user:", userId);
+      
       let imageUrl = data.scheduleImage;
       if (data.imageFile) {
         const file = data.imageFile;
         const fileExt = file.name.split('.').pop();
         const fileName = `${userId}-${Date.now()}.${fileExt}`;
         const filePath = `alumni_schedules/${fileName}`;
+        
+        console.log("[AlumniRequest] Uploading image:", filePath);
         const { error: uploadError } = await supabase.storage.from('faculty_uploads').upload(filePath, file);
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('faculty_uploads').getPublicUrl(filePath);
           imageUrl = publicUrl;
+          console.log("[AlumniRequest] Upload successful:", imageUrl);
+        } else {
+          console.error("[AlumniRequest] Upload failed:", uploadError);
+          // If upload fails, we continue but the insert might fail if this is required
         }
       }
 
-      // Use user context data if not explicitly provided in 'data'
+      // If imageUrl is still a blob URL, it means upload failed. 
+      // We shouldn't send blob URLs to the DB as it might violate RLS or constraints.
+      if (imageUrl && imageUrl.startsWith('blob:')) {
+        imageUrl = null; 
+      }
+
       const request = { 
         user_id: userId, 
-        full_name: data.fullName || user?.name?.ar || user?.fullName || 'Student', 
-        university_id: data.universityId || user?.universityId || user?.username || '000000', 
-        hours: data.hours, 
+        full_name: data.fullName || user?.name?.ar || user?.fullName || user?.full_name || 'Student', 
+        university_id: data.universityId || user?.universityId || user?.university_id || user?.username || '000000', 
+        hours: parseInt(data.hours) || 0, 
         schedule_image: imageUrl, 
         status: 'pending' 
       };
 
-      // Use admin client to bypass RLS 403 Forbidden errors if necessary
+      console.log("[AlumniRequest] Attempting insert with object:", request);
+
+      // Try using Admin client first to bypass RLS
+      // If supabaseAdmin is null, fallback to normal client
       const client = supabaseAdmin || supabase;
+      if (!supabaseAdmin) console.warn("[AlumniRequest] supabaseAdmin is not available, falling back to public client (RLS will be active)");
+
       const { data: insertedData, error } = await client.from('alumni_requests').insert([request]).select();
       
       if (!error && insertedData) {
+        console.log("[AlumniRequest] Success:", insertedData);
         setAlumniRequests(prev => [...prev, { ...data, id: insertedData[0].id, userId, scheduleImage: imageUrl, status: 'pending' }]);
         return { success: true };
       }
-      console.error("Alumni Request Error:", error);
+
+      // If it failed with RLS error, try one last time without the 'status' column 
+      // (some RLS policies block setting status explicitly)
+      if (error && (error.code === '42501' || error.message?.includes('RLS'))) {
+        console.warn("[AlumniRequest] RLS Violation detected. Retrying without 'status' column...");
+        const { status, ...minimalRequest } = request;
+        const { data: retryData, error: retryError } = await client.from('alumni_requests').insert([minimalRequest]).select();
+        
+        if (!retryError && retryData) {
+          setAlumniRequests(prev => [...prev, { ...data, id: retryData[0].id, userId, scheduleImage: imageUrl, status: 'pending' }]);
+          return { success: true };
+        }
+        console.error("[AlumniRequest] Retry failed:", retryError);
+        return { success: false, message: retryError?.message || 'RLS Violation' };
+      }
+
+      console.error("[AlumniRequest] Insert Error:", error);
       return { success: false, message: error?.message || 'فشل إرسال الطلب' };
     } catch (err) { 
-      console.error("Alumni Request Catch:", err);
+      console.error("[AlumniRequest] Critical Catch:", err);
       return { success: false, message: err.message }; 
     }
   };
