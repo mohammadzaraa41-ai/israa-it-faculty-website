@@ -109,18 +109,31 @@ export const AuthProvider = ({ children }) => {
       return [];
     }
     if (data) {
-      // Log first user to see all available columns in Supabase
-      if (data.length > 0) console.log("[Debug] Raw user columns from DB:", Object.keys(data[0]));
-      
+      // === DEBUG: Print every user's raw data ===
+      console.log(`[Debug] Total users in DB: ${data.length}`);
+      data.forEach(u => {
+        console.log(`[Debug] User "${u.username}":`, {
+          name_ar: u.name_ar,
+          name_en: u.name_en,
+          full_name: u.full_name,
+          phone: u.phone,
+          major: u.major,
+          year_sem: u.year_sem,
+          hours: u.hours,
+          dob: u.dob,
+          avatar_url: u.avatar_url,
+          department_id: u.department_id,
+          role: u.role
+        });
+      });
+      // ==========================================
+
       const mapped = data.map(({ password, ...u }) => ({
-        // Keep ALL raw columns first (spread raw data)
         ...u,
-        // Then add normalized/computed fields on top
         name: { 
           ar: u.name_ar || u.full_name || u.fullName || u.username, 
           en: u.name_en || u.name_ar || u.full_name || u.fullName || u.username 
         },
-        // Ensure these aliases are always available
         name_ar: u.name_ar || u.full_name || u.fullName,
         full_name: u.full_name || u.fullName || u.name_ar,
         fullName: u.fullName || u.full_name || u.name_ar,

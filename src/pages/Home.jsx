@@ -202,27 +202,52 @@ const Home = () => {
     setNewComment('');
   };
 
-  const showUserInfo = (username, postAuthorData = null) => {
+  const showUserInfo = async (username, postAuthorData = null) => {
     if (!isAdmin) return;
     
-    // First try to find full user data from the users list
+    // Start with what we know from the post itself
+    const baseInfo = {
+      username: username,
+      name_ar: postAuthorData?.name || postAuthorData?.author || postAuthorData?.name?.ar || username,
+      name_en: postAuthorData?.name?.en || '',
+      role: postAuthorData?.role || 'STUDENT',
+      avatar_url: postAuthorData?.avatar_url || null,
+    };
+
+    // Try to find full data from already-loaded users list
     const found = users?.find(u => u.username === username);
     if (found) {
-      setSelectedUser(found);
+      // Merge: DB data takes priority, fall back to post data for missing fields
+      setSelectedUser({
+        ...baseInfo,
+        ...found,
+        // Ensure name is visible even if DB is empty
+        name_ar: found.name_ar || found.full_name || baseInfo.name_ar,
+        name_en: found.name_en || baseInfo.name_en,
+        avatar_url: found.avatar_url || baseInfo.avatar_url,
+      });
       return;
     }
 
-    // If not found in users list, show whatever data we have from the post
-    if (postAuthorData || username) {
-      setSelectedUser({
-        username: username,
-        name_ar: postAuthorData?.author || postAuthorData?.name?.ar || username,
-        name_en: postAuthorData?.name?.en || username,
-        role: postAuthorData?.role || 'STUDENT',
-        department_id: postAuthorData?.departmentId || '---',
-        phone: postAuthorData?.phone || '---',
-        created_at: postAuthorData?.created_at || null
-      });
+    // If not in local cache, fetch from DB directly
+    setSelectedUser({ ...baseInfo, _loading: true });
+    try {
+      const { data } = await import('../lib/supabase').then(m => 
+        m.supabase.from('users').select('*').eq('username', username).single()
+      );
+      if (data) {
+        setSelectedUser({
+          ...baseInfo,
+          ...data,
+          name_ar: data.name_ar || data.full_name || baseInfo.name_ar,
+          name_en: data.name_en || baseInfo.name_en,
+          avatar_url: data.avatar_url || baseInfo.avatar_url,
+        });
+      } else {
+        setSelectedUser(baseInfo);
+      }
+    } catch {
+      setSelectedUser(baseInfo);
     }
   };
 
@@ -499,8 +524,11 @@ const Home = () => {
 
               {/* Header */}
               <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ width: '72px', height: '72px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), var(--primary-light))', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '1.8rem', fontWeight: 'bold', color: 'white' }}>
-                  {(selectedUser.name_ar || selectedUser.name?.ar || selectedUser.username || '?')[0]}
+                <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '3px solid var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), var(--primary-light))' }}>
+                  {selectedUser.avatar_url
+                    ? <img src={selectedUser.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    : <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>{(selectedUser.name_ar || selectedUser.username || '?')[0]}</span>
+                  }
                 </div>
                 <h3 style={{ margin: '0 0 0.3rem', color: 'var(--text-primary)', fontSize: '1.3rem' }}>
                   {selectedUser.name_ar || selectedUser.name?.ar || selectedUser.full_name || selectedUser.username}
@@ -510,7 +538,12 @@ const Home = () => {
                 </span>
               </div>
 
-              {/* Info Grid */}
+              {selectedUser._loading ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
+                  {lang === 'ar' ? 'جاري تحميل البيانات...' : 'Loading data...'}
+                </div>
+              ) : (
+              /* Info Grid */
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
                 {[
                   { label: lang === 'ar' ? 'الرقم الجامعي' : 'University ID', value: selectedUser.username || selectedUser.university_id, icon: '🎓' },
@@ -532,6 +565,7 @@ const Home = () => {
                   </div>
                 ))}
               </div>
+              )}
             </motion.div>
           </div>
         )}
