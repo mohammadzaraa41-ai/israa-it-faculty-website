@@ -102,46 +102,46 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchAllUsers = async () => {
+    // Load from cache IMMEDIATELY so UI doesn't flash empty
+    try {
+      const cached = localStorage.getItem('cached_users_v1');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.length > 0) setUsers(parsed);
+      }
+    } catch {}
+
+    // Then fetch fresh data in background
     const client = supabaseAdmin || supabase;
     const { data, error } = await client.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
-      setUsers([]);
       return [];
     }
-    if (data) {
-      console.log(`[Debug] Total users fetched: ${data.length}`);
-      data.forEach(u => {
-        console.log(`[Debug] User "${u.username}":`, {
-          name_ar: u.name_ar, name_en: u.name_en, full_name: u.full_name,
-          phone: u.phone, major: u.major, year_sem: u.year_sem,
-          hours: u.hours, dob: u.dob, avatar_url: u.avatar_url,
-          department_id: u.department_id, role: u.role
-        });
-      });
-
+    if (data && data.length > 0) {
       const mapped = data.map(({ password, ...u }) => ({
         ...u,
         name: { 
-          ar: u.name_ar || u.full_name || u.fullName || u.username, 
-          en: u.name_en || u.name_ar || u.full_name || u.fullName || u.username 
+          ar: u.name_ar || u.full_name || u.username, 
+          en: u.name_en || u.name_ar || u.full_name || u.username 
         },
-        name_ar: u.name_ar || u.full_name || u.fullName,
-        full_name: u.full_name || u.fullName || u.name_ar,
+        name_ar: u.name_ar || u.full_name,
+        full_name: u.full_name || u.name_ar,
         fullName: u.fullName || u.full_name || u.name_ar,
-        universityId: u.universityId || u.university_id || u.username,
-        university_id: u.university_id || u.universityId || u.username,
-        departmentId: u.department_id || u.departmentId,
-        department_id: u.department_id || u.departmentId,
+        universityId: u.university_id || u.username,
+        university_id: u.university_id || u.username,
+        departmentId: u.department_id,
+        department_id: u.department_id,
         phone: u.phone || u.phone_number,
         phone_number: u.phone_number || u.phone,
         year_sem: u.year_sem || u.yearSem,
         yearSem: u.yearSem || u.year_sem,
       }));
       setUsers(mapped);
+      // Save to cache for next navigation
+      try { localStorage.setItem('cached_users_v1', JSON.stringify(mapped)); } catch {}
       return mapped;
     }
-    setUsers([]);
     return [];
   };
 
