@@ -102,31 +102,23 @@ export const AuthProvider = ({ children }) => {
   };
 
   const fetchAllUsers = async () => {
-    const { data, error } = await supabase.from('users').select('*');
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
       setUsers([]);
       return [];
     }
     if (data) {
-      // === DEBUG: Print every user's raw data ===
-      console.log(`[Debug] Total users in DB: ${data.length}`);
+      console.log(`[Debug] Total users fetched: ${data.length}`);
       data.forEach(u => {
         console.log(`[Debug] User "${u.username}":`, {
-          name_ar: u.name_ar,
-          name_en: u.name_en,
-          full_name: u.full_name,
-          phone: u.phone,
-          major: u.major,
-          year_sem: u.year_sem,
-          hours: u.hours,
-          dob: u.dob,
-          avatar_url: u.avatar_url,
-          department_id: u.department_id,
-          role: u.role
+          name_ar: u.name_ar, name_en: u.name_en, full_name: u.full_name,
+          phone: u.phone, major: u.major, year_sem: u.year_sem,
+          hours: u.hours, dob: u.dob, avatar_url: u.avatar_url,
+          department_id: u.department_id, role: u.role
         });
       });
-      // ==========================================
 
       const mapped = data.map(({ password, ...u }) => ({
         ...u,

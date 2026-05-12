@@ -229,12 +229,12 @@ const Home = () => {
       return;
     }
 
-    // If not in local cache, fetch from DB directly
+    // If not in local cache, fetch from DB directly using admin client
     setSelectedUser({ ...baseInfo, _loading: true });
     try {
-      const { data } = await import('../lib/supabase').then(m => 
-        m.supabase.from('users').select('*').eq('username', username).single()
-      );
+      const { supabase: sb, supabaseAdmin } = await import('../lib/supabase');
+      const client = supabaseAdmin || sb;
+      const { data } = await client.from('users').select('*').eq('username', username).single();
       if (data) {
         setSelectedUser({
           ...baseInfo,
