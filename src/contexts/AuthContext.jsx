@@ -595,25 +595,36 @@ export const AuthProvider = ({ children }) => {
 
   const approveAlumniRequest = async (requestId) => {
     const req = alumniRequests.find(r => r.id === requestId);
-    if (req) {
-      const { error: userErr } = await supabase.from('users').update({ is_alumni: true }).eq('id', req.userId);
-      if (userErr) return false;
-      await supabase.from('alumni_requests').delete().eq('id', requestId);
-      setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, is_alumni: true } : u));
-      setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
-      if (user?.id === req.userId) setUser({ ...user, is_alumni: true });
-      return true;
+    if (!req) return { success: false, message: 'الطلب غير موجود' };
+    
+    const client = supabaseAdmin || supabase;
+    
+    // 1. Mark user as alumni
+    const { error: userErr } = await client.from('users').update({ is_alumni: true }).eq('id', req.userId);
+    if (userErr) {
+      console.error('[ApproveAlumni] Failed to update user:', userErr);
+      return { success: false, message: userErr.message };
     }
-    return false;
+    
+    // 2. Delete the request
+    await client.from('alumni_requests').delete().eq('id', requestId);
+    
+    // 3. Update local state
+    setUsers(prev => prev.map(u => u.id === req.userId ? { ...u, is_alumni: true } : u));
+    setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
+    if (user?.id === req.userId) setUser({ ...user, is_alumni: true });
+    return { success: true };
   };
 
   const rejectAlumniRequest = async (requestId) => {
-    const { error } = await supabase.from('alumni_requests').update({ status: 'rejected' }).eq('id', requestId);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from('alumni_requests').delete().eq('id', requestId);
     if (!error) {
-      setAlumniRequests(prev => prev.map(r => r.id === requestId ? { ...r, status: 'rejected' } : r));
-      return true;
+      setAlumniRequests(prev => prev.filter(r => r.id !== requestId));
+      return { success: true };
     }
-    return false;
+    console.error('[RejectAlumni] Failed:', error);
+    return { success: false, message: error.message };
   };
 
   const rejectUser = async (pendingId) => {

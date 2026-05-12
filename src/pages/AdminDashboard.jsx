@@ -285,6 +285,29 @@ const AdminDashboard = () => {
 };
 
 const AlumniRequests = ({ alumniRequests, approveAlumniRequest, rejectAlumniRequest, lang }) => {
+  const [loadingId, setLoadingId] = React.useState(null);
+
+  const handleApprove = async (reg) => {
+    setLoadingId(reg.id + '-approve');
+    const result = await approveAlumniRequest(reg.id);
+    setLoadingId(null);
+    if (result?.success) {
+      alert(lang === 'ar' ? `✅ تمت الموافقة على ${reg.fullName || reg.full_name}` : `✅ Approved ${reg.fullName || reg.full_name}`);
+    } else {
+      alert(lang === 'ar' ? `❌ فشل: ${result?.message || 'خطأ غير معروف'}` : `❌ Failed: ${result?.message || 'Unknown error'}`);
+    }
+  };
+
+  const handleReject = async (reg) => {
+    if (!window.confirm(lang === 'ar' ? `هل تريد رفض طلب ${reg.fullName || reg.full_name}؟` : `Reject request from ${reg.fullName || reg.full_name}?`)) return;
+    setLoadingId(reg.id + '-reject');
+    const result = await rejectAlumniRequest(reg.id);
+    setLoadingId(null);
+    if (!result?.success) {
+      alert(lang === 'ar' ? `❌ فشل الرفض: ${result?.message || 'خطأ غير معروف'}` : `❌ Reject Failed: ${result?.message}`);
+    }
+  };
+
   if (!alumniRequests || alumniRequests.length === 0) {
     return (
       <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-secondary)' }}>
@@ -304,32 +327,51 @@ const AlumniRequests = ({ alumniRequests, approveAlumniRequest, rejectAlumniRequ
           <div key={reg.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <h4 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>{reg.fullName}</h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{reg.universityId}</p>
+                <h4 style={{ fontSize: '1.25rem', color: 'var(--text-primary)' }}>{reg.fullName || reg.full_name || '---'}</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{reg.universityId || reg.university_id || '---'}</p>
               </div>
               <div style={{ background: 'var(--primary-color)', color: 'white', padding: '4px 10px', borderRadius: '6px', fontSize: '0.8rem' }}>
                 {reg.hours} {lang === 'ar' ? 'ساعة' : 'Hours'}
               </div>
             </div>
             
-            {reg.scheduleImage && (
+            {(reg.scheduleImage || reg.schedule_image) && (
               <div style={{ borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                <img src={reg.scheduleImage} alt="Schedule" style={{ width: '100%', height: '150px', objectFit: 'cover', cursor: 'pointer' }} onClick={() => window.open(reg.scheduleImage)} />
+                <img 
+                  src={reg.scheduleImage || reg.schedule_image} 
+                  alt="Schedule" 
+                  style={{ width: '100%', height: '150px', objectFit: 'cover', cursor: 'pointer' }} 
+                  onClick={() => window.open(reg.scheduleImage || reg.schedule_image)} 
+                />
               </div>
             )}
 
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto' }}>
               <button 
-                onClick={() => approveAlumniRequest(reg.id)}
-                style={{ flex: 1, padding: '0.75rem', background: '#2ecc71', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                onClick={() => handleApprove(reg)}
+                disabled={loadingId === reg.id + '-approve' || loadingId === reg.id + '-reject'}
+                style={{ 
+                  flex: 1, padding: '0.75rem', 
+                  background: loadingId === reg.id + '-approve' ? '#27ae60' : '#2ecc71', 
+                  color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold',
+                  opacity: loadingId ? 0.7 : 1
+                }}
               >
-                <Check size={18} /> {lang === 'ar' ? 'موافقة' : 'Approve'}
+                {loadingId === reg.id + '-approve' ? '...' : <><Check size={18} /> {lang === 'ar' ? 'موافقة' : 'Approve'}</>}
               </button>
               <button 
-                onClick={() => rejectAlumniRequest(reg.id)}
-                style={{ flex: 1, padding: '0.75rem', background: '#e74c3c', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold' }}
+                onClick={() => handleReject(reg)}
+                disabled={loadingId === reg.id + '-approve' || loadingId === reg.id + '-reject'}
+                style={{ 
+                  flex: 1, padding: '0.75rem', 
+                  background: loadingId === reg.id + '-reject' ? '#c0392b' : '#e74c3c', 
+                  color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', fontWeight: 'bold',
+                  opacity: loadingId ? 0.7 : 1
+                }}
               >
-                <X size={18} /> {lang === 'ar' ? 'رفض' : 'Reject'}
+                {loadingId === reg.id + '-reject' ? '...' : <><X size={18} /> {lang === 'ar' ? 'رفض' : 'Reject'}</>}
               </button>
             </div>
           </div>
