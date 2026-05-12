@@ -580,9 +580,15 @@ export const AdminProvider = ({ children }) => {
       if (postsResRaw.data) {
         const mapPost = (p) => ({
           ...p,
-          author: typeof p.author === 'object' ? p.author : { 
-            name: (p.author_name && p.author_name !== "مستخدم جديد") ? p.author_name : p.author_username, 
-            role: p.author_role || 'STUDENT' 
+          author: typeof p.author === 'object' ? {
+            ...p.author,
+            username: p.author.username || p.author_username,
+            avatar_url: p.author.avatar_url || p.author_avatar_url || null
+          } : { 
+            name: (p.author_name && p.author_name !== "مستخدم جديد") ? p.author_name : p.author_username,
+            username: p.author_username,
+            role: p.author_role || 'STUDENT',
+            avatar_url: p.author_avatar_url || null
           },
           date: new Date(p.created_at).toLocaleDateString('en-GB'),
           comments: (p.comments || []).map(c => ({
@@ -591,7 +597,8 @@ export const AdminProvider = ({ children }) => {
             username: c.author_username,
             text: c.content,
             likes: c.likes || [],
-            parent_id: c.parent_id || null
+            parent_id: c.parent_id || null,
+            avatar_url: c.author_avatar_url || null
           }))
         });
         const postsData = postsResRaw.data;
