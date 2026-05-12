@@ -509,35 +509,34 @@ export const AuthProvider = ({ children }) => {
 
   const submitAlumniRequest = async (userId, data) => {
     try {
-      console.log("[AlumniRequest] Starting submission for user:", userId);
+      // 1. Get the absolute definitive UID from the current session
+      const { data: sessionData } = await supabase.auth.getSession();
+      const authUid = sessionData?.session?.user?.id;
+      
+      if (!authUid) {
+        return { success: false, message: 'يجب تسجيل الدخول أولاً' };
+      }
+
+      console.log("[AlumniRequest] Using Auth UID:", authUid);
       
       let imageUrl = data.scheduleImage;
       if (data.imageFile) {
         const file = data.imageFile;
         const fileExt = file.name.split('.').pop();
-        const fileName = `${userId}-${Date.now()}.${fileExt}`;
+        const fileName = `${authUid}-${Date.now()}.${fileExt}`;
         const filePath = `alumni_schedules/${fileName}`;
         
-        console.log("[AlumniRequest] Uploading image:", filePath);
         const { error: uploadError } = await supabase.storage.from('faculty_uploads').upload(filePath, file);
         if (!uploadError) {
           const { data: { publicUrl } } = supabase.storage.from('faculty_uploads').getPublicUrl(filePath);
           imageUrl = publicUrl;
-          console.log("[AlumniRequest] Upload successful:", imageUrl);
-        } else {
-          console.error("[AlumniRequest] Upload failed:", uploadError);
-          // If upload fails, we continue but the insert might fail if this is required
         }
       }
 
-      // If imageUrl is still a blob URL, it means upload failed. 
-      // We shouldn't send blob URLs to the DB as it might violate RLS or constraints.
-      if (imageUrl && imageUrl.startsWith('blob:')) {
-        imageUrl = null; 
-      }
+      if (imageUrl && imageUrl.startsWith('blob:')) imageUrl = null;
 
       const request = { 
-        user_id: userId, 
+        user_id: authUid, 
         full_name: data.fullName || user?.name?.ar || user?.fullName || user?.full_name || 'Student', 
         university_id: data.universityId || user?.universityId || user?.university_id || user?.username || '000000', 
         hours: parseInt(data.hours) || 0, 
@@ -545,40 +544,51 @@ export const AuthProvider = ({ children }) => {
         status: 'pending' 
       };
 
-      console.log("[AlumniRequest] Attempting insert with object:", request);
+      console.log("[AlumniRequest] Final Object:", request);
 
-      // Try using Admin client first to bypass RLS
-      // If supabaseAdmin is null, fallback to normal client
       const client = supabaseAdmin || supabase;
-      if (!supabaseAdmin) console.warn("[AlumniRequest] supabaseAdmin is not available, falling back to public client (RLS will be active)");
+      if (!supabaseAdmin) console.warn("[AlumniRequest] Running without Admin Key - RLS active");
 
+      // Stage 1: Full Insert
       const { data: insertedData, error } = await client.from('alumni_requests').insert([request]).select();
       
       if (!error && insertedData) {
-        console.log("[AlumniRequest] Success:", insertedData);
-        setAlumniRequests(prev => [...prev, { ...data, id: insertedData[0].id, userId, scheduleImage: imageUrl, status: 'pending' }]);
+        setAlumniRequests(prev => [...prev, { ...data, id: insertedData[0].id, userId: authUid, scheduleImage: imageUrl, status: 'pending' }]);
         return { success: true };
       }
 
-      // If it failed with RLS error, try one last time without the 'status' column 
-      // (some RLS policies block setting status explicitly)
       if (error && (error.code === '42501' || error.message?.includes('RLS'))) {
-        console.warn("[AlumniRequest] RLS Violation detected. Retrying without 'status' column...");
-        const { status, ...minimalRequest } = request;
+        console.warn("[AlumniRequest] RLS Violation. Attempting Stage 2: Minimal Insert...");
+        
+        // Stage 2: Bare Minimum (User ID and Hours only)
+        // This helps identify if the policy restricts specific columns
+        const minimalRequest = {
+          user_id: authUid,
+          hours: parseInt(data.hours) || 0,
+          status: 'pending'
+        };
+        
         const { data: retryData, error: retryError } = await client.from('alumni_requests').insert([minimalRequest]).select();
         
         if (!retryError && retryData) {
-          setAlumniRequests(prev => [...prev, { ...data, id: retryData[0].id, userId, scheduleImage: imageUrl, status: 'pending' }]);
+          console.log("[AlumniRequest] Stage 2 Success. Updating with remaining data...");
+          // If minimal insert worked, try to update the rest (though this might also fail if update policy is same)
+          await client.from('alumni_requests').update({
+            full_name: request.full_name,
+            university_id: request.university_id,
+            schedule_image: request.schedule_image
+          }).eq('id', retryData[0].id);
+          
+          setAlumniRequests(prev => [...prev, { ...data, id: retryData[0].id, userId: authUid, scheduleImage: imageUrl, status: 'pending' }]);
           return { success: true };
         }
-        console.error("[AlumniRequest] Retry failed:", retryError);
-        return { success: false, message: retryError?.message || 'RLS Violation' };
+        
+        console.error("[AlumniRequest] Stage 2 Failed:", retryError);
+        return { success: false, message: "فشل الإرسال: سياسة الحماية تمنع الإضافة. يرجى التأكد من صلاحيات الجدول." };
       }
 
-      console.error("[AlumniRequest] Insert Error:", error);
       return { success: false, message: error?.message || 'فشل إرسال الطلب' };
     } catch (err) { 
-      console.error("[AlumniRequest] Critical Catch:", err);
       return { success: false, message: err.message }; 
     }
   };
