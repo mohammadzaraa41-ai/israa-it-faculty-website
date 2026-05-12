@@ -45,6 +45,7 @@ const Navbar = () => {
 
   const [regData, setRegData] = useState({
     fullName: '',
+    nameEn: '',
     phone: '',
     universityId: '',
     dob: '',
@@ -55,6 +56,8 @@ const Navbar = () => {
     password: '',
     confirmPassword: ''
   });
+  const [navAvatarFile, setNavAvatarFile] = useState(null);
+  const [navAvatarPreview, setNavAvatarPreview] = useState(null);
 
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
@@ -93,15 +96,20 @@ const Navbar = () => {
 
     const result = await registerRequest({
       ...regData,
-      yearSem: yearSemLabel
+      fullName: regData.fullName,
+      nameEn: regData.nameEn,
+      yearSem: yearSemLabel,
+      avatarFile: navAvatarFile || null
     });
 
     if (result.success) {
       setRegistrationSuccess(true);
+      setNavAvatarFile(null);
+      setNavAvatarPreview(null);
       setTimeout(() => {
         setRegistrationSuccess(false);
         toggleLogin(false);
-        setRegData({ fullName: '', phone: '', universityId: '', dob: '', major: '', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' });
+        setRegData({ fullName: '', nameEn: '', phone: '', universityId: '', dob: '', major: '', year: '1', semester: '1', hours: '', password: '', confirmPassword: '' });
       }, 5000);
     } else {
       alert(lang === 'ar' ? 'حدث خطأ أثناء التسجيل: ' + result.message : 'Error during registration: ' + result.message);
@@ -129,6 +137,7 @@ const Navbar = () => {
         { to: '/current', label: t('nav.current') },
         { to: '/faculty', label: t('nav.faculty') },
         { to: '/academic-advisor', label: t('nav.ai_advisor') },
+        { to: '/roadmap', label: lang === 'ar' ? '🗺️ خريطة المواد 3D' : '🗺️ 3D Course Roadmap' },
         { to: '/current', label: lang === 'ar' ? 'الخطط الدراسية' : 'Study Plans' },
         { to: '/academic-calendar', label: lang === 'ar' ? 'التقويم الجامعي' : 'Academic Calendar' },
         { to: '/honor-roll', label: lang === 'ar' ? 'لوحة الشرف' : 'Honor Roll' }
@@ -459,9 +468,43 @@ const Navbar = () => {
               ) : (
                 <form className="register-form" onSubmit={handleRegisterSubmit}>
                   <div className="form-grid">
-                    <div className="input-group full-width">
-                      <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم الكامل (من 3 مقاطع)' : 'Full Name (3 segments)'}</label>
-                      <input type="text" value={regData.fullName} onChange={e => setRegData({...regData, fullName: e.target.value})} placeholder={lang === 'ar' ? 'مثال: أحمد محمد علي' : 'e.g. Ahmed Mohamed Ali'} required />
+
+                    {/* Avatar Upload */}
+                    <div className="input-group full-width" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                      <div
+                        style={{ width: '80px', height: '80px', borderRadius: '50%', border: '2px dashed var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', overflow: 'hidden', background: 'rgba(255,255,255,0.05)' }}
+                        onClick={() => document.getElementById('nav-avatar-upload').click()}
+                      >
+                        {navAvatarPreview
+                          ? <img src={navAvatarPreview} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          : <span style={{ fontSize: '2rem' }}>📷</span>
+                        }
+                      </div>
+                      <label style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', cursor: 'pointer' }} onClick={() => document.getElementById('nav-avatar-upload').click()}>
+                        {lang === 'ar' ? 'صورة شخصية (اختياري)' : 'Profile Photo (Optional)'}
+                      </label>
+                      <input
+                        id="nav-avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={e => {
+                          const file = e.target.files[0];
+                          if (file) { setNavAvatarFile(file); setNavAvatarPreview(URL.createObjectURL(file)); }
+                        }}
+                      />
+                    </div>
+
+                    {/* Arabic Name */}
+                    <div className="input-group">
+                      <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم بالعربية' : 'Name (Arabic)'}</label>
+                      <input type="text" value={regData.fullName} onChange={e => setRegData({...regData, fullName: e.target.value})} placeholder={lang === 'ar' ? 'مثال: أحمد محمد علي' : 'e.g. أحمد محمد علي'} required />
+                    </div>
+
+                    {/* English Name */}
+                    <div className="input-group">
+                      <label><UserCheck size={18} /> {lang === 'ar' ? 'الاسم بالإنجليزية' : 'Name (English)'}</label>
+                      <input type="text" value={regData.nameEn} onChange={e => setRegData({...regData, nameEn: e.target.value})} placeholder="Ahmed Mohamed Ali" required />
                     </div>
 
                     <div className="input-group">
