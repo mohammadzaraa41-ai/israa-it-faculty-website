@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DB_SCHEMA } from '../data/db_schema';
 import { useAuth } from './AuthContext';
-import { supabase } from '../lib/supabase';
+import { supabase, supabaseAdmin } from '../lib/supabase';
 import { useToast } from './ToastContext';
 import { useLocale } from './LocalizationContext';
 
@@ -875,7 +875,8 @@ export const AdminProvider = ({ children }) => {
     const imageValue = finalImageUrls.length > 0 ? finalImageUrls.join(',') : null;
 
     // 5. INSERT REAL DATA TO DB
-    const { data, error } = await supabase.from('posts').insert([{
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client.from('posts').insert([{
       content: postData.content,
       image: imageValue,
       author_username: user.username,
@@ -932,7 +933,8 @@ export const AdminProvider = ({ children }) => {
 
   const deletePost = async (postId) => {
     try {
-      const { error } = await supabase.from('posts').delete().eq('id', postId);
+      const client = supabaseAdmin || supabase;
+      const { error } = await client.from('posts').delete().eq('id', postId);
       if (error) throw error;
       
       setPosts(prev => prev.filter(p => p.id !== postId));
@@ -965,14 +967,16 @@ export const AdminProvider = ({ children }) => {
     const hasLiked = post.likes.includes(username);
     const newLikes = hasLiked ? post.likes.filter(u => u !== username) : [...post.likes, username];
 
-    const { error } = await supabase.from('posts').update({ likes: newLikes }).eq('id', postId);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from('posts').update({ likes: newLikes }).eq('id', postId);
     if (!error) {
       setPosts(posts.map(p => p.id === postId ? { ...p, likes: newLikes } : p));
     }
   };
 
   const addComment = async (postId, commentData) => {
-    const { data, error } = await supabase.from('comments').insert([{
+    const client = supabaseAdmin || supabase;
+    const { data, error } = await client.from('comments').insert([{
       post_id: postId,
       content: commentData.text,
       author_name: (user.name_ar && user.name_ar !== "مستخدم جديد") ? user.name_ar : user.username,
@@ -1006,7 +1010,8 @@ export const AdminProvider = ({ children }) => {
   };
 
   const deleteComment = async (commentId, postId) => {
-    const { error } = await supabase.from('comments').delete().eq('id', commentId);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from('comments').delete().eq('id', commentId);
     if (!error) {
       setPosts(posts.map(p => p.id === postId
         ? { ...p, comments: p.comments.filter(c => c.id !== commentId) }
@@ -1042,14 +1047,16 @@ export const AdminProvider = ({ children }) => {
     setPendingPosts(updateState);
 
     // Update DB
-    const { error } = await supabase.from('posts').update({ poll_data: updatedPollData }).eq('id', postId);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from('posts').update({ poll_data: updatedPollData }).eq('id', postId);
     if (error) {
       console.error("Error voting on poll:", error);
     }
   };
 
   const editComment = async (commentId, postId, newText) => {
-    const { error } = await supabase.from('comments').update({ content: newText }).eq('id', commentId);
+    const client = supabaseAdmin || supabase;
+    const { error } = await client.from('comments').update({ content: newText }).eq('id', commentId);
     if (!error) {
       setPosts(posts.map(p => p.id === postId
         ? { ...p, comments: p.comments.map(c => c.id === commentId ? { ...c, text: newText } : c) }
