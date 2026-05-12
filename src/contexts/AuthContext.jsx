@@ -105,16 +105,33 @@ export const AuthProvider = ({ children }) => {
     const { data, error } = await supabase.from('users').select('*');
     if (error) {
       console.error("fetchAllUsers error:", error.message);
-      setUsers([]); // Reset to empty on error - prevents ghost accounts
+      setUsers([]);
       return [];
     }
     if (data) {
+      // Log first user to see all available columns in Supabase
+      if (data.length > 0) console.log("[Debug] Raw user columns from DB:", Object.keys(data[0]));
+      
       const mapped = data.map(({ password, ...u }) => ({
+        // Keep ALL raw columns first (spread raw data)
         ...u,
-        name: { ar: u.name_ar || u.fullName || u.full_name, en: u.name_en || u.name_ar || u.fullName || u.full_name },
+        // Then add normalized/computed fields on top
+        name: { 
+          ar: u.name_ar || u.full_name || u.fullName || u.username, 
+          en: u.name_en || u.name_ar || u.full_name || u.fullName || u.username 
+        },
+        // Ensure these aliases are always available
+        name_ar: u.name_ar || u.full_name || u.fullName,
+        full_name: u.full_name || u.fullName || u.name_ar,
         fullName: u.fullName || u.full_name || u.name_ar,
         universityId: u.universityId || u.university_id || u.username,
-        departmentId: u.department_id || u.departmentId
+        university_id: u.university_id || u.universityId || u.username,
+        departmentId: u.department_id || u.departmentId,
+        department_id: u.department_id || u.departmentId,
+        phone: u.phone || u.phone_number,
+        phone_number: u.phone_number || u.phone,
+        year_sem: u.year_sem || u.yearSem,
+        yearSem: u.yearSem || u.year_sem,
       }));
       setUsers(mapped);
       return mapped;

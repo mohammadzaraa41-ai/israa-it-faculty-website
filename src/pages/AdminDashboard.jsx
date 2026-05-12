@@ -232,7 +232,7 @@ const AdminDashboard = () => {
             animate={{ scale: 1, opacity: 1 }}
             className="glass-panel modal-content-scrollable" 
             onClick={e => e.stopPropagation()}
-            style={{ padding: '2.5rem', position: 'relative' }}
+            style={{ padding: '2.5rem', position: 'relative', maxWidth: '600px', width: '90%' }}
           >
             <button 
               onClick={() => setSelectedUser(null)}
@@ -241,45 +241,79 @@ const AdminDashboard = () => {
               <X size={24} />
             </button>
 
+            {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '20px', background: 'var(--primary-color)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
-                <Users size={40} />
+              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary-color), var(--accent-color))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem', fontSize: '2rem' }}>
+                {(selectedUser.name_ar || selectedUser.full_name || selectedUser.username || '?')[0]}
               </div>
-              <h2 style={{ margin: 0, color: 'var(--text-primary)' }}>
-                {selectedUser.name_ar || (typeof selectedUser.name === 'object' ? (selectedUser.name[lang] || selectedUser.name.ar) : selectedUser.name) || selectedUser.username}
+              <h2 style={{ margin: '0 0 0.25rem', color: 'var(--text-primary)', fontSize: '1.5rem' }}>
+                {selectedUser.name_ar || selectedUser.full_name || (typeof selectedUser.name === 'object' ? selectedUser.name.ar : selectedUser.name) || selectedUser.username || '---'}
               </h2>
-              <p style={{ color: 'var(--primary-color)', fontWeight: 'bold' }}>#{selectedUser.username}</p>
+              {selectedUser.name_en && selectedUser.name_en !== selectedUser.name_ar && (
+                <p style={{ color: 'var(--text-secondary)', margin: '0 0 0.5rem', fontSize: '0.95rem' }}>{selectedUser.name_en}</p>
+              )}
+              <span style={{ background: 'var(--primary-color)', color: 'white', padding: '3px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                {selectedUser.role || 'STUDENT'}
+              </span>
             </div>
 
-            <div style={{ display: 'grid', gap: '1rem' }}>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'الرتبة' : 'Role'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.role || 'STUDENT'}</div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'القسم' : 'Department'}</label>
-                <div style={{ fontWeight: 'bold' }}>
-                  {(() => {
+            {/* Info Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              {[
+                { 
+                  label: lang === 'ar' ? '🎓 الرقم الجامعي' : '🎓 University ID', 
+                  value: selectedUser.university_id || selectedUser.universityId || selectedUser.username || '---' 
+                },
+                { 
+                  label: lang === 'ar' ? '🏛️ القسم' : '🏛️ Department', 
+                  value: (() => {
                     const deptId = selectedUser.department_id || selectedUser.departmentId;
                     const dept = (departments || []).find(d => d.id === deptId);
                     return dept ? (dept.name?.[lang] || dept.name?.ar) : (deptId || '---');
-                  })()}
+                  })()
+                },
+                { 
+                  label: lang === 'ar' ? '📚 التخصص' : '📚 Major', 
+                  value: selectedUser.major || selectedUser.specialization || '---' 
+                },
+                { 
+                  label: lang === 'ar' ? '📅 السنة الدراسية' : '📅 Academic Year', 
+                  value: selectedUser.year_sem || selectedUser.yearSem || '---' 
+                },
+                { 
+                  label: lang === 'ar' ? '⏱️ الساعات المقطوعة' : '⏱️ Completed Hours', 
+                  value: selectedUser.hours ? `${selectedUser.hours} ${lang === 'ar' ? 'ساعة' : 'hrs'}` : '---'
+                },
+                { 
+                  label: lang === 'ar' ? '📞 رقم الهاتف' : '📞 Phone', 
+                  value: selectedUser.phone_number || selectedUser.phone || '---' 
+                },
+                { 
+                  label: lang === 'ar' ? '🎂 تاريخ الميلاد' : '🎂 Date of Birth', 
+                  value: selectedUser.dob ? new Date(selectedUser.dob).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'
+                },
+                { 
+                  label: lang === 'ar' ? '📆 تاريخ الانضمام' : '📆 Join Date', 
+                  value: selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'
+                },
+              ].map(({ label, value }) => (
+                <div key={label} style={{ padding: '0.85rem 1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                  <label style={{ display: 'block', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{label}</label>
+                  <div style={{ fontWeight: 'bold', fontSize: '0.95rem', color: value === '---' ? 'var(--text-secondary)' : 'var(--text-primary)' }}>{value}</div>
                 </div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'رقم الهاتف' : 'Phone Number'}</label>
-                <div style={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <Phone size={16} /> {selectedUser.phone_number || selectedUser.phone || '---'}
-                </div>
-              </div>
-              <div style={{ padding: '1rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-color)' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date'}</label>
-                <div style={{ fontWeight: 'bold' }}>{selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : '---'}</div>
-              </div>
+              ))}
             </div>
+
+            {/* is_alumni badge */}
+            {selectedUser.is_alumni && (
+              <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: 'rgba(46,204,113,0.1)', border: '1px solid #2ecc71', borderRadius: '10px', color: '#2ecc71', fontWeight: 'bold', textAlign: 'center' }}>
+                🎓 {lang === 'ar' ? 'خريج معتمد' : 'Approved Alumni'}
+              </div>
+            )}
           </motion.div>
         </div>
       )}
+
     </div>
   );
 };
@@ -1083,7 +1117,7 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
           const userPhone = u.phone_number || u.phone || '---';
           
           return (
-            <div key={u.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', position: 'relative', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }} onClick={() => setSelectedUser(u)}>
+            <div key={u.id} className="glass-panel" style={{ padding: '1.5rem', border: '1px solid var(--border-color)', position: 'relative', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.2s' }} onClick={() => { console.log("[Debug] Selected User Data:", JSON.stringify(u, null, 2)); setSelectedUser(u); }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                   <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: badge.bg, color: badge.text, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
