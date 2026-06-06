@@ -450,6 +450,7 @@ export const AuthProvider = ({ children }) => {
         return { success: false, message: `فشل إنشاء ملف المستخدم: ${profileError.message}` };
       }
 
+      localStorage.removeItem('cached_users_v2');
       await fetchAllUsers();
       return { success: true, user: authData.user };
     } catch (err) {
