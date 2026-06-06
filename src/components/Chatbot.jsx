@@ -114,7 +114,9 @@ const Chatbot = () => {
       setMessages(prev => [...prev, { text: botReply, isBot: true }]);
     } catch (error) {
       console.error("Chatbot API Error:", error);
-      setMessages(prev => [...prev, { text: `⚠️ خطأ في الاتصال بالذكاء الاصطناعي: ${error.message}`, isBot: true }]);
+      // Fallback to local offline data so the user gets an answer even if the API is down or rate-limited
+      const fallbackReply = getLocalFallback(msgText, lang);
+      setMessages(prev => [...prev, { text: fallbackReply, isBot: true }]);
     } finally {
       setIsLoading(false);
     }
