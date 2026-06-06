@@ -141,8 +141,8 @@ export const AdminProvider = ({ children }) => {
             ...p,
             author: typeof p.author === 'object' ? {
               ...p.author,
-              username: p.author.username || p.author_username,
-              avatar_url: p.author.avatar_url || p.author_avatar_url || null
+              username: p.author_username || p.author.username,
+              avatar_url: p.author_avatar_url || p.author.avatar_url || null
             } : { 
               name: p.author_name || p.author_username || 'User',
               username: p.author_username,
@@ -583,8 +583,8 @@ export const AdminProvider = ({ children }) => {
           ...p,
           author: typeof p.author === 'object' ? {
             ...p.author,
-            username: p.author.username || p.author_username,
-            avatar_url: p.author.avatar_url || p.author_avatar_url || null
+            username: p.author_username || p.author.username,
+            avatar_url: p.author_avatar_url || p.author.avatar_url || null
           } : { 
             name: (p.author_name && p.author_name !== "مستخدم جديد") ? p.author_name : p.author_username,
             username: p.author_username,

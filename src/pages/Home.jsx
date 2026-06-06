@@ -428,8 +428,8 @@ const Home = () => {
                   <div className="post-header">
                     <div className="post-author-info">
                       <div className="author-avatar">
-                        {post.author.avatar_url ? (
-                          <img src={post.author.avatar_url} alt="Avatar" className="author-img-small" />
+                        {((user && post.author.username === user.username && user.avatar_url) || post.author.avatar_url) ? (
+                          <img src={(user && post.author.username === user.username && user.avatar_url) ? user.avatar_url : post.author.avatar_url} alt="Avatar" className="author-img-small" />
                         ) : (
                           <User size={24} />
                         )}
@@ -439,7 +439,7 @@ const Home = () => {
                           className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
                           onClick={() => isAdmin && showUserInfo(post.author.username, post.author)}
                         >
-                          {post.author.name}
+                          {(user && post.author.username === user.username) ? (user.name?.ar || user.name_ar || post.author.name) : post.author.name}
                         </h4>
                         <span className="post-date">{post.date} • {post.author.role}</span>
                       </div>
@@ -780,7 +780,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
     return (
       <div className={`comment-item ${isReply ? 'comment-nested-reply' : ''}`}>
         <div className="comment-avatar-tiny">
-          {comment.avatar_url ? <img src={comment.avatar_url} alt="" /> : <User size={12} />}
+          {((user && comment.username === user.username && user.avatar_url) || comment.avatar_url) ? <img src={(user && comment.username === user.username && user.avatar_url) ? user.avatar_url : comment.avatar_url} alt="" /> : <User size={12} />}
         </div>
         <div className="comment-content-wrapper">
           <div className="comment-header-row">
@@ -788,7 +788,7 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
               className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
               onClick={() => isAdmin && showUserInfo(comment.username, comment)}
             >
-              {comment.author}
+              {(user && comment.username === user.username) ? (user.name?.ar || user.name_ar || comment.author) : comment.author}
               {isReply && <span className="reply-mention-tag"> ↩ رد</span>}
             </h5>
             <div className="comment-actions-row">
