@@ -82,7 +82,7 @@ const Chatbot = () => {
       }));
 
       const payload = {
-        system_instruction: {
+        systemInstruction: {
           parts: [{ text: SYSTEM_PROMPT }]
         },
         contents: history,
@@ -100,21 +100,21 @@ const Chatbot = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch from Gemini API');
+        const errText = await response.text();
+        throw new Error(`API Error ${response.status}: ${errText}`);
       }
 
       const data = await response.json();
       let botReply = data.candidates?.[0]?.content?.parts?.[0]?.text;
       
       if (!botReply) {
-        botReply = getLocalFallback(msgText, lang);
+        throw new Error("No response from Gemini");
       }
 
       setMessages(prev => [...prev, { text: botReply, isBot: true }]);
     } catch (error) {
       console.error("Chatbot API Error:", error);
-      const fallbackReply = getLocalFallback(msgText, lang);
-      setMessages(prev => [...prev, { text: fallbackReply, isBot: true }]);
+      setMessages(prev => [...prev, { text: `⚠️ خطأ في الاتصال بالذكاء الاصطناعي: ${error.message}`, isBot: true }]);
     } finally {
       setIsLoading(false);
     }
