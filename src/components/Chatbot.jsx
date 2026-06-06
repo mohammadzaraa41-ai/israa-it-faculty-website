@@ -5,7 +5,9 @@ import { useLocale } from '../contexts/LocalizationContext';
 import { 
   QUICK_REPLIES_AR, 
   QUICK_REPLIES_EN, 
-  getLocalFallback 
+  getLocalFallback,
+  getGeminiUrl,
+  SYSTEM_PROMPT
 } from '../constants/chatbot';
 import './Chatbot.css';
 
@@ -49,15 +51,65 @@ const Chatbot = () => {
 
     setShowQuickReplies(false);
     setInput('');
-    setMessages(prev => [...prev, { text: msgText, isBot: false }]);
+    const userMessage = { text: msgText, isBot: false };
+    setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulated intelligence for instant, error-free responses
-    setTimeout(() => {
-      const reply = getLocalFallback(msgText, lang);
-      setMessages(prev => [...prev, { text: reply, isBot: true }]);
+    try {
+      const apiKeyExists = !!import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKeyExists) {
+        // Fallback to local intelligence if no API key
+        setTimeout(() => {
+          const reply = getLocalFallback(msgText, lang);
+          setMessages(prev => [...prev, { text: reply, isBot: true }]);
+          setIsLoading(false);
+        }, 600);
+        return;
+      }
+
+      const currentMessages = [...messages, userMessage];
+      const history = currentMessages.map(msg => ({
+        role: msg.isBot ? "model" : "user",
+        parts: [{ text: msg.text }]
+      }));
+
+      const payload = {
+        system_instruction: {
+          parts: [{ text: SYSTEM_PROMPT }]
+        },
+        contents: history,
+        generationConfig: {
+          temperature: 0.7,
+        }
+      };
+
+      const response = await fetch(getGeminiUrl(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch from Gemini API');
+      }
+
+      const data = await response.json();
+      let botReply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      
+      if (!botReply) {
+        botReply = getLocalFallback(msgText, lang);
+      }
+
+      setMessages(prev => [...prev, { text: botReply, isBot: true }]);
+    } catch (error) {
+      console.error("Chatbot API Error:", error);
+      const fallbackReply = getLocalFallback(msgText, lang);
+      setMessages(prev => [...prev, { text: fallbackReply, isBot: true }]);
+    } finally {
       setIsLoading(false);
-    }, 600);
+    }
   };
 
   const renderText = (text) => {
