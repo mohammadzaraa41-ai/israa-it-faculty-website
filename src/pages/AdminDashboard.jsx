@@ -1055,10 +1055,15 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredUsers = users.filter(u => {
-    const matchesRole = roleFilter === 'ALL' || u.role === roleFilter;
-    const matchesSearch = u.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          (u.name?.ar && u.name.ar.includes(searchQuery)) ||
-                          (u.name?.en && u.name.en.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesRole = roleFilter === 'ALL' || 
+                        u.role === roleFilter || 
+                        (roleFilter === 'DEAN' && ['DEAN', 'HOD', 'DOCTOR'].includes(u.role));
+    const query = searchQuery.toLowerCase();
+    const nameAr = u.name?.ar || u.name_ar || u.full_name || '';
+    const nameEn = u.name?.en || u.name_en || '';
+    const matchesSearch = u.username.toLowerCase().includes(query) || 
+                          nameAr.toLowerCase().includes(query) ||
+                          nameEn.toLowerCase().includes(query);
     return matchesRole && matchesSearch;
   });
 

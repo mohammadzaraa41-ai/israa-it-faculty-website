@@ -137,7 +137,7 @@ export const AuthProvider = ({ children }) => {
           // If cache is fresh AND admin client available → still refresh in background but don't block
           if (Date.now() - ts < CACHE_TTL) {
             // Refresh in background silently
-            supabaseAdmin.from('users').select('*').then(({ data }) => {
+            supabaseAdmin.from('users').select('*').limit(10000).then(({ data }) => {
               if (data && data.length > 0) {
                 const mapped = data.map(mapUser);
                 setUsers(mapped);
@@ -156,7 +156,7 @@ export const AuthProvider = ({ children }) => {
       return cachedUsers;
     }
 
-    const { data, error } = await supabaseAdmin.from('users').select('*');
+    const { data, error } = await supabaseAdmin.from('users').select('*').limit(10000);
     if (error) {
       console.error("fetchAllUsers error:", error.message);
       return cachedUsers;
