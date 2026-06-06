@@ -716,10 +716,22 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Strategy 2: Always delete from public.users directly (handles ghost accounts too)
-      const { error: tableError } = await supabase.from('users').delete().eq('id', userId);
+      const client = supabaseAdmin || supabase;
+      const { error: tableError } = await client.from('users').delete().eq('id', userId);
       if (tableError) {
         console.error("Table delete error:", tableError.message);
-        throw new Error(tableError.message);
+        // Fallback: If it's a foreign key constraint, we might need to delete related posts/comments first.
+        // We will attempt to delete them if there's an FK error
+        if (tableError.message.includes('foreign key constraint')) {
+          await client.from('comments').delete().eq('username', (users.find(u => u.id === userId)?.username));
+          await client.from('posts').delete().eq('author_username', (users.find(u => u.id === userId)?.username));
+          await client.from('posts').delete().eq('author_id', userId);
+          // Try again
+          const { error: retryError } = await client.from('users').delete().eq('id', userId);
+          if (retryError) throw new Error(retryError.message);
+        } else {
+          throw new Error(tableError.message);
+        }
       }
 
       setUsers(prev => prev.filter(u => u.id !== userId));
