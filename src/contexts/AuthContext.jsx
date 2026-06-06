@@ -103,63 +103,46 @@ export const AuthProvider = ({ children }) => {
 
   const fetchAllUsers = async () => {
     const CACHE_KEY = 'cached_users_v2';
-    const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-    const mapUser = ({ password, ...u }) => ({
-      ...u,
-      name: { 
-        ar: u.name_ar || u.full_name || u.username, 
-        en: u.name_en || u.name_ar || u.full_name || u.username 
-      },
-      name_ar: u.name_ar || u.full_name,
-      full_name: u.full_name || u.name_ar,
-      universityId: u.university_id || u.username,
-      university_id: u.university_id || u.username,
-      departmentId: u.department_id,
-      department_id: u.department_id,
-      phone: u.phone || u.phone_number,
-      phone_number: u.phone_number || u.phone,
-      year_sem: u.year_sem || u.yearSem,
-      yearSem: u.yearSem || u.year_sem,
-    });
+    const mapUser = (u) => {
+      const { password, ...rest } = u;
+      return {
+        ...rest,
+        name: { 
+          ar: u.name_ar || u.full_name || u.username, 
+          en: u.name_en || u.name_ar || u.full_name || u.username 
+        },
+        name_ar: u.name_ar || u.full_name,
+        full_name: u.full_name || u.name_ar,
+        universityId: u.university_id || u.username,
+        university_id: u.university_id || u.username,
+        departmentId: u.department_id,
+        department_id: u.department_id,
+        phone: u.phone || u.phone_number,
+        phone_number: u.phone_number || u.phone,
+        year_sem: u.year_sem || u.yearSem,
+        yearSem: u.yearSem || u.year_sem,
+      };
+    };
 
-    // 1. Always load from cache first (instant display)
-    let cachedUsers = [];
-    try {
-      const raw = localStorage.getItem(CACHE_KEY);
-      if (raw) {
-        const { data: cData, ts } = JSON.parse(raw);
-        if (Array.isArray(cData) && cData.length > 0) {
-          cachedUsers = cData;
-          setUsers(cData);
-          // If cache is fresh AND no admin client available → stop here
-          if (Date.now() - ts < CACHE_TTL && !supabaseAdmin) return cData;
-          // If cache is fresh AND admin client available → still refresh in background but don't block
-          if (Date.now() - ts < CACHE_TTL) {
-            // Refresh in background silently
-            supabaseAdmin.from('users').select('*').limit(10000).then(({ data }) => {
-              if (data && data.length > 0) {
-                const mapped = data.map(mapUser);
-                setUsers(mapped);
-                try { localStorage.setItem(CACHE_KEY, JSON.stringify({ data: mapped, ts: Date.now() })); } catch {}
-              }
-            });
+    // Always use admin client if available (bypasses RLS), else use anon client
+    const client = supabaseAdmin || supabase;
+    
+    const { data, error } = await client.from('users').select('*').limit(10000);
+    if (error) {
+      console.error('fetchAllUsers error:', error.message);
+      // Fallback to cache
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) {
+          const { data: cData } = JSON.parse(raw);
+          if (Array.isArray(cData) && cData.length > 0) {
+            setUsers(cData);
             return cData;
           }
         }
-      }
-    } catch { localStorage.removeItem(CACHE_KEY); }
-
-    // 2. Only fetch from DB using supabaseAdmin (bypasses RLS completely)
-    if (!supabaseAdmin) {
-      // No admin client and no fresh cache → return what we have
-      return cachedUsers;
-    }
-
-    const { data, error } = await supabaseAdmin.from('users').select('*').limit(10000);
-    if (error) {
-      console.error("fetchAllUsers error:", error.message);
-      return cachedUsers;
+      } catch {}
+      return [];
     }
 
     if (data && data.length > 0) {
@@ -169,7 +152,7 @@ export const AuthProvider = ({ children }) => {
       return mapped;
     }
 
-    return cachedUsers;
+    return [];
   };
 
 
