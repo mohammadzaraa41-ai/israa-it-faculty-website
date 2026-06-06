@@ -114,9 +114,14 @@ const Chatbot = () => {
       setMessages(prev => [...prev, { text: botReply, isBot: true }]);
     } catch (error) {
       console.error("Chatbot API Error:", error);
-      // Fallback to local offline data so the user gets an answer even if the API is down or rate-limited
       const fallbackReply = getLocalFallback(msgText, lang);
-      setMessages(prev => [...prev, { text: fallbackReply, isBot: true }]);
+      const isAr = lang === 'ar';
+      
+      const errorMessage = isAr 
+        ? `⚠️ **عذراً، أواجه ضغطاً كبيراً في معالجة الاستفسارات حالياً.** سأقوم بالإجابة بناءً على معلوماتي المحلية المتاحة:\n\n${fallbackReply}`
+        : `⚠️ **Apologies, I am experiencing high demand right now.** I will reply based on my local database:\n\n${fallbackReply}`;
+        
+      setMessages(prev => [...prev, { text: errorMessage, isBot: true }]);
     } finally {
       setIsLoading(false);
     }
