@@ -2,7 +2,7 @@ import { curriculumData } from './curriculum';
 
 export const getGeminiUrl = () => {
   const key = import.meta.env.VITE_GEMINI_API_KEY || '';
-  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key.trim()}`;
+  return `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key.trim()}`;
 };
 
 export const SYSTEM_PROMPT = `أنت "إسرا"، المساعد الذكي الرسمي لجامعة الإسراء في الأردن (Isra University - Jordan)، وتحديداً لكلية تكنولوجيا المعلومات.
