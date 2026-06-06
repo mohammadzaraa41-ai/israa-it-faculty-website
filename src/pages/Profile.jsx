@@ -90,6 +90,7 @@ const Profile = () => {
       const reader = new FileReader();
       reader.onloadend = () => {
         setFormData({ ...formData, avatar_url: reader.result });
+        setIsEditing(true);
       };
       reader.readAsDataURL(file);
     }

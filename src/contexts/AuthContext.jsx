@@ -805,6 +805,30 @@ export const AuthProvider = ({ children }) => {
           }
         };
         setUser(updatedUser);
+
+        // Update posts and comments with new avatar and name
+        try {
+          const client = supabaseAdmin || supabase;
+          const nameToUpdate = currentData.name_ar || (typeof user.name === 'object' ? user.name.ar : user.name);
+          
+          await client.from('posts')
+            .update({ 
+              author_avatar_url: currentData.avatar_url || user.avatar_url,
+              author_name: nameToUpdate
+            })
+            .eq('author_username', user.username);
+
+          await client.from('comments')
+            .update({ 
+              author_avatar_url: currentData.avatar_url || user.avatar_url,
+              author_name: nameToUpdate
+            })
+            .eq('author_username', user.username);
+            
+        } catch (e) {
+          console.error("Failed to update avatar in posts/comments:", e);
+        }
+
         return { success: true };
       }
       return { success: false, message: 'فشل التحديث' };
