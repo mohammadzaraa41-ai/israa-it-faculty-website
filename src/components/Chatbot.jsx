@@ -68,7 +68,15 @@ const Chatbot = () => {
       }
 
       const currentMessages = [...messages, userMessage];
-      const history = currentMessages.map(msg => ({
+      
+      // Gemini API requires the first message in the history to be from 'user'.
+      // We need to filter out any leading messages from 'model'.
+      let startIndex = 0;
+      while (startIndex < currentMessages.length && currentMessages[startIndex].isBot) {
+        startIndex++;
+      }
+      
+      const history = currentMessages.slice(startIndex).map(msg => ({
         role: msg.isBot ? "model" : "user",
         parts: [{ text: msg.text }]
       }));
