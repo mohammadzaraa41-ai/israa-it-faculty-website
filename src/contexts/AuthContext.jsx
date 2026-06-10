@@ -341,13 +341,13 @@ export const AuthProvider = ({ children }) => {
 
       if (!error) return { data, error: null };
 
-      // If the error is about a missing column (42703), remove it and try again
-      if (error.code === '42703' || error.message.includes('column')) {
-        // Regex to find content inside single or double quotes
-        const match = error.message.match(/['"]([^'"]+)['"]/);
-        const missingColumn = match ? match[1] : null;
+      // If the error is about a missing column (42703 / PGRST204), remove it and try again
+      if (error.code === '42703' || error.code === 'PGRST204' || error.message.includes('column')) {
+        // Find all single/double quoted substrings in the error message
+        const matches = [...error.message.matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]);
+        const missingColumn = matches.find(col => currentData[col] !== undefined);
 
-        if (missingColumn && currentData[missingColumn] !== undefined) {
+        if (missingColumn) {
           console.warn(`[Auth] Detected missing column '${missingColumn}'. Removing and retrying (Attempt ${attempt + 1})...`);
           delete currentData[missingColumn];
           attempt++;
@@ -777,10 +777,10 @@ export const AuthProvider = ({ children }) => {
           break;
         }
 
-        if (error.code === '42703' || error.message.includes('column')) {
-          const match = error.message.match(/['"]([^'"]+)['"]/);
-          const missingColumn = match ? match[1] : null;
-          if (missingColumn && currentData[missingColumn] !== undefined) {
+        if (error.code === '42703' || error.code === 'PGRST204' || error.message.includes('column')) {
+          const matches = [...error.message.matchAll(/['"]([^'"]+)['"]/g)].map(m => m[1]);
+          const missingColumn = matches.find(col => currentData[col] !== undefined);
+          if (missingColumn) {
             console.warn(`[Profile] Removing missing column '${missingColumn}' and retrying...`);
             delete currentData[missingColumn];
             attempt++;

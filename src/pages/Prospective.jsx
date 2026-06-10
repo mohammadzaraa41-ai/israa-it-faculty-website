@@ -24,6 +24,10 @@ const Prospective = () => {
 
   const handleRegister = async (e) => {
     e.preventDefault();
+    if (regForm.password.length < 6) {
+      alert(lang === 'ar' ? 'يجب أن تكون كلمة المرور 6 أحرف على الأقل' : 'Password must be at least 6 characters');
+      return;
+    }
     if (regForm.password !== regForm.confirmPassword) {
       alert(lang === 'ar' ? 'كلمات المرور غير متطابقة' : 'Passwords do not match');
       return;
