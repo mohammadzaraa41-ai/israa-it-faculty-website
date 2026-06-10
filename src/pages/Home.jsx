@@ -13,7 +13,7 @@ const Home = () => {
   const navigate = useNavigate();
   const { lang, t } = useLocale();
   const { addToast } = useToast();
-  const { user, toggleLogin, users, pendingUsers, alumniRequests } = useAuth();
+  const { user, toggleLogin, users, pendingUsers, alumniRequests, fetchAllUsers } = useAuth();
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
   const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
@@ -45,6 +45,12 @@ const Home = () => {
   };
 
   const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
+
+  React.useEffect(() => {
+    if (isAdmin && users.length === 0) {
+      fetchAllUsers().catch(err => console.error("Error loading users on mount:", err));
+    }
+  }, [isAdmin, users.length]);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -195,12 +201,24 @@ const Home = () => {
     setNewComment('');
   };
 
-  const showUserInfo = (username) => {
+  const showUserInfo = async (username) => {
     if (!isAdmin) return;
-    const found = users?.find(u => u.username === username);
+    let found = users?.find(u => u.username === username);
     if (found) {
       setSelectedUser(found);
     } else {
+      // Try to fetch all users dynamically to ensure we have the latest list
+      try {
+        const freshUsers = await fetchAllUsers();
+        found = freshUsers?.find(u => u.username === username);
+        if (found) {
+          setSelectedUser(found);
+          return;
+        }
+      } catch (err) {
+        console.error("Error fetching users dynamically:", err);
+      }
+      
       addToast(
         lang === 'ar' ? 'تنبيه' : 'Notice',
         lang === 'ar' ? 'بيانات المستخدم غير محملة بالكامل حالياً' : 'User data is not fully loaded yet',

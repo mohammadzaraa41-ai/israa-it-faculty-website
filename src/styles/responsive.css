@@ -87,6 +87,14 @@
   }
   .comment-input-area input { font-size: 0.9rem !important; }
 
+  /* Post Image Gallery mobile scaling */
+  .post-image-grid.count-3 {
+    grid-template-rows: 150px 150px !important;
+  }
+  .post-image-grid.count-4 {
+    grid-template-rows: 120px 120px !important;
+  }
+
   /* ── PROSPECTIVE PAGE ── */
   .prospective-container { padding: 1.5rem 0.75rem !important; }
   .prospective-hero { margin-bottom: 2.5rem !important; }
@@ -199,6 +207,14 @@
   .announcement-bar {
     padding: 0.75rem 1rem !important;
     font-size: 0.85rem !important;
+  }
+  .ann-nav-btn {
+    width: 38px !important;
+    height: 38px !important;
+  }
+  .ann-nav {
+    margin-top: 0.5rem !important;
+    gap: 1rem !important;
   }
 
   /* ── COMMENT ACTIONS: always visible on mobile (no hover) ── */

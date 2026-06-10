@@ -51,9 +51,14 @@
   color: #fecaca;
 }
 [data-theme='light'] .announcement-bar.warning {
-  background: #fff5f5;
-  border-left-color: #c53030;
-  color: #9b2c2c;
+  background: #fff8f8;
+  border: 1px solid rgba(197, 48, 48, 0.15);
+  border-left: 5px solid #d32f2f;
+  color: #7f1d1d;
+  font-family: 'Cairo', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(197, 48, 48, 0.05);
 }
 
 /* Info type */
@@ -64,9 +69,14 @@
   color: #bfdbfe;
 }
 [data-theme='light'] .announcement-bar.info {
-  background: #eff6ff;
-  border-left-color: #2563eb;
+  background: #f0f7ff;
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  border-left: 5px solid #1d4ed8;
   color: #1e3a8a;
+  font-family: 'Cairo', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.05);
 }
 
 /* Navigation row (arrows + dots) */

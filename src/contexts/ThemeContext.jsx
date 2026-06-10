@@ -14,7 +14,7 @@ export const ThemeProvider = ({ children }) => {
       document.documentElement.setAttribute('data-theme', 'dark');
       localStorage.setItem('theme', 'dark');
     } else {
-      document.documentElement.removeAttribute('data-theme');
+      document.documentElement.setAttribute('data-theme', 'light');
       localStorage.setItem('theme', 'light');
     }
   }, [isDark]);
