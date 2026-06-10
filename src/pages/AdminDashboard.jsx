@@ -226,7 +226,7 @@ const AdminDashboard = () => {
         )}
       </div>
 
-      {/* Global User Detail Modal - Outside glass panels for fixed positioning */}
+
       {selectedUser && (
         <div className="modal-overlay" onClick={() => setSelectedUser(null)}>
           <motion.div 
@@ -729,7 +729,7 @@ const FacultyManagement = ({
     if (!member) return;
     setIsEditing(member.id);
     
-    // Ensure name is a string for the input field
+
     const nameStr = typeof member.name === 'object' 
       ? (member.name.ar || member.name.en || '') 
       : (member.name || '');

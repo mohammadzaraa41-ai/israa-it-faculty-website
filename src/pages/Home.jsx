@@ -7,17 +7,18 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
-import { DB_SCHEMA } from '../data/db_schema';
 import './Home.css';
 
 const Home = () => {
   const navigate = useNavigate();
   const { lang, t } = useLocale();
   const { addToast } = useToast();
-  const { user, toggleLogin, users, pendingUsers, alumniRequests, fetchAllUsers } = useAuth();
-  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, voteOnPoll, announcements, events, loading, pendingPosts } = useAdmin();
+  const { user, toggleLogin, users, pendingUsers, alumniRequests } = useAuth();
+  const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
-  const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [], showPoll: false, poll: { question: '', options: ['', ''] } });
+  const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
+  const [isPostExpanded, setIsPostExpanded] = useState(false);
+  const [currentAnnIndex, setCurrentAnnIndex] = useState(0);
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
@@ -27,8 +28,6 @@ const Home = () => {
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const fileInputRef = React.useRef(null);
-
-  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   React.useEffect(() => {
     // Show events popup only for mobile users who haven't seen it in this session
@@ -41,17 +40,12 @@ const Home = () => {
     }
   }, [events]);
 
-  React.useEffect(() => {
-    // If admin, ensure we have the full users list loaded for the modal
-    if (isAdmin && fetchAllUsers && (!users || users.length === 0)) {
-      fetchAllUsers();
-    }
-  }, [isAdmin, fetchAllUsers, users?.length]);
-
   const closeEventsPopup = () => {
     setShowEventsPopup(false);
     sessionStorage.setItem('hasSeenEventsPopup', 'true');
   };
+
+  const isAdmin = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'].includes(user?.role);
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -64,7 +58,7 @@ const Home = () => {
     const postPayload = { ...newPost };
 
     // 2. Optimistically clear the form instantly to prevent UX blocking
-    setNewPost({ content: '', images: [], imageFiles: [], showPoll: false, poll: { question: '', options: ['', ''] } });
+    setNewPost({ content: '', images: [], imageFiles: [] });
     addToast(
       lang === 'ar' ? 'جاري النشر...' : 'Publishing...',
       lang === 'ar' ? 'يتم الآن رفع الصور والمنشور' : 'Uploading images and post...',
@@ -202,201 +196,148 @@ const Home = () => {
     setNewComment('');
   };
 
-  const showUserInfo = async (username, postAuthorData = null) => {
+  const showUserInfo = (username) => {
     if (!isAdmin) return;
-    
-    // Start with what we know from the post itself
-    const baseInfo = {
-      username: username,
-      name_ar: postAuthorData?.name || postAuthorData?.author || postAuthorData?.name?.ar || username,
-      name_en: postAuthorData?.name?.en || '',
-      role: postAuthorData?.role || 'STUDENT',
-      avatar_url: postAuthorData?.avatar_url || null,
-    };
-
-    // Try to find full data from already-loaded users list
     const found = users?.find(u => u.username === username);
     if (found) {
-      // Merge: DB data takes priority, fall back to post data for missing fields
-      setSelectedUser({
-        ...baseInfo,
-        ...found,
-        // Ensure name is visible even if DB is empty
-        name_ar: found.name_ar || found.full_name || baseInfo.name_ar,
-        name_en: found.name_en || baseInfo.name_en,
-        avatar_url: found.avatar_url || baseInfo.avatar_url,
-      });
-      return;
-    }
-
-    // If not in local cache, fetch from DB directly using admin client
-    setSelectedUser({ ...baseInfo, _loading: true });
-    try {
-      const { supabase: sb, supabaseAdmin } = await import('../lib/supabase');
-      const client = supabaseAdmin || sb;
-      const { data } = await client.from('users').select('*').eq('username', username).single();
-      if (data) {
-        setSelectedUser({
-          ...baseInfo,
-          ...data,
-          name_ar: data.name_ar || data.full_name || baseInfo.name_ar,
-          name_en: data.name_en || baseInfo.name_en,
-          avatar_url: data.avatar_url || baseInfo.avatar_url,
-        });
-      } else {
-        setSelectedUser(baseInfo);
-      }
-    } catch {
-      setSelectedUser(baseInfo);
+      setSelectedUser(found);
+    } else {
+      addToast(
+        lang === 'ar' ? 'تنبيه' : 'Notice',
+        lang === 'ar' ? 'بيانات المستخدم غير محملة بالكامل حالياً' : 'User data is not fully loaded yet',
+        'info'
+      );
     }
   };
-
 
   return (
     <div className="home-container">
 
-      <div className="announcements-container">
-        {announcements.map((ann) => (
-          <motion.div
-            key={ann.id}
-            className={`announcement-bar ${ann.type}`}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 * ann.id }}
-          >
-            {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
-            <p>{ann.text?.[lang] || ann.text?.ar || ann.text || ''}</p>
-          </motion.div>
-        ))}
-      </div>
+      {announcements && announcements.length > 0 && (
+        <div className="announcements-carousel">
+          <div className="announcements-header">
+            <h3>{lang === 'ar' ? 'إعلانات هامة' : 'Important Announcements'}</h3>
+            {announcements.length > 1 && (
+              <div className="announcement-nav">
+                <button onClick={() => setCurrentAnnIndex(prev => (prev - 1 + announcements.length) % announcements.length)}><ChevronRight size={18} /></button>
+                <span>{currentAnnIndex + 1} / {announcements.length}</span>
+                <button onClick={() => setCurrentAnnIndex(prev => (prev + 1) % announcements.length)}><ChevronLeft size={18} /></button>
+              </div>
+            )}
+          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentAnnIndex}
+              className={`announcement-card ${announcements[currentAnnIndex].type}`}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="announcement-icon-wrapper">
+                {announcements[currentAnnIndex].type === 'warning' ? <AlertCircle size={24} /> : <Info size={24} />}
+              </div>
+              <p className="announcement-text">{announcements[currentAnnIndex].text?.[lang] || announcements[currentAnnIndex].text?.ar || announcements[currentAnnIndex].text || ''}</p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      )}
 
       <div className="feed-layout">
         <main className="feed-main">
 
           <motion.div
-            className="glass-panel post-creation-card"
+            className={`glass-panel post-creation-card ${isPostExpanded ? 'expanded' : 'collapsed'}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <div className="post-input-wrapper">
-              <div className="user-avatar-small">
-                {user ? <User size={20} /> : <AlertCircle size={20} />}
+            {!isPostExpanded ? (
+              <div className="post-creation-pill" onClick={() => { if (!user) toggleLogin(true); else setIsPostExpanded(true); }}>
+                <div className="user-avatar-small">
+                  {user ? (user.avatar_url ? <img src={user.avatar_url} alt="User" style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : <User size={20} />) : <User size={20} />}
+                </div>
+                <div className="pill-placeholder">
+                  {lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
+                </div>
+                <div className="pill-actions">
+                  <ImageIcon size={20} className="pill-icon" />
+                </div>
               </div>
-              <textarea
-                placeholder={lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
-                value={newPost.content}
-                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                onClick={() => !user && toggleLogin(true)}
-              />
-            </div>
-
-            <AnimatePresence>
-              {newPost.images && newPost.images.length > 0 && (
-                <motion.div
-                  className="post-image-preview-container"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                >
-                  <div className="preview-grid">
-                    {newPost.images.map((imgSrc, idx) => (
-                      <div key={idx} className="preview-item">
-                        <img src={imgSrc} alt="Preview" />
-                        <button className="remove-img-btn" onClick={() => removeImage(idx)}>
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-              {newPost.showPoll && (
-                <motion.div
-                  className="poll-creator-container"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  style={{ background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '12px', marginTop: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                    <h4 style={{ margin: 0, color: 'var(--primary-color)', fontSize: '1rem' }}>{lang === 'ar' ? 'إنشاء تصويت' : 'Create Poll'}</h4>
-                    <button onClick={() => setNewPost({ ...newPost, showPoll: false })} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder={lang === 'ar' ? "السؤال (اختياري)..." : "Question (optional)..."}
-                    value={newPost.poll.question}
-                    onChange={(e) => setNewPost({ ...newPost, poll: { ...newPost.poll, question: e.target.value } })}
-                    style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', marginBottom: '1rem' }}
-                  />
-                  {newPost.poll.options.map((opt, idx) => (
-                    <div key={idx} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                      <input
-                        type="text"
-                        placeholder={`${lang === 'ar' ? 'الخيار' : 'Option'} ${idx + 1}`}
-                        value={opt}
-                        onChange={(e) => {
-                          const newOpts = [...newPost.poll.options];
-                          newOpts[idx] = e.target.value;
-                          setNewPost({ ...newPost, poll: { ...newPost.poll, options: newOpts } });
-                        }}
-                        style={{ flex: 1, padding: '0.8rem', borderRadius: '8px', background: 'rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)', color: 'white' }}
-                      />
-                      {newPost.poll.options.length > 2 && (
-                        <button onClick={() => {
-                          const newOpts = newPost.poll.options.filter((_, i) => i !== idx);
-                          setNewPost({ ...newPost, poll: { ...newPost.poll, options: newOpts } });
-                        }} style={{ background: 'rgba(231, 76, 60, 0.2)', color: '#e74c3c', border: 'none', borderRadius: '8px', width: '40px', cursor: 'pointer' }}>
-                          <X size={16} style={{ margin: 'auto' }} />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                  {newPost.poll.options.length < 5 && (
-                    <button onClick={() => setNewPost({ ...newPost, poll: { ...newPost.poll, options: [...newPost.poll.options, ''] } })} style={{ background: 'none', border: '1px dashed var(--primary-color)', color: 'var(--primary-color)', padding: '0.5rem', borderRadius: '8px', width: '100%', cursor: 'pointer', marginTop: '0.5rem' }}>
-                      <Plus size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px' }} />
-                      {lang === 'ar' ? 'إضافة خيار' : 'Add Option'}
-                    </button>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="post-actions-bar">
-              <div className="post-tools">
-                <input
-                  type="file"
-                  hidden
-                  multiple
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                />
-                <button
-                  className="tool-btn"
-                  onClick={() => user ? fileInputRef.current.click() : toggleLogin(true)}
-                >
-                  <ImageIcon size={20} />
-                  <span>{lang === 'ar' ? "صورة" : "Image"}</span>
-                </button>
-                <button
-                  className="tool-btn"
-                  onClick={() => user ? setNewPost({ ...newPost, showPoll: !newPost.showPoll }) : toggleLogin(true)}
-                  style={{ color: newPost.showPoll ? 'var(--primary-color)' : 'inherit' }}
-                >
-                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '20px', height: '20px', border: '2px solid currentColor', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>%</span>
-                  <span>{lang === 'ar' ? "تصويت" : "Poll"}</span>
-                </button>
-              </div>
-              <button
-                className="btn-primary post-submit-btn"
-                onClick={handleCreatePost}
-                disabled={!newPost.content.trim() && newPost.images.length === 0}
+            ) : (
+              <motion.div 
+                className="post-expanded-container"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
               >
-                <Plus size={18} />
-                {lang === 'ar' ? "نشر" : "Post"}
-              </button>
-            </div>
+                <div className="post-input-wrapper">
+                  <div className="user-avatar-small">
+                    {user ? (user.avatar_url ? <img src={user.avatar_url} alt="User" style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : <User size={20} />) : <AlertCircle size={20} />}
+                  </div>
+                  <textarea
+                    autoFocus
+                    placeholder={lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
+                    value={newPost.content}
+                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                  />
+                </div>
+
+                <AnimatePresence>
+                  {newPost.images && newPost.images.length > 0 && (
+                    <motion.div
+                      className="post-image-preview-container"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                    >
+                      <div className="preview-grid">
+                        {newPost.images.map((imgSrc, idx) => (
+                          <div key={idx} className="preview-item">
+                            <img src={imgSrc} alt="Preview" />
+                            <button className="remove-img-btn" onClick={() => removeImage(idx)}>
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                <div className="post-actions-bar">
+                  <div className="post-tools">
+                    <input
+                      type="file"
+                      hidden
+                      multiple
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <button
+                      className="tool-btn"
+                      onClick={() => fileInputRef.current.click()}
+                    >
+                      <ImageIcon size={20} />
+                      <span>{lang === 'ar' ? "إرفاق صورة" : "Add Image"}</span>
+                    </button>
+                  </div>
+                  <div className="post-submit-group">
+                    <button className="btn-secondary cancel-post-btn" onClick={() => { setIsPostExpanded(false); setNewPost({ content: '', images: [], imageFiles: [] }); }}>
+                      {lang === 'ar' ? "إلغاء" : "Cancel"}
+                    </button>
+                    <button
+                      className="btn-primary post-submit-btn"
+                      onClick={(e) => { handleCreatePost(e); setIsPostExpanded(false); }}
+                      disabled={!newPost.content.trim() && newPost.images.length === 0}
+                    >
+                      <Send size={16} />
+                      {lang === 'ar' ? "نشر" : "Post"}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             <AnimatePresence>
               {postStatus === 'PENDING' && (
@@ -428,8 +369,8 @@ const Home = () => {
                   <div className="post-header">
                     <div className="post-author-info">
                       <div className="author-avatar">
-                        {((user && post.author.username === user.username && user.avatar_url) || post.author.avatar_url) ? (
-                          <img src={(user && post.author.username === user.username && user.avatar_url) ? user.avatar_url : post.author.avatar_url} alt="Avatar" className="author-img-small" />
+                        {post.author.avatar_url ? (
+                          <img src={post.author.avatar_url} alt="Avatar" className="author-img-small" />
                         ) : (
                           <User size={24} />
                         )}
@@ -437,9 +378,9 @@ const Home = () => {
                       <div>
                         <h4
                           className={`author-name ${isAdmin ? 'clickable-author' : ''}`}
-                          onClick={() => isAdmin && showUserInfo(post.author.username, post.author)}
+                          onClick={() => isAdmin && showUserInfo(post.author.username)}
                         >
-                          {(user && post.author.username === user.username) ? (user.name?.ar || user.name_ar || post.author.name) : post.author.name}
+                          {post.author.name}
                         </h4>
                         <span className="post-date">{post.date} • {post.author.role}</span>
                       </div>
@@ -454,47 +395,6 @@ const Home = () => {
                   <div className="post-content">
                     <p>{post.content}</p>
                     {renderPostImages(post.image)}
-                    {post.poll_data && (
-                      <div className="post-poll">
-                        {post.poll_data.question && <h5 className="poll-question">{post.poll_data.question}</h5>}
-                        <div className="poll-options-list">
-                          {post.poll_data.options.map((opt) => {
-                            const totalVotes = post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0);
-                            const isVoted = user && opt.votes.includes(user.username);
-                            const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes.length / totalVotes) * 100);
-                            return (
-                              <div 
-                                key={opt.id} 
-                                onClick={() => user ? voteOnPoll(post.id, opt.id) : toggleLogin(true)}
-                                className={`poll-option ${isVoted ? 'voted' : ''}`}
-                              >
-                                {/* Background progress bar */}
-                                <div 
-                                  className={`poll-progress ${isVoted ? 'voted' : ''}`} 
-                                  style={{ 
-                                    width: `${percentage}%`,
-                                    right: lang === 'ar' ? 0 : 'auto',
-                                    left: lang === 'ar' ? 'auto' : 0
-                                  }} 
-                                />
-                                
-                                <div className="poll-option-left">
-                                  <div className={`poll-radio ${isVoted ? 'voted' : ''}`}>
-                                    {isVoted && <div className="poll-radio-dot" />}
-                                  </div>
-                                  <span className={`poll-text ${isVoted ? 'voted' : ''}`}>{opt.text}</span>
-                                </div>
-                                <span className={`poll-percentage ${isVoted ? 'voted' : ''}`}>{percentage}%</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <div className="poll-meta">
-                          <User size={14} />
-                          <span>{post.poll_data.options.reduce((acc, o) => acc + o.votes.length, 0)} {lang === 'ar' ? 'صوت' : 'votes'}</span>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   <div className="post-stats" onClick={() => setShowCommentForm(showCommentForm === post.id ? null : post.id)} style={{ cursor: 'pointer' }}>
@@ -611,64 +511,49 @@ const Home = () => {
         {selectedUser && (
           <div className="login-modal-overlay" onClick={() => setSelectedUser(null)}>
             <motion.div
-              className="glass-panel"
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
+              className="glass-panel user-info-modal"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9 }}
               onClick={e => e.stopPropagation()}
-              style={{ padding: '2rem', maxWidth: '520px', width: '90%', borderRadius: '20px', position: 'relative', maxHeight: '85vh', overflowY: 'auto' }}
             >
-              {/* Close Button */}
-              <button onClick={() => setSelectedUser(null)} style={{ position: 'absolute', top: '1rem', left: lang === 'ar' ? '1rem' : 'auto', right: lang === 'ar' ? 'auto' : '1rem', background: 'rgba(255,255,255,0.1)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', borderRadius: '50%', width: '32px', height: '32px', fontSize: '1.2rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>×</button>
-
-              {/* Header */}
-              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                <div style={{ width: '80px', height: '80px', borderRadius: '50%', overflow: 'hidden', margin: '0 auto 1rem', border: '3px solid var(--primary-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, var(--primary-color), var(--primary-light))' }}>
-                  {selectedUser.avatar_url
-                    ? <img src={selectedUser.avatar_url} alt="avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    : <span style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white' }}>{(selectedUser.name_ar || selectedUser.username || '?')[0]}</span>
-                  }
-                </div>
-                <h3 style={{ margin: '0 0 0.3rem', color: 'var(--text-primary)', fontSize: '1.3rem' }}>
-                  {selectedUser.name_ar || selectedUser.name?.ar || selectedUser.full_name || selectedUser.username}
-                </h3>
-                <span style={{ padding: '0.2rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold', background: selectedUser.role === 'SUPER_ADMIN' ? 'rgba(231,76,60,0.2)' : 'rgba(46,204,113,0.2)', color: selectedUser.role === 'SUPER_ADMIN' ? '#e74c3c' : '#2ecc71' }}>
-                  {selectedUser.role || 'STUDENT'}
-                </span>
+              <div className="modal-header">
+                <h3>{lang === 'ar' ? 'معلومات المستخدم الكاملة' : 'Full User Info'}</h3>
+                <button onClick={() => setSelectedUser(null)} className="close-modal-btn">&times;</button>
               </div>
-
-              {selectedUser._loading ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
-                  {lang === 'ar' ? 'جاري تحميل البيانات...' : 'Loading data...'}
+              <div className="modal-body">
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'الاسم:' : 'Name:'}</strong>
+                  <span>{selectedUser.name_ar || (selectedUser.name?.ar || selectedUser.name) || '---'}</span>
                 </div>
-              ) : (
-              /* Info Grid */
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem' }}>
-                {[
-                  { label: lang === 'ar' ? 'الرقم الجامعي' : 'University ID', value: selectedUser.username || selectedUser.university_id, icon: '🎓' },
-                  { label: lang === 'ar' ? 'الاسم بالعربي' : 'Name (Arabic)', value: selectedUser.name_ar || selectedUser.name?.ar, icon: '👤' },
-                  { label: lang === 'ar' ? 'الاسم بالإنجليزي' : 'Name (English)', value: selectedUser.name_en || selectedUser.name?.en, icon: '👤' },
-                  { label: lang === 'ar' ? 'القسم' : 'Department', value: (() => { const deptId = selectedUser.department_id || selectedUser.departmentId; const dept = (DB_SCHEMA.departments || []).find(d => d.id === deptId); return dept ? (dept.name?.[lang] || dept.name?.ar) : deptId; })(), icon: '🏛️' },
-                  { label: lang === 'ar' ? 'التخصص' : 'Major', value: selectedUser.major, icon: '📚' },
-                  { label: lang === 'ar' ? 'السنة الدراسية' : 'Academic Year', value: selectedUser.year_sem || selectedUser.yearSem, icon: '📅' },
-                  { label: lang === 'ar' ? 'الساعات المقطوعة' : 'Completed Hours', value: selectedUser.hours, icon: '⏱️' },
-                  { label: lang === 'ar' ? 'رقم الهاتف' : 'Phone', value: selectedUser.phone || selectedUser.phone_number, icon: '📞' },
-                  { label: lang === 'ar' ? 'تاريخ الانضمام' : 'Join Date', value: selectedUser.created_at ? new Date(selectedUser.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB') : null, icon: '🗓️' },
-                  { label: lang === 'ar' ? 'البريد الإلكتروني' : 'Email', value: selectedUser.email || (selectedUser.username ? `${selectedUser.username.trim()}@iu.edu.jo` : null), icon: '✉️' },
-                ].map((item, i) => (
-                  <div key={i} style={{ background: 'rgba(255,255,255,0.04)', borderRadius: '12px', padding: '0.75rem', border: '1px solid rgba(255,255,255,0.08)' }}>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>{item.icon} {item.label}</div>
-                    <div style={{ fontWeight: 'bold', color: item.value ? 'var(--text-primary)' : 'var(--text-secondary)', fontSize: '0.9rem', opacity: item.value ? 1 : 0.5 }}>
-                      {item.value || (lang === 'ar' ? 'لم يدخل بعد' : 'Not entered yet')}
-                    </div>
-                  </div>
-                ))}
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'اسم المستخدم / الرقم:' : 'Username / ID:'}</strong>
+                  <span>{selectedUser.username}</span>
+                </div>
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'الرتبة:' : 'Role:'}</strong>
+                  <span>{selectedUser.role}</span>
+                </div>
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'القسم:' : 'Department:'}</strong>
+                  <span>{(() => {
+                    const deptId = selectedUser.department_id || selectedUser.departmentId;
+                    const dept = (DB_SCHEMA.departments || []).find(d => d.id === deptId);
+                    return dept ? (dept.name?.[lang] || dept.name?.ar) : (deptId || '---');
+                  })()}</span>
+                </div>
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'رقم الهاتف:' : 'Phone:'}</strong>
+                  <span>{selectedUser.phone_number || selectedUser.phone || '---'}</span>
+                </div>
+                <div className="info-row">
+                  <strong>{lang === 'ar' ? 'كلمة المرور:' : 'Password:'}</strong>
+                  <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>********</span>
+                </div>
               </div>
-              )}
             </motion.div>
           </div>
         )}
-
       </AnimatePresence>
       <AnimatePresence>
         {showEventsPopup && (
@@ -780,15 +665,15 @@ const CommentsPanel = ({ post, user, lang, isAdmin, toggleLogin, addComment, del
     return (
       <div className={`comment-item ${isReply ? 'comment-nested-reply' : ''}`}>
         <div className="comment-avatar-tiny">
-          {((user && comment.username === user.username && user.avatar_url) || comment.avatar_url) ? <img src={(user && comment.username === user.username && user.avatar_url) ? user.avatar_url : comment.avatar_url} alt="" /> : <User size={12} />}
+          {comment.avatar_url ? <img src={comment.avatar_url} alt="" /> : <User size={12} />}
         </div>
         <div className="comment-content-wrapper">
           <div className="comment-header-row">
             <h5
               className={`comment-author ${isAdmin ? 'clickable-author' : ''}`}
-              onClick={() => isAdmin && showUserInfo(comment.username, comment)}
+              onClick={() => isAdmin && showUserInfo(comment.username)}
             >
-              {(user && comment.username === user.username) ? (user.name?.ar || user.name_ar || comment.author) : comment.author}
+              {comment.author}
               {isReply && <span className="reply-mention-tag"> ↩ رد</span>}
             </h5>
             <div className="comment-actions-row">
