@@ -253,7 +253,7 @@
   }
 }
 
-/* Global Background System - Modern Fun Refinement */
+/* Global Background System - Modern Redesign */
 .global-page-bg {
   position: fixed;
   top: 0;
@@ -274,7 +274,7 @@
   height: 800px;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.08; /* Very subtle */
+  opacity: 0.08;
   z-index: -1;
   animation: blobFloat 30s infinite alternate;
 }
@@ -298,8 +298,94 @@
   100% { transform: translate(0, 0) scale(1); }
 }
 
+/* =====================================================
+   HOME PAGE — Premium Modern Background
+   ===================================================== */
 .global-page-bg.bg-home {
-  background: var(--bg-color);
+  background: #060c18;
+  background-image:
+    /* Mesh grid lines */
+    linear-gradient(rgba(59, 130, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.04) 1px, transparent 1px);
+  background-size: auto, 60px 60px, 60px 60px;
+}
+
+/* Orb 1 – deep blue top-left */
+.global-page-bg.bg-home::before {
+  content: '';
+  position: absolute;
+  width: 900px;
+  height: 900px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0, 33, 71, 0.85) 0%, rgba(14, 41, 84, 0.5) 40%, transparent 70%);
+  filter: blur(80px);
+  top: -25%;
+  left: -15%;
+  opacity: 1;
+  animation: orbDrift1 25s ease-in-out infinite alternate;
+}
+
+/* Orb 2 – crimson bottom-right */
+.global-page-bg.bg-home::after {
+  content: '';
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(128, 0, 0, 0.7) 0%, rgba(161, 23, 44, 0.35) 45%, transparent 70%);
+  filter: blur(90px);
+  bottom: -20%;
+  right: -10%;
+  opacity: 1;
+  animation: orbDrift2 30s ease-in-out infinite alternate;
+}
+
+@keyframes orbDrift1 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(6%, 8%) scale(1.08); }
+  100% { transform: translate(2%, 4%) scale(0.96); }
+}
+
+@keyframes orbDrift2 {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(-5%, -7%) scale(1.1); }
+  100% { transform: translate(-2%, -3%) scale(0.95); }
+}
+
+/* Extra center accent orb via a pseudo wrapper */
+.global-page-bg.bg-home .orb-center {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30, 58, 138, 0.45) 0%, transparent 70%);
+  filter: blur(100px);
+  top: 30%;
+  left: 40%;
+  transform: translate(-50%, -50%);
+  animation: orbDrift1 20s ease-in-out infinite alternate-reverse;
+  pointer-events: none;
+}
+
+/* Light mode override – soft scholarly tones */
+[data-theme='light'] .global-page-bg.bg-home {
+  background: #f0f4fb;
+  background-image:
+    linear-gradient(rgba(0, 33, 71, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 33, 71, 0.035) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+[data-theme='light'] .global-page-bg.bg-home::before {
+  background: radial-gradient(circle, rgba(0, 33, 71, 0.12) 0%, transparent 70%);
+  filter: blur(80px);
+  opacity: 1;
+}
+
+[data-theme='light'] .global-page-bg.bg-home::after {
+  background: radial-gradient(circle, rgba(128, 0, 0, 0.1) 0%, transparent 70%);
+  filter: blur(90px);
+  opacity: 1;
 }
 
 .global-page-bg.bg-prospective {

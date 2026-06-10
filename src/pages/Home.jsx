@@ -17,8 +17,6 @@ const Home = () => {
   const { posts, addPost, deletePost, toggleLike, addComment, deleteComment, editComment, likeComment, announcements, events, loading, pendingPosts } = useAdmin();
 
   const [newPost, setNewPost] = useState({ content: '', images: [], imageFiles: [] });
-  const [isPostExpanded, setIsPostExpanded] = useState(false);
-  const [currentAnnIndex, setCurrentAnnIndex] = useState(0);
   const [showCommentForm, setShowCommentForm] = useState(null);
   const [newComment, setNewComment] = useState('');
   const [postStatus, setPostStatus] = useState(null);
@@ -213,131 +211,90 @@ const Home = () => {
   return (
     <div className="home-container">
 
-      {announcements && announcements.length > 0 && (
-        <div className="announcements-carousel">
-          <div className="announcements-header">
-            <h3>{lang === 'ar' ? 'إعلانات هامة' : 'Important Announcements'}</h3>
-            {announcements.length > 1 && (
-              <div className="announcement-nav">
-                <button onClick={() => setCurrentAnnIndex(prev => (prev - 1 + announcements.length) % announcements.length)}><ChevronRight size={18} /></button>
-                <span>{currentAnnIndex + 1} / {announcements.length}</span>
-                <button onClick={() => setCurrentAnnIndex(prev => (prev + 1) % announcements.length)}><ChevronLeft size={18} /></button>
-              </div>
-            )}
-          </div>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentAnnIndex}
-              className={`announcement-card ${announcements[currentAnnIndex].type}`}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="announcement-icon-wrapper">
-                {announcements[currentAnnIndex].type === 'warning' ? <AlertCircle size={24} /> : <Info size={24} />}
-              </div>
-              <p className="announcement-text">{announcements[currentAnnIndex].text?.[lang] || announcements[currentAnnIndex].text?.ar || announcements[currentAnnIndex].text || ''}</p>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      )}
+      <div className="announcements-container">
+        {announcements.map((ann) => (
+          <motion.div
+            key={ann.id}
+            className={`announcement-bar ${ann.type}`}
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 * ann.id }}
+          >
+            {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
+            <p>{ann.text?.[lang] || ann.text?.ar || ann.text || ''}</p>
+          </motion.div>
+        ))}
+      </div>
 
       <div className="feed-layout">
         <main className="feed-main">
 
           <motion.div
-            className={`glass-panel post-creation-card ${isPostExpanded ? 'expanded' : 'collapsed'}`}
+            className="glass-panel post-creation-card"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {!isPostExpanded ? (
-              <div className="post-creation-pill" onClick={() => { if (!user) toggleLogin(true); else setIsPostExpanded(true); }}>
-                <div className="user-avatar-small">
-                  {user ? (user.avatar_url ? <img src={user.avatar_url} alt="User" style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : <User size={20} />) : <User size={20} />}
-                </div>
-                <div className="pill-placeholder">
-                  {lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
-                </div>
-                <div className="pill-actions">
-                  <ImageIcon size={20} className="pill-icon" />
-                </div>
+            <div className="post-input-wrapper">
+              <div className="user-avatar-small">
+                {user ? <User size={20} /> : <AlertCircle size={20} />}
               </div>
-            ) : (
-              <motion.div 
-                className="post-expanded-container"
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <div className="post-input-wrapper">
-                  <div className="user-avatar-small">
-                    {user ? (user.avatar_url ? <img src={user.avatar_url} alt="User" style={{width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover'}} /> : <User size={20} />) : <AlertCircle size={20} />}
-                  </div>
-                  <textarea
-                    autoFocus
-                    placeholder={lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
-                    value={newPost.content}
-                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                  />
-                </div>
+              <textarea
+                placeholder={lang === 'ar' ? "بماذا تفكر؟" : "What's on your mind?"}
+                value={newPost.content}
+                onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
+                onClick={() => !user && toggleLogin(true)}
+              />
+            </div>
 
-                <AnimatePresence>
-                  {newPost.images && newPost.images.length > 0 && (
-                    <motion.div
-                      className="post-image-preview-container"
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                    >
-                      <div className="preview-grid">
-                        {newPost.images.map((imgSrc, idx) => (
-                          <div key={idx} className="preview-item">
-                            <img src={imgSrc} alt="Preview" />
-                            <button className="remove-img-btn" onClick={() => removeImage(idx)}>
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        ))}
+            <AnimatePresence>
+              {newPost.images && newPost.images.length > 0 && (
+                <motion.div
+                  className="post-image-preview-container"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="preview-grid">
+                    {newPost.images.map((imgSrc, idx) => (
+                      <div key={idx} className="preview-item">
+                        <img src={imgSrc} alt="Preview" />
+                        <button className="remove-img-btn" onClick={() => removeImage(idx)}>
+                          <Trash2 size={16} />
+                        </button>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-                <div className="post-actions-bar">
-                  <div className="post-tools">
-                    <input
-                      type="file"
-                      hidden
-                      multiple
-                      ref={fileInputRef}
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                    <button
-                      className="tool-btn"
-                      onClick={() => fileInputRef.current.click()}
-                    >
-                      <ImageIcon size={20} />
-                      <span>{lang === 'ar' ? "إرفاق صورة" : "Add Image"}</span>
-                    </button>
-                  </div>
-                  <div className="post-submit-group">
-                    <button className="btn-secondary cancel-post-btn" onClick={() => { setIsPostExpanded(false); setNewPost({ content: '', images: [], imageFiles: [] }); }}>
-                      {lang === 'ar' ? "إلغاء" : "Cancel"}
-                    </button>
-                    <button
-                      className="btn-primary post-submit-btn"
-                      onClick={(e) => { handleCreatePost(e); setIsPostExpanded(false); }}
-                      disabled={!newPost.content.trim() && newPost.images.length === 0}
-                    >
-                      <Send size={16} />
-                      {lang === 'ar' ? "نشر" : "Post"}
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
+            <div className="post-actions-bar">
+              <div className="post-tools">
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                />
+                <button
+                  className="tool-btn"
+                  onClick={() => user ? fileInputRef.current.click() : toggleLogin(true)}
+                >
+                  <ImageIcon size={20} />
+                  <span>{lang === 'ar' ? "صورة" : "Image"}</span>
+                </button>
+              </div>
+              <button
+                className="btn-primary post-submit-btn"
+                onClick={handleCreatePost}
+                disabled={!newPost.content.trim() && newPost.images.length === 0}
+              >
+                <Plus size={18} />
+                {lang === 'ar' ? "نشر" : "Post"}
+              </button>
+            </div>
 
             <AnimatePresence>
               {postStatus === 'PENDING' && (

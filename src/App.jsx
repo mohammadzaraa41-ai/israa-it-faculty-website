@@ -30,7 +30,13 @@ const GlobalBackground = () => {
     setBgClass(currentClass);
   }, [location.pathname]);
 
-  return <div className={`global-page-bg ${bgClass}`} />;
+  return (
+    <>
+      <div className={`global-page-bg ${bgClass}`}>
+        {bgClass === 'bg-home' && <div className="orb-center" />}
+      </div>
+    </>
+  );
 };
  
 const ScrollToTop = () => {
