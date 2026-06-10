@@ -512,6 +512,23 @@ export const AuthProvider = ({ children }) => {
     } catch (error) { return { success: false, message: error.message }; }
   };
 
+  const adminResetPassword = async (userId, newPassword) => {
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ password: newPassword })
+        .eq('id', userId);
+        
+      if (!error) {
+        setUsers(prev => prev.map(u => u.id === userId ? { ...u, password: newPassword } : u));
+        return { success: true };
+      }
+      return { success: false, message: error.message };
+    } catch (err) {
+      return { success: false, message: err.message || "حدث خطأ أثناء تغيير كلمة المرور" };
+    }
+  };
+
   const hasPermission = (permission) => {
     if (!user?.role) return false;
     const adminRoles = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'];
@@ -528,7 +545,7 @@ export const AuthProvider = ({ children }) => {
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
       registerUserDirectly, deleteUser, updateUserRole, updateUser,
       updateUserProfile, changePassword, hasPermission, role: user?.role, isLoginOpen, toggleLogin,
-      fetchAllUsers, fetchPendingUsers, fetchAlumniRequests, lastError
+      fetchAllUsers, fetchPendingUsers, fetchAlumniRequests, lastError, adminResetPassword
     }}>
       {children}
     </AuthContext.Provider>
