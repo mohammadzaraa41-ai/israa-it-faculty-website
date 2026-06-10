@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 
 import { useLocale } from '../contexts/LocalizationContext';
-import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, Clock, AlertCircle, Info, Send, Plus, Search, Shield, BookOpen, Settings, Phone } from 'lucide-react';
+import { Users, UserPlus, CheckSquare, LogOut, Check, X, Edit, Trash2, GraduationCap, Clock, AlertCircle, Info, Send, Plus, Search, Shield, BookOpen, Settings, Phone, Eye, EyeOff, Key } from 'lucide-react';
 import './AdminDashboard.css';
 
 import { useToast } from '../contexts/ToastContext';
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     pendingUsers, approveUser, rejectUser,
     alumniRequests, approveAlumniRequest, rejectAlumniRequest,
     deleteUser, registerUserDirectly, updateUserRole, updateUser,
-    fetchAllUsers, fetchPendingUsers
+    fetchAllUsers, fetchPendingUsers, adminResetPassword
   } = useAuth();
 
   const { 
@@ -212,6 +212,8 @@ const AdminDashboard = () => {
             updateUser={updateUser}
             departments={departments || []}
             setSelectedUser={setSelectedUser}
+            adminResetPassword={adminResetPassword}
+            currentUserRole={user?.role}
           />
         )}
         {activeTab === 'register' && (
@@ -313,11 +315,137 @@ const AdminDashboard = () => {
                 🎓 {lang === 'ar' ? 'خريج معتمد' : 'Approved Alumni'}
               </div>
             )}
+
+            {/* Admin Password Reset - SuperAdmin only */}
+            {user?.role === 'SUPER_ADMIN' && (
+              <AdminPasswordResetSection 
+                targetUser={selectedUser} 
+                lang={lang} 
+                adminResetPassword={adminResetPassword}
+              />
+            )}
           </motion.div>
         </div>
       )}
 
     </div>
+  );
+};
+
+const AdminPasswordResetSection = ({ targetUser, lang, adminResetPassword }) => {
+  const [newPass, setNewPass] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+
+  const handleReset = async (e) => {
+    e.preventDefault();
+    if (newPass.length < 6) {
+      setMessage({ type: 'error', text: lang === 'ar' ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : 'Password must be at least 6 characters' });
+      return;
+    }
+    setLoading(true);
+    setMessage(null);
+    const result = await adminResetPassword(targetUser.id, newPass);
+    setLoading(false);
+    if (result.success) {
+      setMessage({ type: 'success', text: lang === 'ar' ? '✅ تم تغيير كلمة المرور بنجاح' : '✅ Password changed successfully' });
+      setNewPass('');
+    } else {
+      setMessage({ type: 'error', text: result.message || (lang === 'ar' ? '❌ فشل تغيير كلمة المرور' : '❌ Failed to change password') });
+    }
+  };
+
+  return (
+    <div style={{ marginTop: '1.5rem', padding: '1.25rem', background: 'rgba(161,23,44,0.08)', border: '1px solid rgba(161,23,44,0.3)', borderRadius: '12px' }}>
+      <h4 style={{ color: 'var(--primary-light)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem' }}>
+        <Key size={18} /> {lang === 'ar' ? 'تغيير كلمة مرور المستخدم (صلاحية المدير)' : 'Reset User Password (Admin)'}
+      </h4>
+      <form onSubmit={handleReset} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+        <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+          <input
+            type={showPass ? 'text' : 'password'}
+            placeholder={lang === 'ar' ? 'كلمة المرور الجديدة...' : 'New password...'}
+            value={newPass}
+            onChange={e => setNewPass(e.target.value)}
+            minLength={6}
+            required
+            style={{ width: '100%', padding: '0.8rem 3rem 0.8rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)', boxSizing: 'border-box' }}
+          />
+          <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+            {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+        <button type="submit" disabled={loading} className="btn-primary" style={{ padding: '0.8rem 1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Key size={16} />
+          {loading ? (lang === 'ar' ? 'جارٍ...' : 'Saving...') : (lang === 'ar' ? 'تغيير' : 'Reset')}
+        </button>
+      </form>
+      {message && (
+        <div style={{ marginTop: '0.75rem', padding: '0.6rem 1rem', borderRadius: '8px', background: message.type === 'success' ? 'rgba(46,204,113,0.1)' : 'rgba(231,76,60,0.1)', color: message.type === 'success' ? '#2ecc71' : '#e74c3c', fontSize: '0.9rem', fontWeight: '500' }}>
+          {message.text}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const PasswordViewInline = ({ userId, username, lang, adminResetPassword }) => {
+  const [editing, setEditing] = useState(false);
+  const [newPass, setNewPass] = useState('');
+  const [showPass, setShowPass] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  if (!editing) {
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+        <span style={{ opacity: 0.4, fontFamily: 'monospace' }}>••••••••</span>
+        <button
+          onClick={e => { e.stopPropagation(); setEditing(true); }}
+          title={lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'}
+          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-light)', padding: '2px' }}
+        >
+          <Key size={12} />
+        </button>
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }} onClick={e => e.stopPropagation()}>
+      <div style={{ position: 'relative', display: 'inline-flex' }}>
+        <input
+          type={showPass ? 'text' : 'password'}
+          placeholder={lang === 'ar' ? 'كلمة مرور جديدة' : 'New password'}
+          value={newPass}
+          onChange={e => setNewPass(e.target.value)}
+          style={{ padding: '3px 26px 3px 6px', borderRadius: '6px', border: '1px solid var(--border-color)', background: 'var(--bg-color)', color: 'var(--text-primary)', fontSize: '0.8rem', width: '130px' }}
+        />
+        <button type="button" onClick={() => setShowPass(!showPass)} style={{ position: 'absolute', right: '4px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: 0 }}>
+          {showPass ? <EyeOff size={12} /> : <Eye size={12} />}
+        </button>
+      </div>
+      <button
+        onClick={async () => {
+          if (newPass.length < 6) return;
+          setSaving(true);
+          await adminResetPassword(userId, newPass);
+          setSaving(false);
+          setEditing(false);
+          setNewPass('');
+        }}
+        disabled={saving || newPass.length < 6}
+        style={{ background: 'var(--primary-color)', border: 'none', borderRadius: '4px', color: 'white', padding: '3px 8px', cursor: 'pointer', fontSize: '0.75rem' }}
+      >
+        {saving ? '...' : <Check size={12} />}
+      </button>
+      <button
+        onClick={() => { setEditing(false); setNewPass(''); }}
+        style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#e74c3c', padding: '2px' }}
+      >
+        <X size={12} />
+      </button>
+    </span>
   );
 };
 
@@ -1050,7 +1178,7 @@ const RegisterUser = ({ registerUserDirectly, departments = [], lang, addToast }
   );
 };
 
-const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [], setSelectedUser }) => {
+const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, departments = [], setSelectedUser, adminResetPassword, currentUserRole }) => {
   const [roleFilter, setRoleFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 

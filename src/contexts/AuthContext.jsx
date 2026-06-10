@@ -842,6 +842,19 @@ export const AuthProvider = ({ children }) => {
     } catch (error) { return { success: false, message: error.message }; }
   };
 
+  // Admin-only: reset any user's password via supabaseAdmin
+  const adminResetPassword = async (userId, newPassword) => {
+    try {
+      if (!supabaseAdmin) throw new Error('Admin client not available');
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: newPassword });
+      if (error) throw error;
+      return { success: true };
+    } catch (error) {
+      console.error('adminResetPassword error:', error);
+      return { success: false, message: error.message };
+    }
+  };
+
   const hasPermission = (permission) => {
     if (!user?.role) return false;
     const adminRoles = ['SUPER_ADMIN', 'DEAN', 'HOD', 'DOCTOR'];
@@ -857,7 +870,7 @@ export const AuthProvider = ({ children }) => {
       login, logout, registerRequest, approveUser, rejectUser,
       submitAlumniRequest, approveAlumniRequest, rejectAlumniRequest,
       registerUserDirectly, deleteUser, updateUserRole, updateUser,
-      updateUserProfile, changePassword, hasPermission, role: user?.role, isLoginOpen, toggleLogin,
+      updateUserProfile, changePassword, adminResetPassword, hasPermission, role: user?.role, isLoginOpen, toggleLogin,
       fetchAllUsers, fetchPendingUsers, fetchAlumniRequests, lastError
     }}>
       {children}
