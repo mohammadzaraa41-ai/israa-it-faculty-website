@@ -211,42 +211,7 @@ const Home = () => {
   };
 
   return (
-    <div className="home-wrapper">
-      <div className="hero-section">
-        <div className="hero-overlay"></div>
-        <div className="hero-content-wrapper">
-          <div className="hero-breadcrumb">
-            {lang === 'ar' ? 'الرئيسية > الكليات > تكنولوجيا المعلومات (IT)' : 'Home > Faculties > Information Technology (IT)'}
-          </div>
-          <h1 className="hero-title">
-            {lang === 'ar' 
-              ? <>كلية تكنولوجيا<br />المعلومات (IT)<br />والذكاء الاصطناعي</> 
-              : <>Faculty of Information<br />Technology (FIT)<br />& AI</>}
-          </h1>
-        </div>
-      </div>
-      
-      <div className="hero-boxes-container">
-        <div className="hero-boxes">
-          <div className="hero-text-box">
-            <p>
-              {lang === 'ar' 
-                ? 'تُعد كليتنا الشريك الموثوق في إعداد قادة المستقبل في تكنولوجيا المعلومات. نساعد طلابنا على تطوير مهاراتهم لبناء حلول برمجية وأنظمة ذكية بجودة عالية، ليكونوا مستعدين للمنافسة في السوق العالمي.'
-                : 'Our faculty is the trusted partner in developing future Information Technology leaders. We help students build software solutions and smart systems with high quality, ready for the global market.'}
-            </p>
-          </div>
-          <div className="hero-contact-box">
-            <h4>{lang === 'ar' ? 'تحتاج إلى مساعدة أو لديك سؤال؟' : 'Need help or have a question?'}</h4>
-            <h2 style={{ direction: 'ltr' }}>+962 6 471 1710</h2>
-            <a href="mailto:info@iu.edu.jo" className="hero-contact-link">
-              <MessageCircle size={20} />
-              {lang === 'ar' ? 'تواصل معنا' : 'Contact Us'}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <div className="home-container" style={{ marginTop: '5rem' }}>
+    <div className="home-container">
 
       {announcements && announcements.length > 0 && (
         <div className="announcements-carousel">
@@ -660,7 +625,6 @@ const Home = () => {
           </div>
         )}
       </AnimatePresence>
-    </div>
     </div>
   );
 };
