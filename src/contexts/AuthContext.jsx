@@ -364,39 +364,64 @@ export const AuthProvider = ({ children }) => {
     try {
       const email = `${userData.username.trim()}@israa.local`;
 
-      // IMPORTANT: To prevent logging out the Admin when they create a user,
-      // we need to use a secondary Supabase client with 'persistSession: false'
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      let authData = null;
+      let authError = null;
+      const fullName = userData.name?.ar || userData.nameAr || "مستخدم جديد";
 
-      const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
-        auth: { persistSession: false }
-      });
-
-      // 1. Create Auth User using the temporary client
-      let { data: authData, error: authError } = await tempClient.auth.signUp({
-        email,
-        password: userData.password,
-        options: {
-          data: {
-            full_name: userData.name?.ar || userData.nameAr,
-            role: userData.role
-          }
+      // IMPORTANT: Try using Admin API first (bypasses "signups disabled", rate limits, and network blocks)
+      if (supabaseAdmin) {
+        try {
+          const { data, error } = await supabaseAdmin.auth.admin.createUser({
+            email,
+            password: userData.password,
+            email_confirm: true,
+            user_metadata: {
+              full_name: fullName,
+              role: userData.role || 'STUDENT'
+            }
+          });
+          authData = data;
+          authError = error;
+        } catch (adminErr) {
+          console.warn("Admin createUser failed, falling back to signUp:", adminErr);
         }
-      });
-
-      // Workaround: If user already exists in Auth but profile is missing, try to sign in to get the ID
-      if (authError && authError.message.includes('already registered')) {
-        console.log("User already in Auth, attempting to retrieve ID via sign-in...");
-        const { data: signInData, error: signInError } = await tempClient.auth.signInWithPassword({
+      } 
+      
+      // Fallback: Use standard signup with temporary client if Admin API is unavailable or failed
+      if (!supabaseAdmin || (authError && !authError.message?.includes('already registered'))) {
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  
+        const tempClient = createClient(supabaseUrl, supabaseAnonKey, {
+          auth: { persistSession: false }
+        });
+  
+        const { data, error } = await tempClient.auth.signUp({
           email,
           password: userData.password,
+          options: {
+            data: {
+              full_name: fullName,
+              role: userData.role || 'STUDENT'
+            }
+          }
         });
+        authData = data;
+        authError = error;
 
-        if (!signInError) {
-          authData = signInData;
-          authError = null;
+        // Workaround: If user already exists in Auth but profile is missing, try to sign in to get the ID
+        if (authError && authError.message?.includes('already registered')) {
+          console.log("User already in Auth, attempting to retrieve ID via sign-in...");
+          const { data: signInData, error: signInError } = await tempClient.auth.signInWithPassword({
+            email,
+            password: userData.password,
+          });
+  
+          if (!signInError) {
+            authData = signInData;
+            authError = null;
+          }
         }
       }
 
