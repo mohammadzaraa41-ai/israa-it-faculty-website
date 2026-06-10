@@ -375,11 +375,30 @@ const Navbar = () => {
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
               className="login-modal glass-panel"
             >
-              <button className="close-modal" onClick={() => toggleLogin(false)}>
-                <X size={24} />
+            <button className="close-modal" onClick={() => toggleLogin(false)}>
+                <X size={20} />
               </button>
               
               <div className="login-header">
+                {/* Logo area */}
+                <div style={{ textAlign: 'center', marginBottom: '1.8rem' }}>
+                  <div style={{
+                    width: '60px', height: '60px', borderRadius: '50%',
+                    background: 'linear-gradient(135deg, #a1172c, #6b0f1e)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    margin: '0 auto 1rem', boxShadow: '0 8px 24px rgba(161,23,44,0.35)',
+                    fontSize: '1.6rem'
+                  }}>
+                    🎓
+                  </div>
+                  <h2 style={{ fontSize: '1.35rem', fontWeight: '700', color: 'var(--text-primary)', margin: '0 0 0.25rem', letterSpacing: '-0.3px' }}>
+                    {lang === 'ar' ? 'كلية تقنية المعلومات' : 'IT Faculty Portal'}
+                  </h2>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.82rem', margin: 0, opacity: 0.6 }}>
+                    {lang === 'ar' ? 'تسجيل الدخول أو إنشاء حساب جديد' : 'Sign in or create a new account'}
+                  </p>
+                </div>
+
                 <div className="tab-switcher">
                   <button 
                     className={activeTab === 'login' ? 'active' : ''} 
@@ -398,10 +417,10 @@ const Navbar = () => {
 
               {activeTab === 'login' ? (
                 <form className="login-form" onSubmit={handleLoginSubmit}>
-                  {loginError && <div style={{color: '#e74c3c', marginBottom: '1rem', textAlign: 'center'}}>{loginError}</div>}
+                  {loginError && <div style={{color: '#ff6b6b', marginBottom: '1rem', textAlign: 'center', padding: '0.8rem 1rem', background: 'rgba(231,76,60,0.1)', borderRadius: '10px', border: '1px solid rgba(231,76,60,0.3)', fontSize: '0.9rem'}}>{loginError}</div>}
                   <div className="input-group">
                     <label>
-                      <User size={18} />
+                      <User size={16} />
                       {lang === 'ar' ? 'الرقم الجامعي أو اسم المستخدم' : 'University ID or Username'}
                     </label>
                     <input 
@@ -412,9 +431,9 @@ const Navbar = () => {
                     />
                   </div>
 
-                  <div className="input-group">
+                  <div className="input-group" style={{ marginTop: '1rem' }}>
                     <label>
-                      <Lock size={18} />
+                      <Lock size={16} />
                       {lang === 'ar' ? 'كلمة المرور' : 'Password'}
                     </label>
                     <div className="password-input">
@@ -430,7 +449,7 @@ const Navbar = () => {
                     </div>
                   </div>
 
-                  <button type="submit" className="btn-primary login-btn">
+                  <button type="submit" className="btn-primary login-btn" style={{ marginTop: '1.5rem' }}>
                     {lang === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
                   </button>
 
