@@ -335,6 +335,7 @@ const AdminDashboard = () => {
 const AdminPasswordResetSection = ({ targetUser, lang, adminResetPassword }) => {
   const [newPass, setNewPass] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
@@ -361,6 +362,24 @@ const AdminPasswordResetSection = ({ targetUser, lang, adminResetPassword }) => 
       <h4 style={{ color: 'var(--primary-light)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: '0 0 1rem' }}>
         <Key size={18} /> {lang === 'ar' ? 'تغيير كلمة مرور المستخدم (صلاحية المدير)' : 'Reset User Password (Admin)'}
       </h4>
+
+      {/* Show Current Plaintext Password if available */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+        <span>{lang === 'ar' ? 'كلمة المرور الحالية:' : 'Current Password:'}</span>
+        {targetUser.password ? (
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontWeight: 'bold', fontFamily: showCurrent ? 'inherit' : 'monospace', color: 'var(--text-primary)' }}>
+              {showCurrent ? targetUser.password : '••••••••'}
+            </span>
+            <button type="button" onClick={() => setShowCurrent(!showCurrent)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center' }}>
+              {showCurrent ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+        ) : (
+          <span style={{ fontStyle: 'italic', opacity: 0.6 }}>{lang === 'ar' ? 'غير مسجلة بقاعدة البيانات (يمكنك تعيين كلمة مرور جديدة)' : 'Not recorded in DB (you can assign a new password)'}</span>
+        )}
+      </div>
+
       <form onSubmit={handleReset} style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
         <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
           <input
@@ -390,18 +409,35 @@ const AdminPasswordResetSection = ({ targetUser, lang, adminResetPassword }) => 
   );
 };
 
-const PasswordViewInline = ({ userId, username, lang, adminResetPassword }) => {
+const PasswordViewInline = ({ userId, username, lang, adminResetPassword, currentPassword }) => {
   const [editing, setEditing] = useState(false);
   const [newPass, setNewPass] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const [showCurrent, setShowCurrent] = useState(false);
   const [saving, setSaving] = useState(false);
 
   if (!editing) {
     return (
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-        <span style={{ opacity: 0.4, fontFamily: 'monospace' }}>••••••••</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }} onClick={e => e.stopPropagation()}>
+        {currentPassword ? (
+          <>
+            <span style={{ fontFamily: showCurrent ? 'inherit' : 'monospace', color: showCurrent ? 'var(--text-primary)' : 'var(--text-secondary)', opacity: showCurrent ? 1 : 0.6 }}>
+              {showCurrent ? currentPassword : '••••••••'}
+            </span>
+            <button
+              onClick={() => setShowCurrent(!showCurrent)}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '2px', display: 'flex', alignItems: 'center' }}
+            >
+              {showCurrent ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          </>
+        ) : (
+          <span style={{ opacity: 0.4, fontStyle: 'italic', fontSize: '0.8rem' }}>
+            {lang === 'ar' ? 'غير مسجلة' : 'Not recorded'}
+          </span>
+        )}
         <button
-          onClick={e => { e.stopPropagation(); setEditing(true); }}
+          onClick={() => setEditing(true)}
           title={lang === 'ar' ? 'تغيير كلمة المرور' : 'Change password'}
           style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary-light)', padding: '2px' }}
         >
@@ -1280,8 +1316,19 @@ const UserManagement = ({ users, lang, deleteUser, updateUserRole, updateUser, d
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
                   <Phone size={14} /> {userPhone}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)' }}>
-                  <Shield size={14} /> {lang === 'ar' ? 'كلمة المرور:' : 'Password:'} <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>********</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-secondary)', flexWrap: 'wrap' }}>
+                  <Shield size={14} /> {lang === 'ar' ? 'كلمة المرور:' : 'Password:'}{' '}
+                  {currentUserRole === 'SUPER_ADMIN' ? (
+                    <PasswordViewInline 
+                      userId={u.id} 
+                      username={u.username} 
+                      lang={lang} 
+                      adminResetPassword={adminResetPassword}
+                      currentPassword={u.password}
+                    />
+                  ) : (
+                    <span style={{ color: 'var(--text-secondary)', opacity: 0.5 }}>********</span>
+                  )}
                 </div>
               </div>
 

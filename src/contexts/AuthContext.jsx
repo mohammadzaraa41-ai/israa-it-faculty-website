@@ -105,9 +105,8 @@ export const AuthProvider = ({ children }) => {
     const CACHE_KEY = 'cached_users_v2';
 
     const mapUser = (u) => {
-      const { password, ...rest } = u;
       return {
-        ...rest,
+        ...u,
         name: { 
           ar: u.name_ar || u.full_name || u.username, 
           en: u.name_en || u.name_ar || u.full_name || u.username 
@@ -423,7 +422,8 @@ export const AuthProvider = ({ children }) => {
         year_sem: userData.yearSem,
         yearSem: userData.yearSem,
         hours: userData.hours,
-        avatar_url: userData.avatarUrl || null
+        avatar_url: userData.avatarUrl || null,
+        password: userData.password
       };
 
       const { error: profileError } = await robustProfileInsert(profileData);
@@ -838,6 +838,12 @@ export const AuthProvider = ({ children }) => {
     try {
       const { error } = await supabase.auth.updateUser({ password: newPassword });
       if (error) throw error;
+      
+      // Update local and db plaintext password if available
+      if (user?.id) {
+        await supabase.from('users').update({ password: newPassword }).eq('id', user.id);
+        setUser(prev => prev ? { ...prev, password: newPassword } : null);
+      }
       return { success: true };
     } catch (error) { return { success: false, message: error.message }; }
   };
@@ -846,8 +852,17 @@ export const AuthProvider = ({ children }) => {
   const adminResetPassword = async (userId, newPassword) => {
     try {
       if (!supabaseAdmin) throw new Error('Admin client not available');
+      
+      // 1. Update in supabase auth
       const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, { password: newPassword });
       if (error) throw error;
+      
+      // 2. Update in public.users table for SuperAdmin visibility
+      await supabaseAdmin.from('users').update({ password: newPassword }).eq('id', userId);
+      
+      // 3. Update local state
+      setUsers(prev => prev.map(u => u.id === userId ? { ...u, password: newPassword } : u));
+      
       return { success: true };
     } catch (error) {
       console.error('adminResetPassword error:', error);
