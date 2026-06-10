@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { CardSkeleton } from '../components/Skeleton';
 import { useToast } from '../contexts/ToastContext';
+import { DB_SCHEMA } from '../data/db_schema';
 import './Home.css';
 
 const Home = () => {
