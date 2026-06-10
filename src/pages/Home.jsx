@@ -25,6 +25,7 @@ const Home = () => {
   const [lightboxImages, setLightboxImages] = useState([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [annIdx, setAnnIdx] = useState(0);
   const fileInputRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -211,20 +212,55 @@ const Home = () => {
   return (
     <div className="home-container">
 
-      <div className="announcements-container">
-        {announcements.map((ann) => (
-          <motion.div
-            key={ann.id}
-            className={`announcement-bar ${ann.type}`}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2 * ann.id }}
-          >
-            {ann.type === 'warning' ? <AlertCircle size={20} /> : <Info size={20} />}
-            <p>{ann.text?.[lang] || ann.text?.ar || ann.text || ''}</p>
-          </motion.div>
-        ))}
-      </div>
+      {/* Announcements Carousel - single card with navigation */}
+      {announcements.length > 0 && (
+        <div className="announcements-carousel">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={annIdx}
+              className={`announcement-bar ${announcements[annIdx % announcements.length].type}`}
+              initial={{ opacity: 0, x: lang === 'ar' ? 40 : -40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: lang === 'ar' ? -40 : 40 }}
+              transition={{ duration: 0.3 }}
+            >
+              {announcements[annIdx % announcements.length].type === 'warning'
+                ? <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                : <Info size={18} style={{ flexShrink: 0 }} />}
+              <p>{announcements[annIdx % announcements.length].text?.[lang] || announcements[annIdx % announcements.length].text?.ar || announcements[annIdx % announcements.length].text || ''}</p>
+            </motion.div>
+          </AnimatePresence>
+
+          {announcements.length > 1 && (
+            <div className="ann-nav">
+              <button
+                className="ann-nav-btn"
+                onClick={() => setAnnIdx(i => (i - 1 + announcements.length) % announcements.length)}
+                aria-label="Previous announcement"
+              >
+                <ChevronRight size={16} />
+              </button>
+              <div className="ann-dots">
+                {announcements.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`ann-dot ${i === annIdx % announcements.length ? 'active' : ''}`}
+                    onClick={() => setAnnIdx(i)}
+                    aria-label={`Announcement ${i + 1}`}
+                  />
+                ))}
+              </div>
+              <button
+                className="ann-nav-btn"
+                onClick={() => setAnnIdx(i => (i + 1) % announcements.length)}
+                aria-label="Next announcement"
+              >
+                <ChevronLeft size={16} />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="feed-layout">
         <main className="feed-main">

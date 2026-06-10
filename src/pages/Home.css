@@ -5,20 +5,14 @@
   min-height: 100vh;
 }
 
-/* Announcements Bar — Horizontal Scrollable Row */
-.announcements-container {
-  display: flex;
-  flex-direction: row;
-  gap: 1rem;
-  margin-bottom: 2rem;
-  overflow-x: auto;
-  padding-bottom: 0.5rem;
-  /* Hide scrollbar but keep scrollability */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.announcements-container::-webkit-scrollbar {
-  display: none;
+/* ============================================
+   Announcements Carousel
+   ============================================ */
+.announcements-carousel {
+  margin-bottom: 1.75rem;
+  position: relative;
+  /* Reserve space so nothing jumps when card transitions */
+  min-height: 0;
 }
 
 .announcement-bar {
@@ -29,25 +23,19 @@
   border-radius: 16px;
   font-weight: 600;
   font-size: 0.9rem;
-  line-height: 1.55;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
-  border: 1px solid rgba(255,255,255,0.08);
-  /* Each card has a fixed min-width so they sit side by side */
-  flex: 0 0 clamp(260px, 38vw, 420px);
-  min-height: 70px;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.announcement-bar:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  line-height: 1.6;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 100%;
+  min-height: 64px;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  overflow: hidden;
 }
 
 .announcement-bar svg {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .announcement-bar p {
@@ -55,31 +43,96 @@
   flex: 1;
 }
 
+/* Warning type */
 .announcement-bar.warning {
-  background: rgba(197, 48, 48, 0.12);
-  border-color: rgba(245, 101, 101, 0.3);
+  background: rgba(197, 48, 48, 0.13);
+  border-color: rgba(245, 101, 101, 0.28);
   border-left: 4px solid #f56565;
-  color: #feb2b2;
+  color: #fecaca;
 }
-
 [data-theme='light'] .announcement-bar.warning {
   background: #fff5f5;
   border-left-color: #c53030;
   color: #9b2c2c;
 }
 
+/* Info type */
 .announcement-bar.info {
-  background: rgba(43, 108, 176, 0.12);
-  border-color: rgba(99, 179, 237, 0.3);
-  border-left: 4px solid #63b3ed;
-  color: #bee3f8;
+  background: rgba(30, 64, 140, 0.15);
+  border-color: rgba(99, 179, 237, 0.25);
+  border-left: 4px solid #60a5fa;
+  color: #bfdbfe;
+}
+[data-theme='light'] .announcement-bar.info {
+  background: #eff6ff;
+  border-left-color: #2563eb;
+  color: #1e3a8a;
 }
 
-[data-theme='light'] .announcement-bar.info {
-  background: #ebf8ff;
-  border-left-color: #2b6cb0;
-  color: #2c5282;
+/* Navigation row (arrows + dots) */
+.ann-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.65rem;
 }
+
+.ann-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  flex-shrink: 0;
+}
+.ann-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  transform: scale(1.1);
+}
+[data-theme='light'] .ann-nav-btn {
+  background: rgba(0, 33, 71, 0.07);
+  border-color: rgba(0, 33, 71, 0.15);
+  color: #002147;
+}
+[data-theme='light'] .ann-nav-btn:hover {
+  background: rgba(0, 33, 71, 0.14);
+}
+
+.ann-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.ann-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.2s;
+  padding: 0;
+}
+.ann-dot.active {
+  background: #60a5fa;
+  transform: scale(1.35);
+}
+[data-theme='light'] .ann-dot {
+  background: rgba(0, 33, 71, 0.2);
+}
+[data-theme='light'] .ann-dot.active {
+  background: #2563eb;
+}
+
 
 /* Feed Layout */
 .feed-layout {
